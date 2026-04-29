@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hether</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -49,7 +49,7 @@
 }
 
 body {
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Arial', arial;
   background: var(--bg);
   color: var(--text);
   display: block;
@@ -165,7 +165,6 @@ body {
 
 .sidebar-spacer { flex: 1; }
 
-/* ── PROFILE BUTTON — shows avatar + display name only (one liner) ── */
 .profile-btn {
   display: flex; align-items: center; gap: 9px;
   padding: 8px 7px; border-radius: var(--radius);
@@ -185,7 +184,6 @@ body {
 }
 .profile-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 
-/* One-liner: just display name */
 .profile-display-name {
   font-size: 13px; font-weight: 500; color: var(--text);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -241,7 +239,7 @@ body {
   padding: 8px 10px; border-radius: 7px; cursor: pointer;
   font-size: 13px; color: var(--text2);
   transition: background var(--t), color var(--t);
-  border: none; background: transparent; width: 100%; text-align: left; font-family: 'DM Sans', sans-serif;
+  border: none; background: transparent; width: 100%; text-align: left; font-family: 'Arial', arial;
 }
 .pd-item:hover { background: var(--surface2); color: var(--text); }
 .pd-item svg { width: 14px; height: 14px; flex-shrink: 0; opacity: 0.75; }
@@ -334,16 +332,42 @@ body {
 .bubble code { font-family: 'DM Mono', monospace; font-size: 12.5px; background: var(--surface2); padding: 1px 5px; border-radius: 4px; }
 .bubble pre { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; overflow-x: auto; margin: 8px 0; font-family: 'DM Mono', monospace; font-size: 12.5px; }
 
-/* media in bubble */
 .bubble img.chat-media { max-width: 260px; max-height: 220px; border-radius: 6px; display: block; margin-top: 6px; cursor: pointer; }
 .bubble video.chat-media { max-width: 260px; border-radius: 6px; display: block; margin-top: 6px; }
 
-/* ── WELCOME ── */
-.welcome { max-width: 580px; margin: auto; padding: 20px 28px; text-align: center; animation: fadeUp 0.4s ease; }
-@keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+/* ── WELCOME — redesigned ── */
+.welcome {
+  max-width: 620px;
+  margin: auto;
+  padding: 20px 28px;
+  text-align: center;
+  animation: fadeUp 0.5s cubic-bezier(0.22,1,0.36,1);
+}
+@keyframes fadeUp { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
 
-.welcome-greeting { font-size: 48px; font-weight: 700; letter-spacing: -1.2px; margin-bottom: 12px; background: linear-gradient(135deg, #5b6af0 0%, #a855f7 40%, #ec4899 70%, #f97316 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1.2; text-align: center; word-spacing: 0.1em; }
-.welcome-sub { color: var(--text2); font-size: 14.5px; margin-bottom: 28px; font-weight: 400; }
+.welcome-greeting {
+  font-family: 'Arial', arial;
+  font-weight: 800;
+  font-size: 68px;
+  letter-spacing: -2.5px;
+  line-height: 1.05;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, #5b6af0 0%, #a855f7 38%, #ec4899 68%, #f97316 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-align: center;
+}
+
+.welcome-sub {
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  color: var(--text2);
+  font-size: 17px;
+  margin-bottom: 32px;
+  font-weight: 400;
+  letter-spacing: 0.1px;
+}
 
 .suggestions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; text-align: left; }
 .sug-card { padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; transition: border-color var(--t), background var(--t), transform var(--t); background: var(--surface); }
@@ -446,7 +470,6 @@ body {
   position: relative;
 }
 
-/* Left sidebar — conversation list */
 .dm-sidebar {
   width: 280px;
   border-right: 1px solid var(--border);
@@ -525,10 +548,8 @@ body {
 .dm-conv-info { flex: 1; min-width: 0; }
 .dm-conv-name { font-size: 13.5px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .dm-conv-preview { font-size: 12px; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
-
 .dm-conv-time { font-size: 11px; color: var(--text3); flex-shrink: 0; }
 
-/* Right panel — chat */
 .dm-chat-panel {
   flex: 1; display: flex; flex-direction: column; overflow: hidden;
   background: var(--bg);
@@ -541,7 +562,6 @@ body {
 .dm-empty-state svg { opacity: 0.3; }
 .dm-empty-state p { font-size: 14px; font-weight: 500; opacity: 0.6; }
 
-/* Top bar of dm chat panel */
 .dm-chat-topbar {
   padding: 14px 18px;
   border-bottom: 1px solid var(--border);
@@ -586,7 +606,6 @@ body {
 .dm-chat-input-area {
   padding: 6px 12px 8px;
   background: none;
-  
   flex-shrink: 0;
 }
 
@@ -606,7 +625,6 @@ body {
 }
 #dmInput::placeholder { color: var(--text3); }
 
-/* media upload btn */
 .dm-media-btn {
   background: transparent; border: none; cursor: pointer;
   color: var(--text3); width: 28px; height: 28px;
@@ -627,7 +645,6 @@ body {
 .dm-send-btn.hidden { display: none; }
 .dm-send-btn svg { width: 12px; height: 12px; }
 
-/* Emoji button */
 .emoji-btn {
   background: transparent; border: none; cursor: pointer;
   color: var(--text3); width: 28px; height: 28px;
@@ -638,7 +655,6 @@ body {
 .emoji-btn:hover { color: var(--accent); background: rgba(91,106,240,0.08); }
 .emoji-btn.hidden { display: none; }
 
-/* Emoji picker */
 .emoji-picker-overlay { display: none; position: fixed; inset: 0; z-index: 9999; }
 .emoji-picker-overlay.show { display: block; }
 
@@ -648,7 +664,6 @@ body {
   display: none; grid-template-columns: repeat(8, 1fr); gap: 6px;
   max-width: 350px; animation: slideUp 0.2s ease;
 }
-
 .emoji-picker.show { display: grid; }
 .emoji-item { width: 32px; height: 32px; border: none; background: var(--surface2);
   border-radius: 6px; cursor: pointer; font-size: 18px; transition: all var(--t);
@@ -658,7 +673,7 @@ body {
 
 /* ── FULLSCREEN DM (mobile) ── */
 .dm-fullscreen {
-  display: none; /* shown only on mobile */
+  display: none;
   position: fixed; inset: 0; z-index: 400;
   flex-direction: column;
   background: var(--surface);
@@ -677,7 +692,6 @@ body {
 
 .dm-fs-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; overflow: hidden; flex-shrink: 0; }
 .dm-fs-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
-
 .dm-fs-name { font-size: 14px; font-weight: 600; color: var(--text); }
 .dm-fs-messages { flex: 1; overflow-y: auto; padding: 14px 14px; display: flex; flex-direction: column; gap: 8px; }
 .dm-fs-input-area { padding: 10px 12px 14px; background: var(--surface); border-top: 1px solid var(--border); flex-shrink: 0; }
@@ -706,16 +720,13 @@ body {
   .message { padding: 0 14px; }
   .settings-view { padding: 24px 20px; }
   .suggestions { grid-template-columns: 1fr; }
-  .welcome-greeting { font-size: 52px !important; }
+  .welcome-greeting { font-size: 44px !important; letter-spacing: -1.5px !important; }
   .welcome { padding: 16px 16px; }
   .profile-dropdown { left: 6px; bottom: 68px; }
-
-  /* On mobile: popup hides, fullscreen DM shows */
   .dm-overlay { display: none !important; }
   .dm-fullscreen.show { display: flex; }
 }
 
-/* On desktop: fullscreen DM never shows */
 @media (min-width: 641px) {
   .dm-fullscreen { display: none !important; }
 }
@@ -735,139 +746,355 @@ body {
 .lightbox.show { display: flex; }
 .lightbox img { max-width: 92vw; max-height: 92vh; border-radius: 10px; box-shadow: 0 24px 60px rgba(0,0,0,0.4); }
 
-/* ── AUTH PAGE ── */
+/* ══════════════════════════════
+   AUTH PAGE — redesigned
+   ══════════════════════════════ */
 .auth-page {
   display: flex; align-items: center; justify-content: center;
   height: 100vh; width: 100%;
-  background: linear-gradient(135deg, var(--bg) 0%, var(--bg) 100%);
+  background: var(--bg);
   position: fixed; inset: 0; z-index: 1000;
+  overflow: hidden;
 }
-
 .auth-page.hidden { display: none; }
 
-.auth-container {
-  display: flex; flex-direction: column; align-items: center; gap: 40px;
-  max-width: 420px; width: 100%; padding: 40px 32px; text-align: center;
-  background: var(--surface); border-radius: 16px;
-  border: 1px solid var(--border); box-shadow: 0 20px 60px rgba(0,0,0,0.1);
-  animation: slideUp 0.4s ease;
+/* Soft ambient glow behind the card */
+.auth-page::before {
+  content: '';
+  position: absolute;
+  width: 600px; height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(91,106,240,0.12) 0%, transparent 70%);
+  top: 50%; left: 50%;
+  transform: translate(-50%, -60%);
+  pointer-events: none;
 }
 
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(30px); }
+.auth-card {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  padding: 0 24px;
+  animation: authCardIn 0.5s cubic-bezier(0.22,1,0.36,1);
+}
+
+@keyframes authCardIn {
+  from { opacity: 0; transform: translateY(28px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-.auth-header {
-  display: flex; flex-direction: column; gap: 12px;
-}
-
-.auth-logo {
-  display: flex; justify-content: center; margin-bottom: 8px;
-  color: var(--accent);
-}
-
-.auth-header h1 {
-  font-size: 28px; font-weight: 600; letter-spacing: -0.5px;
-  color: var(--text); margin: 0;
-}
-
-.auth-header p {
-  font-size: 14px; color: var(--text2); margin: 0;
-  line-height: 1.5;
-}
-
-.auth-buttons {
-  display: flex; flex-direction: column; gap: 10px; width: 100%;
-}
-
-.auth-btn {
+/* Logo area */
+.auth-logo-wrap {
   display: flex; align-items: center; justify-content: center; gap: 10px;
-  padding: 12px 20px; border-radius: 10px; border: none;
-  font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500;
-  cursor: pointer; transition: all var(--t);
-  width: 100%; white-space: nowrap;
+  margin-bottom: 32px;
+}
+.auth-logo-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+}
+.auth-logo-icon svg { width: 16px; height: 16px; fill: #fff; }
+.auth-logo-name {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 22px;
+  letter-spacing: -0.8px;
+  color: var(--text);
 }
 
-.auth-btn svg { width: 16px; height: 16px; }
-
-.auth-btn-primary {
-  background: var(--accent); color: #fff;
-  box-shadow: 0 4px 16px rgba(102, 100, 194, 0.3);
+/* The form panel */
+.auth-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 32px 28px;
+  box-shadow: 0 4px 40px rgba(0,0,0,0.06);
 }
 
-.auth-btn-primary:hover {
+.auth-panel-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: -0.5px;
+  color: var(--text);
+  margin-bottom: 4px;
+  text-align: center;
+}
+.auth-panel-sub {
+  font-size: 13px;
+  color: var(--text3);
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+/* Landing buttons (the initial 3-choice view) */
+.auth-landing-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.auth-main-btn {
+  width: 100%;
+  padding: 11px 18px;
+  border-radius: 10px;
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.auth-main-btn.primary {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 2px 14px rgba(102,100,194,0.28);
+}
+.auth-main-btn.primary:hover {
   background: var(--accent-hover);
-  box-shadow: 0 6px 20px rgba(102, 100, 194, 0.4);
-  transform: translateY(-2px);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(102,100,194,0.36);
 }
 
-.auth-btn-secondary {
-  background: var(--surface2); color: var(--text);
+.auth-main-btn.secondary {
+  background: transparent;
+  color: var(--text);
   border: 1px solid var(--border);
 }
-
-.auth-btn-secondary:hover {
-  background: var(--border); color: var(--text);
+.auth-main-btn.secondary:hover {
+  background: var(--surface2);
   border-color: var(--accent);
-  transform: translateY(-1px);
 }
+
+.auth-divider {
+  display: flex; align-items: center; gap: 10px;
+  margin: 4px 0;
+}
+.auth-divider-line { flex: 1; height: 1px; background: var(--border); }
+.auth-divider-text { font-size: 11px; color: var(--text3); letter-spacing: 0.5px; }
+
+/* Form fields */
+.auth-form { display: flex; flex-direction: column; gap: 12px; }
+
+.auth-field-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  margin-bottom: 5px;
+}
+.auth-field { display: flex; flex-direction: column; }
+
+.auth-input {
+  width: 100%;
+  padding: 10px 13px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13.5px;
+  outline: none;
+  transition: border-color var(--t), box-shadow var(--t);
+}
+.auth-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(91,106,240,0.1);
+}
+.auth-input::placeholder { color: var(--text3); }
+
+.auth-submit-btn {
+  width: 100%;
+  padding: 11px;
+  border-radius: 10px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--t), transform var(--t), box-shadow var(--t);
+  margin-top: 4px;
+  box-shadow: 0 2px 14px rgba(102,100,194,0.28);
+}
+.auth-submit-btn:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(102,100,194,0.36);
+}
+
+.auth-form-error {
+  font-size: 12px;
+  color: #ef4444;
+  text-align: center;
+  display: none;
+  padding: 8px 12px;
+  background: rgba(239,68,68,0.07);
+  border-radius: 7px;
+  border: 1px solid rgba(239,68,68,0.15);
+}
+
+.auth-back-link {
+  text-align: center;
+  margin-top: 16px;
+  font-size: 12.5px;
+  color: var(--text3);
+}
+.auth-back-link button {
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 12.5px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  transition: color var(--t);
+  padding: 0;
+}
+.auth-back-link button:hover { color: var(--accent-hover); text-decoration: underline; }
+
+.auth-switch-link {
+  text-align: center;
+  margin-top: 16px;
+  font-size: 12.5px;
+  color: var(--text3);
+}
+.auth-switch-link button {
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 12.5px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  padding: 0;
+  transition: color var(--t);
+}
+.auth-switch-link button:hover { color: var(--accent-hover); }
 
 .auth-footer {
-  font-size: 11px; color: var(--text3);
-  line-height: 1.5;
+  text-align: center;
+  margin-top: 20px;
+  font-size: 11px;
+  color: var(--text3);
+  line-height: 1.6;
 }
 
-.auth-footer p { margin: 0; }
+/* Auth panel transition */
+.auth-panel-view { display: none; }
+.auth-panel-view.active { display: block; }
+
 </style>
 </head>
 <body>
 
 <!-- AUTH PAGE -->
 <div class="auth-page" id="authPage">
-  <div class="auth-container">
-    <div class="auth-header">
-      <div class="auth-logo">
-        <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"/>
-          <path d="M12 16v-4M12 8h.01"/>
-        </svg>
+  <div class="auth-card">
+
+    <!-- Logo -->
+    <div class="auth-logo-wrap">
+      <div class="auth-logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
       </div>
-      <h1>Welcome to Hether</h1>
-      <p>Your AI assistant for calculations, knowledge & more</p>
+      <span class="auth-logo-name">hether</span>
     </div>
-    
-    <div class="auth-buttons">
-      <button class="auth-btn auth-btn-primary" onclick="authenticateGuest()">
-        <span>Continue as Guest</span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="9 18 15 12 9 6"/>
-        </svg>
-      </button>
-      <button class="auth-btn auth-btn-secondary" onclick="handleSignUp()">
-        <span>Sign up</span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="9 18 15 12 9 6"/>
-        </svg>
-      </button>
-      <button class="auth-btn auth-btn-secondary" onclick="handleLogin()">
-        <span>Login</span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="9 18 15 12 9 6"/>
-        </svg>
-      </button>
-    </div>
-    
-    <div class="auth-footer">
-      <p>By continuing, you agree to our Terms of Service</p>
-    </div>
-  </div>
+
+    <div class="auth-panel">
+
+      <!-- LANDING VIEW -->
+      <div class="auth-panel-view active" id="authLanding">
+        <div class="auth-panel-title">Welcome back</div>
+        <div class="auth-panel-sub">Your AI assistant for everything.</div>
+        <div class="auth-landing-btns">
+          <button class="auth-main-btn primary" onclick="showAuthView('login')">
+            Log in
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+          <div class="auth-divider">
+            <div class="auth-divider-line"></div>
+            <span class="auth-divider-text">OR</span>
+            <div class="auth-divider-line"></div>
+          </div>
+          <button class="auth-main-btn secondary" onclick="showAuthView('signup')">
+            Create an account
+          </button>
+          <button class="auth-main-btn secondary" onclick="authenticateGuest()">
+            Continue as guest
+          </button>
+        </div>
+      </div>
+
+      <!-- LOGIN VIEW -->
+      <div class="auth-panel-view" id="authLoginView">
+        <div class="auth-panel-title">Log in</div>
+        <div class="auth-panel-sub">Enter your credentials to continue.</div>
+        <div class="auth-form" id="loginForm">
+          <div class="auth-field">
+            <div class="auth-field-label">Email address</div>
+            <input type="email" class="auth-input" id="loginEmail" placeholder="you@example.com" onkeydown="authKeyHandler(event,'login')">
+          </div>
+          <div class="auth-field">
+            <div class="auth-field-label">Password</div>
+            <input type="password" class="auth-input" id="loginPassword" placeholder="••••••••" onkeydown="authKeyHandler(event,'login')">
+          </div>
+          <div class="auth-form-error" id="loginError">Invalid email or password. Please try again.</div>
+          <button class="auth-submit-btn" onclick="handleLoginSubmit()">Log in</button>
+        </div>
+        <div class="auth-switch-link">
+          Don't have an account? <button onclick="showAuthView('signup')">Sign up</button>
+        </div>
+        <div class="auth-back-link">
+          <button onclick="showAuthView('landing')">← Back</button>
+        </div>
+      </div>
+
+      <!-- SIGN UP VIEW -->
+      <div class="auth-panel-view" id="authSignupView">
+        <div class="auth-panel-title">Create account</div>
+        <div class="auth-panel-sub">Join hether — it's free.</div>
+        <div class="auth-form" id="signupForm">
+          <div class="auth-field">
+            <div class="auth-field-label">Username</div>
+            <input type="text" class="auth-input" id="signupUsername" placeholder="yourname" onkeydown="authKeyHandler(event,'signup')">
+          </div>
+          <div class="auth-field">
+            <div class="auth-field-label">Email address</div>
+            <input type="email" class="auth-input" id="signupEmail" placeholder="you@example.com" onkeydown="authKeyHandler(event,'signup')">
+          </div>
+          <div class="auth-field">
+            <div class="auth-field-label">Password</div>
+            <input type="password" class="auth-input" id="signupPassword" placeholder="Min 8 characters" onkeydown="authKeyHandler(event,'signup')">
+          </div>
+          <div class="auth-form-error" id="signupError">Please fill in all fields correctly.</div>
+          <button class="auth-submit-btn" onclick="handleSignupSubmit()">Create account</button>
+        </div>
+        <div class="auth-switch-link">
+          Already have an account? <button onclick="showAuthView('login')">Log in</button>
+        </div>
+        <div class="auth-back-link">
+          <button onclick="showAuthView('landing')">← Back</button>
+        </div>
+      </div>
+
+    </div><!-- /auth-panel -->
+
+    <div class="auth-footer">By continuing, you agree to our Terms of Service &amp; Privacy Policy.</div>
+
+  </div><!-- /auth-card -->
 </div>
 
 <div class="mobile-overlay" id="mobileOverlay" onclick="hideSidebar()"></div>
 <div class="sidebar-trigger" id="sidebarTrigger"></div>
 
-<!-- MAIN APP (hidden until authenticated) -->
+<!-- MAIN APP -->
 <div id="mainApp" style="display: none; width: 100%; height: 100%;">
 
 <!-- SIDEBAR -->
@@ -900,7 +1127,6 @@ body {
 
   <div class="sidebar-spacer"></div>
 
-  <!-- PROFILE BUTTON — avatar + display name (one liner) -->
   <button class="profile-btn" id="profileBtn" onclick="toggleProfileDropdown()" data-tip="Profile">
     <div class="profile-avatar" id="sidebarProfileAvatar">
       <span id="sidebarAvatarInitial">U</span>
@@ -986,14 +1212,14 @@ body {
     <div class="input-area">
       <div class="input-wrap">
         <button class="emoji-btn" id="emojiBtn" onclick="toggleEmojiPicker()">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-smile-icon lucide-smile"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></svg>
         </button>
         <textarea id="userInput" rows="1" placeholder="Message hetherGPT..." oninput="autoResize(this); toggleMediaButton()" onkeydown="handleKey(event)"></textarea>
         <button class="send-btn" id="sendBtn" onclick="sendMessage()" disabled>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
         </button>
         <label class="emoji-btn hidden" id="aiMediaBtn" for="aiMediaUpload" title="Send media">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-image-icon lucide-image"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
         </label>
         <input type="file" id="aiMediaUpload" accept="image/*,video/*" style="display:none" onchange="handleAIMedia(event)">
       </div>
@@ -1046,13 +1272,9 @@ body {
 
 </main>
 
-<!-- ══════════════════════════
-     ADMIN DM — DESKTOP POPUP
-     ══════════════════════════ -->
+<!-- ADMIN DM — DESKTOP -->
 <div class="dm-overlay" id="dmOverlay" onclick="dmOverlayClick(event)">
   <div class="dm-popup" id="dmPopup">
-
-    <!-- Left: conversation list -->
     <div class="dm-sidebar">
       <div class="dm-sidebar-header">
         <div class="dm-sidebar-title">
@@ -1061,20 +1283,14 @@ body {
         </div>
         <button class="dm-close-btn" onclick="closeDM()" title="Close">×</button>
       </div>
-      <div class="dm-conv-list" id="dmConvList">
-        <!-- populated by JS -->
-      </div>
+      <div class="dm-conv-list" id="dmConvList"></div>
     </div>
-
-    <!-- Right: chat panel -->
     <div class="dm-chat-panel" id="dmChatPanel">
       <div class="dm-empty-state" id="dmEmptyState">
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         <p>Select a conversation</p>
       </div>
-
       <div id="dmActiveChatWrap" style="display:none;flex:1;flex-direction:column;overflow:hidden;display:none;">
-        <!-- top bar -->
         <div class="dm-chat-topbar" id="dmChatTopbar">
           <div class="dm-chat-topbar-avatar" id="dmTopbarAvatar"></div>
           <div class="dm-chat-topbar-info">
@@ -1082,17 +1298,15 @@ body {
             <div class="dm-chat-topbar-status">Active now</div>
           </div>
         </div>
-        <!-- messages -->
         <div class="dm-chat-messages" id="dmChatMessages"></div>
-        <!-- input -->
         <div class="dm-chat-input-area">
           <div class="dm-input-row">
             <button class="emoji-btn" id="dmEmojiBtn" onclick="toggleEmojiPicker('dm')">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-smile-icon lucide-smile"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></svg>
             </button>
             <input type="text" id="dmInput" placeholder="Message..." oninput="toggleDmSendBtn()" onkeydown="dmHandleKey(event,'desktop')">
             <label class="emoji-btn" id="dmMediaBtn" for="dmMediaUpload" title="Send media">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-image-icon lucide-image"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
             </label>
             <input type="file" id="dmMediaUpload" accept="image/*,video/*" style="display:none" onchange="dmHandleMedia(event,'desktop')">
             <button class="dm-send-btn hidden" id="dmSendBtn" onclick="dmSend('desktop')">
@@ -1102,15 +1316,11 @@ body {
         </div>
       </div>
     </div>
-
   </div>
 </div>
 
-<!-- ══════════════════════════
-     ADMIN DM — MOBILE FULLSCREEN
-     ══════════════════════════ -->
+<!-- ADMIN DM — MOBILE -->
 <div class="dm-fullscreen" id="dmFullscreen">
-  <!-- If no convo selected, show list -->
   <div id="dmFsListView" style="display:flex;flex-direction:column;height:100%;">
     <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);flex-shrink:0;">
       <div style="font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px;">
@@ -1120,7 +1330,6 @@ body {
     </div>
     <div class="dm-conv-list" id="dmFsConvList" style="flex:1;overflow-y:auto;padding:8px;"></div>
   </div>
-  <!-- Active chat on mobile -->
   <div id="dmFsChatView" style="display:none;flex-direction:column;height:100%;">
     <div class="dm-fs-header">
       <button class="dm-fs-back" onclick="dmFsBack()">
@@ -1203,9 +1412,16 @@ body {
   </div>
 </div>
 
-</div><!-- Close mainApp div -->
+</div><!-- /mainApp -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
+const supabaseClient = window.supabase.createClient(
+  "https://zdxevrzwndranrcerrhs.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpkeGV2cnp3bmRyYW5yY2VycmhzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NzA1NjYsImV4cCI6MjA5MzA0NjU2Nn0.F6HWXevFCBF1KTd7IahlqbfHhm3koC0pqmRFK4TPPfM"
+);
+
 const ADMIN_KEY = 'adminm1ik33yshamwaviii';
 let currentView = 'chat';
 let isTyping = false;
@@ -1215,7 +1431,6 @@ let sidebarMini = false;
 let sidebarHideTimer = null;
 const isMobile = () => window.innerWidth <= 640;
 
-// ── DM CONTACTS ──
 const dmContacts = [
   { id: 1, name: 'Alice Chen',   initials: 'AC', color: 'linear-gradient(135deg,#5b6af0,#a855f7)', online: true,  messages: [{ type:'received', text:'Hey, admin here. Need your sign-off.', time: '9:12 AM' }] },
   { id: 2, name: 'Bob Martin',   initials: 'BM', color: 'linear-gradient(135deg,#f97316,#ec4899)', online: false, messages: [{ type:'received', text:'Check the logs from last night.', time: 'Yesterday' }] },
@@ -1225,34 +1440,43 @@ const dmContacts = [
 
 let activeDmId = null;
 
-// ── PROFILE STATE ──
 let profile = JSON.parse(localStorage.getItem('hether_profile') || 'null') || { name: 'User', username: '@user', email: 'user@example.com', avatarUrl: null };
 
-function saveProfileState() { localStorage.setItem('hether_profile', JSON.stringify(profile)); }
+async function saveProfile() {
+  const name = document.getElementById('peDisplayName').value.trim();
+  const username = document.getElementById('peUsername').value.replace('@','').trim();
 
+  const { data: { user } } = await supabaseClient.auth.getUser();
+
+  await supabase
+    .from('profiles')
+    .update({
+      username: username
+    })
+    .eq('id', user.id);
+
+  profile.name = name;
+  profile.username = '@' + username;
+
+  renderProfileEverywhere();
+  closeProfileEdit();
+}
 function getInitial(name) { return (name || 'U').trim()[0].toUpperCase(); }
 
 function renderProfileEverywhere() {
   const initial = getInitial(profile.name);
-
-  // Sidebar — avatar + display name only
   document.getElementById('sidebarProfileName').textContent = profile.name;
   const sAvEl = document.getElementById('sidebarProfileAvatar');
   sAvEl.innerHTML = profile.avatarUrl ? `<img src="${profile.avatarUrl}" alt="">` : `<span>${initial}</span>`;
-
-  // Dropdown header
   document.getElementById('pdDisplayName').textContent = profile.name;
   document.getElementById('pdEmail').textContent = profile.email;
   const pdAvEl = document.getElementById('pdAvatarLarge');
   const pdOverlay = `<div class="pd-avatar-overlay"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>`;
   pdAvEl.innerHTML = profile.avatarUrl ? `<img src="${profile.avatarUrl}" alt="">${pdOverlay}` : `<span id="pdAvatarInitial">${initial}</span>${pdOverlay}`;
-
   document.getElementById('acc0Name').textContent = `${profile.name} (current)`;
-
   const peEl = document.getElementById('peAvatarPreview');
   peEl.innerHTML = profile.avatarUrl ? `<img src="${profile.avatarUrl}" alt="">` : `<span id="peAvatarInitial">${initial}</span>`;
 }
-
 renderProfileEverywhere();
 
 // ── THEME ──
@@ -1262,7 +1486,6 @@ function initTheme() {
   const t = document.getElementById('themeToggle');
   if (t) t.classList.toggle('on', saved === 'dark');
 }
-
 function toggleTheme() {
   const html = document.documentElement;
   const isDark = html.getAttribute('data-theme') === 'dark';
@@ -1271,7 +1494,6 @@ function toggleTheme() {
   localStorage.setItem('hether_theme', next);
   document.getElementById('themeToggle').classList.toggle('on', next === 'dark');
 }
-
 initTheme();
 
 // ── GREETING ──
@@ -1289,7 +1511,7 @@ function setWelcomeGreeting() {
 }
 setWelcomeGreeting();
 
-// ── SIDEBAR HOVER ──
+// ── SIDEBAR ──
 function setupSidebarHover() {
   const sidebar = document.getElementById('sidebar');
   const trigger = document.getElementById('sidebarTrigger');
@@ -1297,21 +1519,18 @@ function setupSidebarHover() {
   sidebar.addEventListener('mouseenter', () => { if (isMobile()) return; clearTimeout(sidebarHideTimer); expandSidebar(); });
   trigger.addEventListener('mouseenter', () => { if (isMobile()) return; clearTimeout(sidebarHideTimer); expandSidebar(); });
 }
-
 function expandSidebar() {
   sidebarMini = false;
   document.getElementById('sidebar').classList.remove('mini');
   if (!isMobile()) document.getElementById('mainArea').classList.remove('sidebar-mini');
   document.getElementById('profileDropdown').classList.remove('show');
 }
-
 function miniSidebar() {
   sidebarMini = true;
   document.getElementById('sidebar').classList.add('mini');
   if (!isMobile()) document.getElementById('mainArea').classList.add('sidebar-mini');
   document.getElementById('profileDropdown').classList.remove('show');
 }
-
 function toggleSidebarMobile() {
   if (isMobile()) {
     const sidebar = document.getElementById('sidebar');
@@ -1319,7 +1538,6 @@ function toggleSidebarMobile() {
     else { miniSidebar(); document.getElementById('mobileOverlay').classList.remove('show'); }
   }
 }
-
 function hideSidebar() { miniSidebar(); document.getElementById('mobileOverlay').classList.remove('show'); }
 setupSidebarHover();
 
@@ -1339,7 +1557,6 @@ function autoResize(el) {
   el.style.height = Math.min(el.scrollHeight, 160) + 'px';
   document.getElementById('sendBtn').disabled = el.value.trim() === '';
 }
-
 function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }
 function fillSuggestion(text) { const i = document.getElementById('userInput'); i.value = text; autoResize(i); i.focus(); }
 
@@ -1366,43 +1583,26 @@ async function sendMessage() {
   const input = document.getElementById('userInput');
   const text = input.value.trim();
   if (!text || isTyping) return;
-
   const welcome = document.getElementById('welcomeScreen');
   if (welcome) welcome.remove();
-
   appendMessage('user', text);
   chatHistory.push({ role: 'user', content: text });
-
-  input.value = '';
-  input.style.height = 'auto';
+  input.value = ''; input.style.height = 'auto';
   document.getElementById('sendBtn').disabled = true;
-
   const typingEl = appendTyping();
   isTyping = true;
-
   try {
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: chatHistory })
-    });
-
+    const res = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: chatHistory }) });
     const data = await res.json();
-
     removeTyping(typingEl);
-
     if (data.error) throw new Error(data.error);
-
     const reply = data.reply || 'No response received.';
-
     appendMessage('ai', reply);
     chatHistory.push({ role: 'ai', content: reply });
-
   } catch (err) {
     removeTyping(typingEl);
     appendMessage('ai', `Error: ${err.message}`);
   }
-
   isTyping = false;
 }
 
@@ -1412,11 +1612,8 @@ function appendMessage(role, text) {
   div.className = `message ${role}`;
   const av = document.createElement('div');
   av.className = `avatar ${role === 'ai' ? 'ai' : 'user-av'}`;
-  if (role !== 'ai' && profile.avatarUrl) {
-    av.innerHTML = `<img src="${profile.avatarUrl}" alt="">`;
-  } else {
-    av.textContent = role === 'ai' ? 'AI' : getInitial(profile.name);
-  }
+  if (role !== 'ai' && profile.avatarUrl) { av.innerHTML = `<img src="${profile.avatarUrl}" alt="">`; }
+  else { av.textContent = role === 'ai' ? 'AI' : getInitial(profile.name); }
   const bubble = document.createElement('div');
   bubble.className = 'bubble';
   bubble.innerHTML = formatText(text);
@@ -1455,46 +1652,31 @@ function openAdminPopup() {
 }
 function closeAdminPopup() { document.getElementById('adminOverlay').classList.remove('show'); }
 function adminKeyHandler(e) { if (e.key === 'Enter') verifyAdmin(); if (e.key === 'Escape') closeAdminPopup(); }
-
 function verifyAdmin() {
   const val = document.getElementById('adminInput').value;
   if (val === ADMIN_KEY) { closeAdminPopup(); openDM(); }
-  else {
-    document.getElementById('adminError').style.display = 'block';
-    document.getElementById('adminInput').value = '';
-    document.getElementById('adminInput').focus();
-  }
+  else { document.getElementById('adminError').style.display = 'block'; document.getElementById('adminInput').value = ''; document.getElementById('adminInput').focus(); }
 }
 
-// ── DM OPEN / CLOSE ──
+// ── DM ──
 function openDM() {
-  dmOpen = true;
-  buildDMConvList();
+  dmOpen = true; buildDMConvList();
   if (isMobile()) {
     document.getElementById('dmFullscreen').classList.add('show');
-    // show list view
     document.getElementById('dmFsListView').style.display = 'flex';
     document.getElementById('dmFsChatView').style.display = 'none';
   } else {
     document.getElementById('dmOverlay').classList.add('show');
-    // if no active convo, show empty state
     if (!activeDmId) showDmEmptyState();
   }
 }
-
 function closeDM() {
-  dmOpen = false;
-  activeDmId = null;
+  dmOpen = false; activeDmId = null;
   document.getElementById('dmOverlay').classList.remove('show');
   document.getElementById('dmFullscreen').classList.remove('show');
 }
+function dmOverlayClick(e) { if (e.target === document.getElementById('dmOverlay')) closeDM(); }
 
-function dmOverlayClick(e) {
-  // close only if clicking backdrop (not popup itself)
-  if (e.target === document.getElementById('dmOverlay')) closeDM();
-}
-
-// ── BUILD CONV LIST ──
 function buildDMConvList() {
   ['dmConvList','dmFsConvList'].forEach(listId => {
     const list = document.getElementById(listId);
@@ -1506,23 +1688,12 @@ function buildDMConvList() {
       item.dataset.id = c.id;
       item.onclick = () => { isFsList ? openFsChat(c.id) : openDesktopChat(c.id); };
       const lastMsg = c.messages[c.messages.length - 1];
-      item.innerHTML = `
-        <div class="dm-conv-avatar" style="background:${c.color};">
-          ${c.online ? '<div class="dm-online-dot"></div>' : ''}
-          ${c.initials}
-        </div>
-        <div class="dm-conv-info">
-          <div class="dm-conv-name">${c.name}</div>
-          <div class="dm-conv-preview">${lastMsg ? (lastMsg.type==='sent'?'You: ':'')+lastMsg.text : 'No messages yet'}</div>
-        </div>
-        <div class="dm-conv-time">${lastMsg ? lastMsg.time : ''}</div>
-      `;
+      item.innerHTML = `<div class="dm-conv-avatar" style="background:${c.color};">${c.online ? '<div class="dm-online-dot"></div>' : ''}${c.initials}</div><div class="dm-conv-info"><div class="dm-conv-name">${c.name}</div><div class="dm-conv-preview">${lastMsg ? (lastMsg.type==='sent'?'You: ':'')+lastMsg.text : 'No messages yet'}</div></div><div class="dm-conv-time">${lastMsg ? lastMsg.time : ''}</div>`;
       list.appendChild(item);
     });
   });
 }
 
-// ── DESKTOP CHAT ──
 function showDmEmptyState() {
   document.getElementById('dmEmptyState').style.display = 'flex';
   document.getElementById('dmActiveChatWrap').style.display = 'none';
@@ -1532,53 +1703,33 @@ function openDesktopChat(id) {
   activeDmId = id;
   const contact = dmContacts.find(c => c.id === id);
   if (!contact) return;
-
-  // highlight active
   document.querySelectorAll('#dmConvList .dm-conv-item').forEach(el => el.classList.toggle('active', parseInt(el.dataset.id) === id));
-
-  // topbar
   document.getElementById('dmTopbarName').textContent = contact.name;
   const av = document.getElementById('dmTopbarAvatar');
-  av.style.background = contact.color;
-  av.textContent = contact.initials;
-
-  // messages
+  av.style.background = contact.color; av.textContent = contact.initials;
   const msgsEl = document.getElementById('dmChatMessages');
   msgsEl.innerHTML = '';
   contact.messages.forEach(m => renderDmMsg(msgsEl, m));
-
   document.getElementById('dmEmptyState').style.display = 'none';
   const wrap = document.getElementById('dmActiveChatWrap');
-  wrap.style.display = 'flex';
-  wrap.style.flexDirection = 'column';
-  wrap.style.flex = '1';
-  wrap.style.overflow = 'hidden';
-
+  wrap.style.display = 'flex'; wrap.style.flexDirection = 'column'; wrap.style.flex = '1'; wrap.style.overflow = 'hidden';
   document.getElementById('dmInput').focus();
   msgsEl.scrollTop = msgsEl.scrollHeight;
 }
 
-// ── MOBILE FULLSCREEN CHAT ──
 function openFsChat(id) {
   activeDmId = id;
   const contact = dmContacts.find(c => c.id === id);
   if (!contact) return;
-
   const av = document.getElementById('dmFsAvatar');
-  av.style.background = contact.color;
-  av.textContent = contact.initials;
+  av.style.background = contact.color; av.textContent = contact.initials;
   document.getElementById('dmFsName').textContent = contact.name;
-
   const msgsEl = document.getElementById('dmFsMessages');
   msgsEl.innerHTML = '';
   contact.messages.forEach(m => renderDmMsg(msgsEl, m));
-
   document.getElementById('dmFsListView').style.display = 'none';
   const chatView = document.getElementById('dmFsChatView');
-  chatView.style.display = 'flex';
-  chatView.style.flexDirection = 'column';
-  chatView.style.height = '100%';
-
+  chatView.style.display = 'flex'; chatView.style.flexDirection = 'column'; chatView.style.height = '100%';
   document.getElementById('dmFsInput').focus();
   msgsEl.scrollTop = msgsEl.scrollHeight;
 }
@@ -1586,59 +1737,42 @@ function openFsChat(id) {
 function dmFsBack() {
   document.getElementById('dmFsChatView').style.display = 'none';
   document.getElementById('dmFsListView').style.display = 'flex';
-  activeDmId = null;
-  buildDMConvList();
+  activeDmId = null; buildDMConvList();
 }
 
-// ── RENDER DM MESSAGE ──
 function renderDmMsg(container, msgData) {
   const div = document.createElement('div');
   div.className = `dm-msg ${msgData.type}`;
   const bubble = document.createElement('div');
   bubble.className = 'dm-bubble';
-
   if (msgData.mediaUrl) {
-    if (msgData.mediaType === 'video') {
-      bubble.innerHTML = `<video class="dm-media" controls src="${msgData.mediaUrl}"></video>`;
-    } else {
-      bubble.innerHTML = `<img class="dm-media" src="${msgData.mediaUrl}" alt="media" onclick="openLightbox(this.src)">`;
-    }
+    if (msgData.mediaType === 'video') { bubble.innerHTML = `<video class="dm-media" controls src="${msgData.mediaUrl}"></video>`; }
+    else { bubble.innerHTML = `<img class="dm-media" src="${msgData.mediaUrl}" alt="media" onclick="openLightbox(this.src)">`; }
     if (msgData.text) bubble.innerHTML += `<span>${escHtml(msgData.text)}</span>`;
-  } else {
-    bubble.textContent = msgData.text;
-  }
-
+  } else { bubble.textContent = msgData.text; }
   const time = document.createElement('div');
   time.className = 'dm-time';
   time.textContent = msgData.time || new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-
   div.appendChild(bubble); div.appendChild(time);
   container.appendChild(div);
   container.scrollTop = container.scrollHeight;
 }
 
-// ── DM SEND ──
 function dmHandleKey(e, mode) { if (e.key === 'Enter') dmSend(mode); }
-
 function dmSend(mode) {
   const inputId = mode === 'mobile' ? 'dmFsInput' : 'dmInput';
   const input = document.getElementById(inputId);
   const text = input.value.trim();
   if (!text || !activeDmId) return;
-
   const contact = dmContacts.find(c => c.id === activeDmId);
   const msg = { type: 'sent', text, time: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) };
   contact.messages.push(msg);
   input.value = '';
-
   const msgsEl = document.getElementById(mode === 'mobile' ? 'dmFsMessages' : 'dmChatMessages');
   renderDmMsg(msgsEl, msg);
-
-  // Update conv list preview
   buildDMConvList();
 }
 
-// ── DM MEDIA UPLOAD ──
 function dmHandleMedia(e, mode) {
   const file = e.target.files[0];
   if (!file || !activeDmId) return;
@@ -1646,13 +1780,7 @@ function dmHandleMedia(e, mode) {
   const reader = new FileReader();
   reader.onload = ev => {
     const isVideo = file.type.startsWith('video/');
-    const msg = {
-      type: 'sent',
-      text: '',
-      mediaUrl: ev.target.result,
-      mediaType: isVideo ? 'video' : 'image',
-      time: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})
-    };
+    const msg = { type: 'sent', text: '', mediaUrl: ev.target.result, mediaType: isVideo ? 'video' : 'image', time: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) };
     contact.messages.push(msg);
     const msgsEl = document.getElementById(mode === 'mobile' ? 'dmFsMessages' : 'dmChatMessages');
     renderDmMsg(msgsEl, msg);
@@ -1662,11 +1790,7 @@ function dmHandleMedia(e, mode) {
   e.target.value = '';
 }
 
-// ── LIGHTBOX ──
-function openLightbox(src) {
-  document.getElementById('lightboxImg').src = src;
-  document.getElementById('lightbox').classList.add('show');
-}
+function openLightbox(src) { document.getElementById('lightboxImg').src = src; document.getElementById('lightbox').classList.add('show'); }
 function closeLightbox() { document.getElementById('lightbox').classList.remove('show'); }
 
 // ── PROFILE DROPDOWN ──
@@ -1685,7 +1809,6 @@ document.addEventListener('click', (e) => {
   if (!document.getElementById('profileBtn').contains(e.target) && !document.getElementById('profileDropdown').contains(e.target)) closeProfileDropdown();
 });
 
-// ── ACCOUNT SWITCHER ──
 let accountSwitcherOpen = false;
 function toggleAccountSwitcher() {
   accountSwitcherOpen = !accountSwitcherOpen;
@@ -1700,24 +1823,17 @@ function switchAccount(idx) {
 }
 function addAccount() { closeProfileDropdown(); alert('Add account flow — integrate your auth provider here.'); }
 
-// ── LOG OUT ──
 function logOut() { closeProfileDropdown(); document.getElementById('logoutOverlay').classList.add('show'); }
 function closeLogout() { document.getElementById('logoutOverlay').classList.remove('show'); }
-function confirmLogout() {
-  closeLogout();
-  localStorage.removeItem('hether_profile');
-  localStorage.removeItem('hether_authenticated');
-  localStorage.removeItem('hether_user_type');
-  
-  chatHistory = [];
+async function confirmLogout() {
+  await supabaseClient.auth.signOut();
+
   profile = { name: 'User', username: '@user', email: 'user@example.com', avatarUrl: null };
   renderProfileEverywhere();
-  
-  // Show auth page
+
   showAuthPage();
 }
 
-// ── PROFILE EDIT ──
 function openProfileEdit() {
   closeProfileDropdown();
   document.getElementById('peDisplayName').value = profile.name;
@@ -1744,11 +1860,8 @@ function saveProfile() {
   if (email) profile.email = email;
   saveProfileState(); renderProfileEverywhere(); closeProfileEdit();
 }
-
 function clearHistory() { chatHistory = []; newChat(); }
 
-// ── KEYBOARD SHORTCUTS ──
-// Alt+T → open/close admin
 document.addEventListener('keydown', e => {
   if (e.altKey && e.key === 't') {
     e.preventDefault();
@@ -1758,8 +1871,7 @@ document.addEventListener('keydown', e => {
     openAdminPopup();
   }
   if (e.key === 'Escape') {
-    closeAdminPopup(); closeProfileEdit(); closeLogout(); closeProfileDropdown();
-    closeLightbox();
+    closeAdminPopup(); closeProfileEdit(); closeLogout(); closeProfileDropdown(); closeLightbox();
   }
 });
 
@@ -1768,216 +1880,221 @@ showView('chat');
 
 <!-- Emoji Picker and Input Management -->
 <script>
-// Emoji data
 const emojis = ['😊', '😂', '❤️', '🔥', '👍', '😍', '😭', '🙌', '💯', '✨', '🎉', '🚀', '💪', '😎', '🤔', '👌', '😱', '💔', '👏', '🌟', '😴', '😡', '🤗', '🥳', '😤', '😌', '🤐', '😏', '🙃', '😊'];
 
-// Initialize emoji picker
 function initEmojiPicker() {
   const picker = document.getElementById('emojiPicker');
   emojis.forEach(emoji => {
     const btn = document.createElement('button');
-    btn.className = 'emoji-item';
-    btn.textContent = emoji;
-    btn.onclick = (e) => {
-      e.stopPropagation();
-      insertEmoji(emoji);
-      closeEmojiPicker();
-    };
+    btn.className = 'emoji-item'; btn.textContent = emoji;
+    btn.onclick = (e) => { e.stopPropagation(); insertEmoji(emoji); closeEmojiPicker(); };
     picker.appendChild(btn);
   });
 }
 
 let emojiPickerMode = null;
-
-// Toggle emoji picker
 function toggleEmojiPicker(mode = 'chat') {
   const overlay = document.getElementById('emojiPickerOverlay');
   const picker = document.getElementById('emojiPicker');
-  
-  if (emojiPickerMode === mode && overlay.classList.contains('show')) {
-    closeEmojiPicker();
-  } else {
-    emojiPickerMode = mode;
-    overlay.classList.add('show');
-    picker.classList.add('show');
-  }
+  if (emojiPickerMode === mode && overlay.classList.contains('show')) { closeEmojiPicker(); }
+  else { emojiPickerMode = mode; overlay.classList.add('show'); picker.classList.add('show'); }
 }
-
-// Close emoji picker
 function closeEmojiPicker() {
   document.getElementById('emojiPickerOverlay').classList.remove('show');
   document.getElementById('emojiPicker').classList.remove('show');
   emojiPickerMode = null;
 }
-
-// Insert emoji into appropriate input
 function insertEmoji(emoji) {
   let input;
-  if (emojiPickerMode === 'dm') {
-    input = document.getElementById('dmInput');
-  } else if (emojiPickerMode === 'mobile') {
-    input = document.getElementById('dmFsInput');
-  } else {
-    input = document.getElementById('userInput');
-  }
-  
+  if (emojiPickerMode === 'dm') { input = document.getElementById('dmInput'); }
+  else if (emojiPickerMode === 'mobile') { input = document.getElementById('dmFsInput'); }
+  else { input = document.getElementById('userInput'); }
   if (input) {
-    input.value += emoji;
-    input.focus();
-    
-    // Trigger input event to update media button visibility
-    if (emojiPickerMode === null) {
-      toggleMediaButton();
-    } else if (emojiPickerMode === 'dm') {
-      toggleDmSendBtn();
-    } else if (emojiPickerMode === 'mobile') {
-      toggleDmFsSendBtn();
-    }
+    input.value += emoji; input.focus();
+    if (emojiPickerMode === null) { toggleMediaButton(); }
+    else if (emojiPickerMode === 'dm') { toggleDmSendBtn(); }
+    else if (emojiPickerMode === 'mobile') { toggleDmFsSendBtn(); }
   }
 }
 
-// Toggle media button visibility based on input
 function toggleMediaButton() {
   const input = document.getElementById('userInput');
   const sendBtn = document.getElementById('sendBtn');
   const mediaBtn = document.getElementById('aiMediaBtn');
-  
-  if (input.value.trim() === '') {
-    sendBtn.disabled = true;
-    mediaBtn.classList.add('hidden');
-  } else {
-    sendBtn.disabled = false;
-    mediaBtn.classList.remove('hidden');
-  }
+  if (input.value.trim() === '') { sendBtn.disabled = true; mediaBtn.classList.add('hidden'); }
+  else { sendBtn.disabled = false; mediaBtn.classList.remove('hidden'); }
 }
 
-// Toggle DM send button based on input
 function toggleDmSendBtn() {
   const input = document.getElementById('dmInput');
   const sendBtn = document.getElementById('dmSendBtn');
   const mediaBtn = document.getElementById('dmMediaBtn');
-  
-  if (input.value.trim() === '') {
-    sendBtn.classList.add('hidden');
-    mediaBtn.classList.remove('hidden');
-  } else {
-    sendBtn.classList.remove('hidden');
-    mediaBtn.classList.add('hidden');
-  }
+  if (input.value.trim() === '') { sendBtn.classList.add('hidden'); mediaBtn.classList.remove('hidden'); }
+  else { sendBtn.classList.remove('hidden'); mediaBtn.classList.add('hidden'); }
 }
 
-// Toggle DM fullscreen send button
 function toggleDmFsSendBtn() {
   const input = document.getElementById('dmFsInput');
   const sendBtn = document.getElementById('dmFsSendBtn');
-  
-  if (input.value.trim() === '') {
-    sendBtn.classList.add('hidden');
-  } else {
-    sendBtn.classList.remove('hidden');
-  }
+  if (input.value.trim() === '') { sendBtn.classList.add('hidden'); } else { sendBtn.classList.remove('hidden'); }
 }
 
-// Handle media upload for AI chat
 function handleAIMedia(event) {
   const file = event.target.files[0];
   if (!file) return;
-  
   const reader = new FileReader();
   reader.onload = (e) => {
     const isVideo = file.type.startsWith('video/');
     const content = e.target.result;
-    
-    // Add to chat as user message
     const msgEl = document.getElementById('messages');
     const msgDiv = document.createElement('div');
     msgDiv.className = 'message user';
-    
-    if (isVideo) {
-      msgDiv.innerHTML = `<div class="avatar user-av"><span>U</span></div><div class="bubble"><video class="chat-media" controls src="${content}"></video></div>`;
-    } else {
-      msgDiv.innerHTML = `<div class="avatar user-av"><span>U</span></div><div class="bubble"><img class="chat-media" src="${content}" onclick="openLightbox(this.src)"></div>`;
-    }
-    
-    msgEl.appendChild(msgDiv);
-    msgEl.scrollTop = msgEl.scrollHeight;
-    
-    // Clear input
+    if (isVideo) { msgDiv.innerHTML = `<div class="avatar user-av"><span>U</span></div><div class="bubble"><video class="chat-media" controls src="${content}"></video></div>`; }
+    else { msgDiv.innerHTML = `<div class="avatar user-av"><span>U</span></div><div class="bubble"><img class="chat-media" src="${content}" onclick="openLightbox(this.src)"></div>`; }
+    msgEl.appendChild(msgDiv); msgEl.scrollTop = msgEl.scrollHeight;
     document.getElementById('aiMediaUpload').value = '';
   };
   reader.readAsDataURL(file);
 }
 
-// Initialize emoji picker on page load
 window.addEventListener('load', function() {
   initEmojiPicker();
-  
-  // Initialize button visibility for AI chat
   toggleMediaButton();
-  
-  // Initialize button visibility for DM
-  const dmInput = document.getElementById('dmInput');
-  if (dmInput && dmInput.value.trim() === '') {
-    const dmSendBtn = document.getElementById('dmSendBtn');
-    if (dmSendBtn) dmSendBtn.classList.add('hidden');
-  }
-  
-  // Initialize button visibility for mobile DM
-  const dmFsInput = document.getElementById('dmFsInput');
-  if (dmFsInput && dmFsInput.value.trim() === '') {
-    const dmFsSendBtn = document.getElementById('dmFsSendBtn');
-    if (dmFsSendBtn) dmFsSendBtn.classList.add('hidden');
-  }
+  const dmSendBtn = document.getElementById('dmSendBtn');
+  if (dmSendBtn) dmSendBtn.classList.add('hidden');
+  const dmFsSendBtn = document.getElementById('dmFsSendBtn');
+  if (dmFsSendBtn) dmFsSendBtn.classList.add('hidden');
 });
 </script>
 
-<!-- Auth and App Initialization -->
+<!-- Auth -->
 <script>
-// Check if user is authenticated
-function checkAuth() {
-  const isAuthenticated = localStorage.getItem('hether_authenticated') === 'true';
-  if (isAuthenticated) {
+async function checkAuth() {
+  const { data: { session } } = await supabaseClient.auth.getSession();
+
+  if (session) {
     showApp();
+    loadUserProfile();
   } else {
     showAuthPage();
   }
 }
-
-// Show auth page
 function showAuthPage() {
   document.getElementById('authPage').style.display = 'flex';
   document.getElementById('mainApp').style.display = 'none';
+  showAuthView('landing');
 }
-
-// Show main app
 function showApp() {
   document.getElementById('authPage').style.display = 'none';
   document.getElementById('mainApp').style.display = 'flex';
 }
-
-// Guest authentication
 function authenticateGuest() {
   localStorage.setItem('hether_authenticated', 'true');
   localStorage.setItem('hether_user_type', 'guest');
+  profile = { name: 'Guest', username: '@guest', email: 'guest@hether.app', avatarUrl: null };
+  renderProfileEverywhere();
   showApp();
 }
 
-// Sign up handler (placeholder for user to implement)
-function handleSignUp() {
-  console.log('Sign up clicked - implement your sign up logic');
-  // User will implement this
+// Auth view switcher
+function showAuthView(view) {
+  document.querySelectorAll('.auth-panel-view').forEach(el => el.classList.remove('active'));
+  const views = { landing: 'authLanding', login: 'authLoginView', signup: 'authSignupView' };
+  const el = document.getElementById(views[view]);
+  if (el) el.classList.add('active');
+  // Clear errors
+  ['loginError','signupError'].forEach(id => { const e = document.getElementById(id); if(e) e.style.display='none'; });
 }
 
-// Login handler (placeholder for user to implement)
-function handleLogin() {
-  console.log('Login clicked - implement your login logic');
-  // User will implement this
+function authKeyHandler(e, formType) {
+  if (e.key === 'Enter') {
+    if (formType === 'login') handleLoginSubmit();
+    else handleSignupSubmit();
+  }
 }
 
-// Initialize on page load
-window.addEventListener('load', function() {
-  checkAuth();
-});
+async function handleLoginSubmit() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+
+  const err = document.getElementById('loginError');
+
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  if (error) {
+    err.textContent = error.message;
+    err.style.display = 'block';
+    return;
+  }
+
+  setTimeout(() => {
+  showApp();
+  loadUserProfile();
+}, 100);
+}
+
+async function handleSignupSubmit() {
+  const username = document.getElementById('signupUsername').value.trim();
+  const email = document.getElementById('signupEmail').value.trim();
+  const password = document.getElementById('signupPassword').value;
+
+  const { data, error } = await supabaseClient.auth.signUp({
+    email,
+    password
+  });
+
+  if (error) {
+    document.getElementById('signupError').textContent = error.message;
+    document.getElementById('signupError').style.display = 'block';
+    return;
+  }
+
+  const user = data.user;
+
+  // ✅ NOW THIS WORKS because user is authenticated
+  const { error: insertError } = await supabaseClient
+    .from('profiles')
+    .insert([
+      {
+        id: user.id,
+        username: username
+      }
+    ]);
+
+  if (insertError) {
+    console.error("Insert error:", insertError);
+  }
+
+  showApp();
+  loadUserProfile();
+}
+
+async function loadUserProfile() {
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (!user) return;
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single();
+
+  if (data) {
+    profile = {
+      name: data.username,
+      username: '@' + data.username,
+      email: user.email,
+      avatarUrl: data.avatar_url
+    };
+  }
+
+  renderProfileEverywhere();
+}
+
+window.addEventListener('load', function() { checkAuth(); });
 </script>
 </body>
 </html>
