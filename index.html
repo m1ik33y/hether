@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
-<link rel="icon" type="image/png" href="favicon3.png">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hether</title>
@@ -25,8 +24,8 @@
   --text: #18181b;
   --text2: #6b6b78;
   --text3: #a0a0ad;
-  --accent: #5b6af0;
-  --accent-hover: #4a58e0;
+  --accent: #6664c2;
+  --accent-hover: #5e58d7;
   --user-bubble: #eef0ff;
   --ai-bubble: #ffffff;
   --input-bg: #ffffff;
@@ -41,8 +40,8 @@
   --text: #e4e4e7;
   --text2: #8c8c96;
   --text3: #5a5a64;
-  --accent: #5b6af0;
-  --accent-hover: #6b7af8;
+  --accent: #5c69cf;
+  --accent-hover: #5f68d0;
   --user-bubble: #1e2044;
   --ai-bubble: #18181b;
   --input-bg: #18181b;
@@ -53,11 +52,19 @@ body {
   font-family: 'DM Sans', sans-serif;
   background: var(--bg);
   color: var(--text);
-  display: flex;
+  display: block;
   height: 100vh;
   overflow: hidden;
   font-size: 14px;
   line-height: 1.5;
+  margin: 0;
+  padding: 0;
+}
+
+#mainApp {
+  display: flex;
+  height: 100%;
+  width: 100%;
 }
 
 /* ── SIDEBAR ── */
@@ -335,7 +342,7 @@ body {
 .welcome { max-width: 580px; margin: auto; padding: 20px 28px; text-align: center; animation: fadeUp 0.4s ease; }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
 
-.welcome-greeting { font-size: 28px; font-weight: 600; letter-spacing: -0.8px; margin-bottom: 6px; background: linear-gradient(135deg, #5b6af0 0%, #a855f7 40%, #ec4899 70%, #f97316 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1.2; }
+.welcome-greeting { font-size: 48px; font-weight: 700; letter-spacing: -1.2px; margin-bottom: 12px; background: linear-gradient(135deg, #5b6af0 0%, #a855f7 40%, #ec4899 70%, #f97316 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1.2; text-align: center; word-spacing: 0.1em; }
 .welcome-sub { color: var(--text2); font-size: 14.5px; margin-bottom: 28px; font-weight: 400; }
 
 .suggestions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; text-align: left; }
@@ -348,13 +355,13 @@ body {
 .input-area { padding: 12px 24px 18px; background: var(--bg); flex-shrink: 0; }
 .input-wrap {
   max-width: 740px; margin: 0 auto; position: relative;
-  background: var(--input-bg); border: 1px solid var(--border);
-  border-radius: var(--radius); display: flex; align-items: flex-end; gap: 8px; padding: 10px 12px;
+  background: var(--input-bg); border: 1px solid rgb(147, 147, 147);
+  border-radius: 22px; display: flex; font-size:24px; align-items: center; gap: 6px; padding: 8px 12px 8px 8px;
   transition: border-color var(--t), box-shadow var(--t);
 }
 .input-wrap:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(91,106,240,0.08); }
 
-#userInput { flex: 1; background: transparent; border: none; outline: none; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13.5px; resize: none; max-height: 160px; line-height: 1.5; }
+#userInput { flex: 1; background: transparent; border: none; outline: none; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13.5px; resize: none; max-height: 160px; line-height: 1.5; padding: 0 6px; }
 #userInput::placeholder { color: var(--text3); }
 
 .send-btn { width: 30px; height: 30px; border-radius: var(--radius); border: none; background: var(--accent); color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background var(--t), opacity var(--t), transform var(--t); flex-shrink: 0; }
@@ -577,23 +584,25 @@ body {
 .dm-time { font-size: 10.5px; color: var(--text3); padding: 0 4px; }
 
 .dm-chat-input-area {
-  padding: 12px 18px 14px;
-  background: var(--surface);
-  border-top: 1px solid var(--border);
+  padding: 6px 12px 8px;
+  background: none;
+  
   flex-shrink: 0;
 }
 
 .dm-input-row {
-  display: flex; gap: 8px; align-items: center;
-  background: var(--input-bg); border: 1px solid var(--border);
-  border-radius: 22px; padding: 8px 12px;
+  display: flex; gap: 6px; align-items: center;
+  background: var(--input-bg); border: 1px solid rgb(168, 168, 168);
+  border-radius: 22px; padding: 6px 8px 6px 6px;
   transition: border-color var(--t);
+  height:40px;
 }
-.dm-input-row:focus-within { border-color: var(--accent); }
+.dm-input-row:focus-within { border-color: rgb(43, 43, 43); }
 
 #dmInput {
   flex: 1; background: transparent; border: none; outline: none;
   color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13.5px;
+  height:30px; padding: 0 6px;
 }
 #dmInput::placeholder { color: var(--text3); }
 
@@ -609,13 +618,43 @@ body {
 .dm-media-btn svg { width: 16px; height: 16px; }
 
 .dm-send-btn {
-  width: 30px; height: 30px; border-radius: 50%; border: none;
+  width: 38px; height: 32px; border-radius: 80px; border: none;
   background: var(--accent); color: #fff; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  transition: background var(--t), transform var(--t); flex-shrink: 0;
+  transition: background var(--t), transform var(--t), opacity var(--t); flex-shrink: 0;
 }
 .dm-send-btn:hover { background: var(--accent-hover); transform: scale(1.05); }
+.dm-send-btn.hidden { display: none; }
 .dm-send-btn svg { width: 12px; height: 12px; }
+
+/* Emoji button */
+.emoji-btn {
+  background: transparent; border: none; cursor: pointer;
+  color: var(--text3); width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 6px; transition: color var(--t), background var(--t);
+  flex-shrink: 0; font-size: 16px;
+}
+.emoji-btn:hover { color: var(--accent); background: rgba(91,106,240,0.08); }
+.emoji-btn.hidden { display: none; }
+
+/* Emoji picker */
+.emoji-picker-overlay { display: none; position: fixed; inset: 0; z-index: 300; }
+.emoji-picker-overlay.show { display: block; }
+
+.emoji-picker { position: fixed; bottom: 110px; left: 16%; right: 20px; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 12px; padding: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15); z-index: 301;
+  display: none; grid-template-columns: repeat(8, 1fr); gap: 6px;
+  max-width: 350px; animation: slideUp 0.2s ease;
+}
+
+.emoji-picker.show { display: grid; }
+.emoji-item { width: 32px; height: 32px; border: none; background: var(--surface2);
+  border-radius: 6px; cursor: pointer; font-size: 18px; transition: all var(--t);
+  display: flex; align-items: center; justify-content: center;
+}
+.emoji-item:hover { background: var(--accent); transform: scale(1.15); }
 
 /* ── FULLSCREEN DM (mobile) ── */
 .dm-fullscreen {
@@ -642,8 +681,8 @@ body {
 .dm-fs-name { font-size: 14px; font-weight: 600; color: var(--text); }
 .dm-fs-messages { flex: 1; overflow-y: auto; padding: 14px 14px; display: flex; flex-direction: column; gap: 8px; }
 .dm-fs-input-area { padding: 10px 12px 14px; background: var(--surface); border-top: 1px solid var(--border); flex-shrink: 0; }
-.dm-fs-input-row { display: flex; gap: 8px; align-items: center; background: var(--input-bg); border: 1px solid var(--border); border-radius: 22px; padding: 8px 12px; }
-#dmFsInput { flex: 1; background: transparent; border: none; outline: none; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13.5px; }
+.dm-fs-input-row { display: flex; gap: 6px; align-items: center; background: var(--input-bg); border: 1px solid var(--border); border-radius: 22px; padding: 6px 8px 6px 6px; }
+#dmFsInput { flex: 1; background: transparent; border: none; outline: none; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13.5px; padding: 0 6px; }
 #dmFsInput::placeholder { color: var(--text3); }
 
 /* ── MOBILE HAMBURGER ── */
@@ -667,7 +706,7 @@ body {
   .message { padding: 0 14px; }
   .settings-view { padding: 24px 20px; }
   .suggestions { grid-template-columns: 1fr; }
-  .welcome-greeting { font-size: 22px; }
+  .welcome-greeting { font-size: 52px !important; }
   .welcome { padding: 16px 16px; }
   .profile-dropdown { left: 6px; bottom: 68px; }
 
@@ -695,12 +734,141 @@ body {
 .lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 999; align-items: center; justify-content: center; cursor: zoom-out; }
 .lightbox.show { display: flex; }
 .lightbox img { max-width: 92vw; max-height: 92vh; border-radius: 10px; box-shadow: 0 24px 60px rgba(0,0,0,0.4); }
+
+/* ── AUTH PAGE ── */
+.auth-page {
+  display: flex; align-items: center; justify-content: center;
+  height: 100vh; width: 100%;
+  background: linear-gradient(135deg, var(--bg) 0%, var(--bg) 100%);
+  position: fixed; inset: 0; z-index: 1000;
+}
+
+.auth-page.hidden { display: none; }
+
+.auth-container {
+  display: flex; flex-direction: column; align-items: center; gap: 40px;
+  max-width: 420px; width: 100%; padding: 40px 32px; text-align: center;
+  background: var(--surface); border-radius: 16px;
+  border: 1px solid var(--border); box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+  animation: slideUp 0.4s ease;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.auth-header {
+  display: flex; flex-direction: column; gap: 12px;
+}
+
+.auth-logo {
+  display: flex; justify-content: center; margin-bottom: 8px;
+  color: var(--accent);
+}
+
+.auth-header h1 {
+  font-size: 28px; font-weight: 600; letter-spacing: -0.5px;
+  color: var(--text); margin: 0;
+}
+
+.auth-header p {
+  font-size: 14px; color: var(--text2); margin: 0;
+  line-height: 1.5;
+}
+
+.auth-buttons {
+  display: flex; flex-direction: column; gap: 10px; width: 100%;
+}
+
+.auth-btn {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 12px 20px; border-radius: 10px; border: none;
+  font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500;
+  cursor: pointer; transition: all var(--t);
+  width: 100%; white-space: nowrap;
+}
+
+.auth-btn svg { width: 16px; height: 16px; }
+
+.auth-btn-primary {
+  background: var(--accent); color: #fff;
+  box-shadow: 0 4px 16px rgba(102, 100, 194, 0.3);
+}
+
+.auth-btn-primary:hover {
+  background: var(--accent-hover);
+  box-shadow: 0 6px 20px rgba(102, 100, 194, 0.4);
+  transform: translateY(-2px);
+}
+
+.auth-btn-secondary {
+  background: var(--surface2); color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.auth-btn-secondary:hover {
+  background: var(--border); color: var(--text);
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.auth-footer {
+  font-size: 11px; color: var(--text3);
+  line-height: 1.5;
+}
+
+.auth-footer p { margin: 0; }
 </style>
 </head>
 <body>
 
+<!-- AUTH PAGE -->
+<div class="auth-page" id="authPage">
+  <div class="auth-container">
+    <div class="auth-header">
+      <div class="auth-logo">
+        <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 16v-4M12 8h.01"/>
+        </svg>
+      </div>
+      <h1>Welcome to Hether</h1>
+      <p>Your AI assistant for calculations, knowledge & more</p>
+    </div>
+    
+    <div class="auth-buttons">
+      <button class="auth-btn auth-btn-primary" onclick="authenticateGuest()">
+        <span>Continue as Guest</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </button>
+      <button class="auth-btn auth-btn-secondary" onclick="handleSignUp()">
+        <span>Sign up</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </button>
+      <button class="auth-btn auth-btn-secondary" onclick="handleLogin()">
+        <span>Login</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </button>
+    </div>
+    
+    <div class="auth-footer">
+      <p>By continuing, you agree to our Terms of Service</p>
+    </div>
+  </div>
+</div>
+
 <div class="mobile-overlay" id="mobileOverlay" onclick="hideSidebar()"></div>
 <div class="sidebar-trigger" id="sidebarTrigger"></div>
+
+<!-- MAIN APP (hidden until authenticated) -->
+<div id="mainApp" style="display: none; width: 100%; height: 100%;">
 
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
@@ -817,10 +985,17 @@ body {
     </div>
     <div class="input-area">
       <div class="input-wrap">
-        <textarea id="userInput" rows="1" placeholder="Message hetherGPT..." oninput="autoResize(this)" onkeydown="handleKey(event)"></textarea>
+        <button class="emoji-btn" id="emojiBtn" onclick="toggleEmojiPicker()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-smile-icon lucide-smile"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></svg>
+        </button>
+        <textarea id="userInput" rows="1" placeholder="Message hetherGPT..." oninput="autoResize(this); toggleMediaButton()" onkeydown="handleKey(event)"></textarea>
         <button class="send-btn" id="sendBtn" onclick="sendMessage()" disabled>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
         </button>
+        <label class="emoji-btn hidden" id="aiMediaBtn" for="aiMediaUpload" title="Send media">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-image-icon lucide-image"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+        </label>
+        <input type="file" id="aiMediaUpload" accept="image/*,video/*" style="display:none" onchange="handleAIMedia(event)">
       </div>
       <div class="input-hint">hetherGPT can make mistakes. Verify important information.</div>
     </div>
@@ -912,12 +1087,15 @@ body {
         <!-- input -->
         <div class="dm-chat-input-area">
           <div class="dm-input-row">
-            <label class="dm-media-btn" for="dmMediaUpload" title="Send media">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <button class="emoji-btn" id="dmEmojiBtn" onclick="toggleEmojiPicker('dm')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-smile-icon lucide-smile"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></svg>
+            </button>
+            <input type="text" id="dmInput" placeholder="Message..." oninput="toggleDmSendBtn()" onkeydown="dmHandleKey(event,'desktop')">
+            <label class="emoji-btn" id="dmMediaBtn" for="dmMediaUpload" title="Send media">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-image-icon lucide-image"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
             </label>
             <input type="file" id="dmMediaUpload" accept="image/*,video/*" style="display:none" onchange="dmHandleMedia(event,'desktop')">
-            <input type="text" id="dmInput" placeholder="Message..." onkeydown="dmHandleKey(event,'desktop')">
-            <button class="dm-send-btn" onclick="dmSend('desktop')">
+            <button class="dm-send-btn hidden" id="dmSendBtn" onclick="dmSend('desktop')">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
             </button>
           </div>
@@ -954,12 +1132,13 @@ body {
     <div class="dm-fs-messages" id="dmFsMessages"></div>
     <div class="dm-fs-input-area">
       <div class="dm-fs-input-row">
-        <label class="dm-media-btn" for="dmFsMediaUpload" title="Send media">
+        <button class="emoji-btn" id="dmFsEmojiBtn" onclick="toggleEmojiPicker('mobile')">😊</button>
+        <label class="emoji-btn" for="dmFsMediaUpload" title="Send media">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
         </label>
         <input type="file" id="dmFsMediaUpload" accept="image/*,video/*" style="display:none" onchange="dmHandleMedia(event,'mobile')">
-        <input type="text" id="dmFsInput" placeholder="Message..." onkeydown="dmHandleKey(event,'mobile')">
-        <button class="dm-send-btn" onclick="dmSend('mobile')">
+        <input type="text" id="dmFsInput" placeholder="Message..." oninput="toggleDmFsSendBtn()" onkeydown="dmHandleKey(event,'mobile')">
+        <button class="dm-send-btn" id="dmFsSendBtn" onclick="dmSend('mobile')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
         </button>
       </div>
@@ -971,6 +1150,10 @@ body {
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
   <img id="lightboxImg" src="" alt="">
 </div>
+
+<!-- EMOJI PICKER -->
+<div class="emoji-picker-overlay" id="emojiPickerOverlay" onclick="closeEmojiPicker()"></div>
+<div class="emoji-picker" id="emojiPicker"></div>
 
 <!-- ADMIN KEY POPUP -->
 <div class="overlay" id="adminOverlay">
@@ -1019,6 +1202,8 @@ body {
     </div>
   </div>
 </div>
+
+</div><!-- Close mainApp div -->
 
 <script>
 const ADMIN_KEY = 'adminm1ik33yshamwaviii';
@@ -1521,11 +1706,15 @@ function closeLogout() { document.getElementById('logoutOverlay').classList.remo
 function confirmLogout() {
   closeLogout();
   localStorage.removeItem('hether_profile');
+  localStorage.removeItem('hether_authenticated');
+  localStorage.removeItem('hether_user_type');
   
   chatHistory = [];
   profile = { name: 'User', username: '@user', email: 'user@example.com', avatarUrl: null };
   renderProfileEverywhere();
-  newChat();
+  
+  // Show auth page
+  showAuthPage();
 }
 
 // ── PROFILE EDIT ──
@@ -1575,6 +1764,220 @@ document.addEventListener('keydown', e => {
 });
 
 showView('chat');
+</script>
+
+<!-- Emoji Picker and Input Management -->
+<script>
+// Emoji data
+const emojis = ['😊', '😂', '❤️', '🔥', '👍', '😍', '😭', '🙌', '💯', '✨', '🎉', '🚀', '💪', '😎', '🤔', '👌', '😱', '💔', '👏', '🌟', '😴', '😡', '🤗', '🥳', '😤', '😌', '🤐', '😏', '🙃', '😊'];
+
+// Initialize emoji picker
+function initEmojiPicker() {
+  const picker = document.getElementById('emojiPicker');
+  emojis.forEach(emoji => {
+    const btn = document.createElement('button');
+    btn.className = 'emoji-item';
+    btn.textContent = emoji;
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      insertEmoji(emoji);
+      closeEmojiPicker();
+    };
+    picker.appendChild(btn);
+  });
+}
+
+let emojiPickerMode = null;
+
+// Toggle emoji picker
+function toggleEmojiPicker(mode = 'chat') {
+  const overlay = document.getElementById('emojiPickerOverlay');
+  const picker = document.getElementById('emojiPicker');
+  
+  if (emojiPickerMode === mode && overlay.classList.contains('show')) {
+    closeEmojiPicker();
+  } else {
+    emojiPickerMode = mode;
+    overlay.classList.add('show');
+    picker.classList.add('show');
+  }
+}
+
+// Close emoji picker
+function closeEmojiPicker() {
+  document.getElementById('emojiPickerOverlay').classList.remove('show');
+  document.getElementById('emojiPicker').classList.remove('show');
+  emojiPickerMode = null;
+}
+
+// Insert emoji into appropriate input
+function insertEmoji(emoji) {
+  let input;
+  if (emojiPickerMode === 'dm') {
+    input = document.getElementById('dmInput');
+  } else if (emojiPickerMode === 'mobile') {
+    input = document.getElementById('dmFsInput');
+  } else {
+    input = document.getElementById('userInput');
+  }
+  
+  if (input) {
+    input.value += emoji;
+    input.focus();
+    
+    // Trigger input event to update media button visibility
+    if (emojiPickerMode === null) {
+      toggleMediaButton();
+    } else if (emojiPickerMode === 'dm') {
+      toggleDmSendBtn();
+    } else if (emojiPickerMode === 'mobile') {
+      toggleDmFsSendBtn();
+    }
+  }
+}
+
+// Toggle media button visibility based on input
+function toggleMediaButton() {
+  const input = document.getElementById('userInput');
+  const sendBtn = document.getElementById('sendBtn');
+  const mediaBtn = document.getElementById('aiMediaBtn');
+  
+  if (input.value.trim() === '') {
+    sendBtn.disabled = true;
+    mediaBtn.classList.add('hidden');
+  } else {
+    sendBtn.disabled = false;
+    mediaBtn.classList.remove('hidden');
+  }
+}
+
+// Toggle DM send button based on input
+function toggleDmSendBtn() {
+  const input = document.getElementById('dmInput');
+  const sendBtn = document.getElementById('dmSendBtn');
+  const mediaBtn = document.getElementById('dmMediaBtn');
+  
+  if (input.value.trim() === '') {
+    sendBtn.classList.add('hidden');
+    mediaBtn.classList.remove('hidden');
+  } else {
+    sendBtn.classList.remove('hidden');
+    mediaBtn.classList.add('hidden');
+  }
+}
+
+// Toggle DM fullscreen send button
+function toggleDmFsSendBtn() {
+  const input = document.getElementById('dmFsInput');
+  const sendBtn = document.getElementById('dmFsSendBtn');
+  
+  if (input.value.trim() === '') {
+    sendBtn.classList.add('hidden');
+  } else {
+    sendBtn.classList.remove('hidden');
+  }
+}
+
+// Handle media upload for AI chat
+function handleAIMedia(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const isVideo = file.type.startsWith('video/');
+    const content = e.target.result;
+    
+    // Add to chat as user message
+    const msgEl = document.getElementById('messages');
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'message user';
+    
+    if (isVideo) {
+      msgDiv.innerHTML = `<div class="avatar user-av"><span>U</span></div><div class="bubble"><video class="chat-media" controls src="${content}"></video></div>`;
+    } else {
+      msgDiv.innerHTML = `<div class="avatar user-av"><span>U</span></div><div class="bubble"><img class="chat-media" src="${content}" onclick="openLightbox(this.src)"></div>`;
+    }
+    
+    msgEl.appendChild(msgDiv);
+    msgEl.scrollTop = msgEl.scrollHeight;
+    
+    // Clear input
+    document.getElementById('aiMediaUpload').value = '';
+  };
+  reader.readAsDataURL(file);
+}
+
+// Initialize emoji picker on page load
+window.addEventListener('load', function() {
+  initEmojiPicker();
+  
+  // Initialize button visibility for AI chat
+  toggleMediaButton();
+  
+  // Initialize button visibility for DM
+  const dmInput = document.getElementById('dmInput');
+  if (dmInput && dmInput.value.trim() === '') {
+    const dmSendBtn = document.getElementById('dmSendBtn');
+    if (dmSendBtn) dmSendBtn.classList.add('hidden');
+  }
+  
+  // Initialize button visibility for mobile DM
+  const dmFsInput = document.getElementById('dmFsInput');
+  if (dmFsInput && dmFsInput.value.trim() === '') {
+    const dmFsSendBtn = document.getElementById('dmFsSendBtn');
+    if (dmFsSendBtn) dmFsSendBtn.classList.add('hidden');
+  }
+});
+</script>
+
+<!-- Auth and App Initialization -->
+<script>
+// Check if user is authenticated
+function checkAuth() {
+  const isAuthenticated = localStorage.getItem('hether_authenticated') === 'true';
+  if (isAuthenticated) {
+    showApp();
+  } else {
+    showAuthPage();
+  }
+}
+
+// Show auth page
+function showAuthPage() {
+  document.getElementById('authPage').style.display = 'flex';
+  document.getElementById('mainApp').style.display = 'none';
+}
+
+// Show main app
+function showApp() {
+  document.getElementById('authPage').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'flex';
+}
+
+// Guest authentication
+function authenticateGuest() {
+  localStorage.setItem('hether_authenticated', 'true');
+  localStorage.setItem('hether_user_type', 'guest');
+  showApp();
+}
+
+// Sign up handler (placeholder for user to implement)
+function handleSignUp() {
+  console.log('Sign up clicked - implement your sign up logic');
+  // User will implement this
+}
+
+// Login handler (placeholder for user to implement)
+function handleLogin() {
+  console.log('Login clicked - implement your login logic');
+  // User will implement this
+}
+
+// Initialize on page load
+window.addEventListener('load', function() {
+  checkAuth();
+});
 </script>
 </body>
 </html>
