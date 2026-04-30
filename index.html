@@ -1834,23 +1834,27 @@ async function loadMessages(userId) {
   // Set up real-time subscription for new messages
   try {
     const channel = supabaseClient
-      .channel(`messages:${user.id}:${userId}`, {
-        config: {
-          broadcast: { self: false },
-          presence: { key: user.id }
-        }
-      })
+      .channel(`messages:${user.id}:${userId}`)
       .on('postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'messages',
-          filter: `or(and(sender_id=eq.${user.id},receiver_id=eq.${userId}),and(sender_id=eq.${userId},receiver_id=eq.${user.id}))`
+          table: 'messages'
         },
         (payload) => {
-          console.log('📨 Real-time INSERT received (desktop):', payload);
           const newMsg = payload.new;
+          console.log('📨 Real-time INSERT received (desktop):', newMsg);
           
+          // Filter in callback - check if this message is for this conversation
+          const isForThisConversation = 
+            (newMsg.sender_id === user.id && newMsg.receiver_id === userId) ||
+            (newMsg.sender_id === userId && newMsg.receiver_id === user.id);
+          
+          if (!isForThisConversation) {
+            console.log('⏭️ Message not for this conversation, skipping');
+            return;
+          }
+
           // Double-check we're still in the right conversation
           if (activeDmId === userId) {
             const currentMsgsEl = document.getElementById('dmChatMessages');
@@ -1947,23 +1951,27 @@ async function loadFsMessages(userId) {
   // Set up real-time subscription for new messages
   try {
     const channel = supabaseClient
-      .channel(`fs-messages:${user.id}:${userId}`, {
-        config: {
-          broadcast: { self: false },
-          presence: { key: user.id }
-        }
-      })
+      .channel(`fs-messages:${user.id}:${userId}`)
       .on('postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'messages',
-          filter: `or(and(sender_id=eq.${user.id},receiver_id=eq.${userId}),and(sender_id=eq.${userId},receiver_id=eq.${user.id}))`
+          table: 'messages'
         },
         (payload) => {
-          console.log('📨 Real-time INSERT received (mobile):', payload);
           const newMsg = payload.new;
+          console.log('📨 Real-time INSERT received (mobile):', newMsg);
           
+          // Filter in callback - check if this message is for this conversation
+          const isForThisConversation = 
+            (newMsg.sender_id === user.id && newMsg.receiver_id === userId) ||
+            (newMsg.sender_id === userId && newMsg.receiver_id === user.id);
+          
+          if (!isForThisConversation) {
+            console.log('⏭️ Message not for this conversation, skipping');
+            return;
+          }
+
           // Double-check we're still in the right conversation
           if (activeDmId === userId) {
             const currentMsgsEl = document.getElementById('dmFsMessages');
@@ -2065,8 +2073,23 @@ async function dmSend(mode) {
   input.disabled = true;
 
   try {
-    console.log(`💬 Sending message from ${user.id} to ${activeDmId}`);
+    console.log(`💬 Sending message from ${user.id} to ${activeDmId}: "${text}"`);
     
+    // Show message immediately (optimistic UI)
+    const msgsEl = document.getElementById(
+      mode === 'mobile' ? 'dmFsMessages' : 'dmChatMessages'
+    );
+    
+    renderDmMsg(msgsEl, {
+      type: 'sent',
+      text: text,
+      time: new Date().toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    });
+
+    // Insert into database
     const { error } = await supabaseClient.from('messages').insert({
       sender_id: user.id,
       receiver_id: activeDmId,
@@ -2078,7 +2101,7 @@ async function dmSend(mode) {
       throw error;
     }
 
-    console.log('✅ Message sent to database, waiting for real-time delivery...');
+    console.log('✅ Message sent to database');
     input.value = '';
 
     if (mode === 'mobile') toggleDmFsSendBtn();
