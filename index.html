@@ -1422,6 +1422,18 @@ const supabaseClient = window.supabase.createClient(
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpkeGV2cnp3bmRyYW5yY2VycmhzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NzA1NjYsImV4cCI6MjA5MzA0NjU2Nn0.F6HWXevFCBF1KTd7IahlqbfHhm3koC0pqmRFK4TPPfM"
 );
 
+// ✅ Global real-time subscription tracker
+const subscriptionManager = {
+  activeSubscription: null,
+  async replaceSubscription(newChannel) {
+    if (this.activeSubscription) {
+      console.log('🔌 Unsubscribing from previous channel...');
+      await this.activeSubscription.unsubscribe();
+    }
+    this.activeSubscription = newChannel;
+  }
+};
+
 const ADMIN_KEY = 'adminm1ik33yshamwaviii';
 let currentView = 'chat';
 let isTyping = false;
@@ -1771,136 +1783,228 @@ function openDesktopChat(id) {
 
 async function loadMessages(userId) {
   const { data: { user } } = await supabaseClient.auth.getUser();
-  if (!user) return;
+  if (!user) {
+    console.error('❌ No authenticated user found');
+    return;
+  }
 
-  // Unsubscribe from previous subscription
- if (realtimeSubscription) {
-  await realtimeSubscription.unsubscribe();
-  realtimeSubscription = null;
-}
+  console.log(`📥 Loading messages for conversation: ${user.id} <-> ${userId}`);
+
+  // Unsubscribe from previous subscription using manager
+  await subscriptionManager.replaceSubscription(null);
 
   const msgsEl = document.getElementById('dmChatMessages');
+  if (!msgsEl) {
+    console.error('❌ dmChatMessages element not found');
+    return;
+  }
+  
   msgsEl.innerHTML = '';
 
   // Load initial messages from database
-  const { data } = await supabaseClient
-    .from('messages')
-    .select('*')
-    .or(`and(sender_id.eq.${user.id},receiver_id.eq.${userId}),and(sender_id.eq.${userId},receiver_id.eq.${user.id})`)
-    .order('created_at', { ascending: true });
+  try {
+    const { data, error } = await supabaseClient
+      .from('messages')
+      .select('*')
+      .or(`and(sender_id.eq.${user.id},receiver_id.eq.${userId}),and(sender_id.eq.${userId},receiver_id.eq.${user.id})`)
+      .order('created_at', { ascending: true });
 
-  // Display loaded messages
-  if (data) {
-    data.forEach(m => {
-      renderDmMsg(msgsEl, {
-        type: m.sender_id === user.id ? 'sent' : 'received',
-        text: m.content,
-        time: new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    if (error) {
+      console.error('❌ Error loading messages:', error);
+      return;
+    }
+
+    // Display loaded messages
+    if (data && data.length > 0) {
+      console.log(`✅ Loaded ${data.length} initial messages`);
+      data.forEach(m => {
+        renderDmMsg(msgsEl, {
+          type: m.sender_id === user.id ? 'sent' : 'received',
+          text: m.content,
+          time: new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        });
       });
-    });
+    } else {
+      console.log('ℹ️ No messages in conversation yet');
+    }
+  } catch (err) {
+    console.error('❌ Exception loading messages:', err);
   }
 
   // Set up real-time subscription for new messages
-  const channel = supabaseClient
-    .channel(`messages:${user.id}:${userId}`)
-    .on('postgres_changes',
-      {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'messages',
-        filter: `or(and(sender_id=eq.${user.id},receiver_id=eq.${userId}),and(sender_id=eq.${userId},receiver_id=eq.${user.id}))`
-      },
-      (payload) => {
-        const newMsg = payload.new;
-        if (activeDmId === userId) {
-          renderDmMsg(msgsEl, {
-            type: newMsg.sender_id === user.id ? 'sent' : 'received',
-            text: newMsg.content,
-            time: new Date(newMsg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-          });
-          // Update last message in contact list
-          const contact = dmContacts.find(c => c.id === userId);
-          if (contact) {
-            contact.lastMessage = {
-              type: newMsg.sender_id === user.id ? 'sent' : 'received',
-              text: newMsg.content,
-              time: new Date(newMsg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            };
-            buildDMConvList();
+  try {
+    const channel = supabaseClient
+      .channel(`messages:${user.id}:${userId}`, {
+        config: {
+          broadcast: { self: false },
+          presence: { key: user.id }
+        }
+      })
+      .on('postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `or(and(sender_id=eq.${user.id},receiver_id=eq.${userId}),and(sender_id=eq.${userId},receiver_id=eq.${user.id}))`
+        },
+        (payload) => {
+          console.log('📨 Real-time INSERT received (desktop):', payload);
+          const newMsg = payload.new;
+          
+          // Double-check we're still in the right conversation
+          if (activeDmId === userId) {
+            const currentMsgsEl = document.getElementById('dmChatMessages');
+            if (currentMsgsEl) {
+              console.log('✅ Rendering new message in desktop chat');
+              renderDmMsg(currentMsgsEl, {
+                type: newMsg.sender_id === user.id ? 'sent' : 'received',
+                text: newMsg.content,
+                time: new Date(newMsg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+              });
+              
+              // Update contact preview
+              const contact = dmContacts.find(c => c.id === userId);
+              if (contact) {
+                contact.lastMessage = {
+                  type: newMsg.sender_id === user.id ? 'sent' : 'received',
+                  text: newMsg.content,
+                  time: new Date(newMsg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                };
+                buildDMConvList();
+              }
+            }
+          } else {
+            console.log('⚠️ Message received but not active in this conversation');
           }
         }
-      }
-    )
-    .subscribe();
+      )
+      .subscribe((status) => {
+        console.log(`📡 Desktop subscription status: ${status}`);
+        if (status === 'SUBSCRIBED') {
+          console.log('✅ Successfully subscribed to real-time messages for desktop');
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('❌ Channel error - subscription failed');
+        }
+      });
 
-  realtimeSubscription = channel;
+    await subscriptionManager.replaceSubscription(channel);
+    console.log('🔌 Real-time subscription established for desktop');
+  } catch (err) {
+    console.error('❌ Exception setting up subscription:', err);
+  }
 }
 
 async function loadFsMessages(userId) {
   const { data: { user } } = await supabaseClient.auth.getUser();
-  if (!user) return;
-
-  // Unsubscribe from previous subscription
-  if (realtimeSubscription) {
-    await realtimeSubscription.unsubscribe();
-    realtimeSubscription = null;
+  if (!user) {
+    console.error('❌ No authenticated user found');
+    return;
   }
 
+  console.log(`📱 Loading mobile messages for conversation: ${user.id} <-> ${userId}`);
+
+  // Unsubscribe from previous subscription using manager
+  await subscriptionManager.replaceSubscription(null);
+
   const msgsEl = document.getElementById('dmFsMessages');
+  if (!msgsEl) {
+    console.error('❌ dmFsMessages element not found');
+    return;
+  }
+  
   msgsEl.innerHTML = '';
 
   // Load initial messages from database
-  const { data } = await supabaseClient
-    .from('messages')
-    .select('*')
-    .or(`and(sender_id.eq.${user.id},receiver_id.eq.${userId}),and(sender_id.eq.${userId},receiver_id.eq.${user.id})`)
-    .order('created_at', { ascending: true });
+  try {
+    const { data, error } = await supabaseClient
+      .from('messages')
+      .select('*')
+      .or(`and(sender_id.eq.${user.id},receiver_id.eq.${userId}),and(sender_id.eq.${userId},receiver_id.eq.${user.id})`)
+      .order('created_at', { ascending: true });
 
-  // Display loaded messages
-  if (data) {
-    data.forEach(m => {
-      renderDmMsg(msgsEl, {
-        type: m.sender_id === user.id ? 'sent' : 'received',
-        text: m.content,
-        time: new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    if (error) {
+      console.error('❌ Error loading messages:', error);
+      return;
+    }
+
+    // Display loaded messages
+    if (data && data.length > 0) {
+      console.log(`✅ Loaded ${data.length} initial messages for mobile`);
+      data.forEach(m => {
+        renderDmMsg(msgsEl, {
+          type: m.sender_id === user.id ? 'sent' : 'received',
+          text: m.content,
+          time: new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        });
       });
-    });
+    } else {
+      console.log('ℹ️ No messages in conversation yet');
+    }
+  } catch (err) {
+    console.error('❌ Exception loading messages:', err);
   }
 
   // Set up real-time subscription for new messages
-  const channel = supabaseClient
-    .channel(`fs-messages:${user.id}:${userId}`)
-    .on('postgres_changes',
-      {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'messages',
-        filter: `or(and(sender_id=eq.${user.id},receiver_id=eq.${userId}),and(sender_id=eq.${userId},receiver_id=eq.${user.id}))`
-      },
-      (payload) => {
-        const newMsg = payload.new;
-        if (activeDmId === userId) {
-          renderDmMsg(msgsEl, {
-            type: newMsg.sender_id === user.id ? 'sent' : 'received',
-            text: newMsg.content,
-            time: new Date(newMsg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-          });
-          // Update last message in contact list
-          const contact = dmContacts.find(c => c.id === userId);
-          if (contact) {
-            contact.lastMessage = {
-              type: newMsg.sender_id === user.id ? 'sent' : 'received',
-              text: newMsg.content,
-              time: new Date(newMsg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            };
-            buildDMConvList();
+  try {
+    const channel = supabaseClient
+      .channel(`fs-messages:${user.id}:${userId}`, {
+        config: {
+          broadcast: { self: false },
+          presence: { key: user.id }
+        }
+      })
+      .on('postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `or(and(sender_id=eq.${user.id},receiver_id=eq.${userId}),and(sender_id=eq.${userId},receiver_id=eq.${user.id}))`
+        },
+        (payload) => {
+          console.log('📨 Real-time INSERT received (mobile):', payload);
+          const newMsg = payload.new;
+          
+          // Double-check we're still in the right conversation
+          if (activeDmId === userId) {
+            const currentMsgsEl = document.getElementById('dmFsMessages');
+            if (currentMsgsEl) {
+              console.log('✅ Rendering new message in mobile chat');
+              renderDmMsg(currentMsgsEl, {
+                type: newMsg.sender_id === user.id ? 'sent' : 'received',
+                text: newMsg.content,
+                time: new Date(newMsg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+              });
+              
+              // Update contact preview
+              const contact = dmContacts.find(c => c.id === userId);
+              if (contact) {
+                contact.lastMessage = {
+                  type: newMsg.sender_id === user.id ? 'sent' : 'received',
+                  text: newMsg.content,
+                  time: new Date(newMsg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                };
+                buildDMConvList();
+              }
+            }
+          } else {
+            console.log('⚠️ Message received but not active in this conversation');
           }
         }
-      }
-    )
-    .subscribe();
+      )
+      .subscribe((status) => {
+        console.log(`📡 Mobile subscription status: ${status}`);
+        if (status === 'SUBSCRIBED') {
+          console.log('✅ Successfully subscribed to real-time messages for mobile');
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('❌ Channel error - subscription failed');
+        }
+      });
 
-  realtimeSubscription = channel;
+    await subscriptionManager.replaceSubscription(channel);
+    console.log('🔌 Real-time subscription established for mobile');
+  } catch (err) {
+    console.error('❌ Exception setting up subscription:', err);
+  }
 }
 
 function openFsChat(id) {
@@ -1961,34 +2065,30 @@ async function dmSend(mode) {
   input.disabled = true;
 
   try {
-    await supabaseClient.from('messages').insert({
+    console.log(`💬 Sending message from ${user.id} to ${activeDmId}`);
+    
+    const { error } = await supabaseClient.from('messages').insert({
       sender_id: user.id,
       receiver_id: activeDmId,
       content: text
     });
 
-    // ✅ INSTANT UI UPDATE (fixes blank issue)
-    const msgsEl = document.getElementById(
-      mode === 'mobile' ? 'dmFsMessages' : 'dmChatMessages'
-    );
+    if (error) {
+      console.error('❌ Error inserting message:', error);
+      throw error;
+    }
 
-    renderDmMsg(msgsEl, {
-      type: 'sent',
-      text: text,
-      time: new Date().toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit'
-      })
-    });
-
+    console.log('✅ Message sent to database, waiting for real-time delivery...');
     input.value = '';
 
-    if (mode === 'desktop') toggleDmSendBtn();
-    else toggleDmFsSendBtn();
+    if (mode === 'mobile') toggleDmFsSendBtn();
+    else toggleDmSendBtn();
 
   } catch (error) {
-    console.error('Error sending message:', error);
+    console.error('❌ Error sending message:', error);
     alert('Failed to send message. Try again.');
+    // Restore text on error
+    input.value = text;
   } finally {
     sendBtn.disabled = false;
     input.disabled = false;
