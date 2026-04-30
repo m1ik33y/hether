@@ -2377,12 +2377,9 @@ function verifyAdmin() {
   else { document.getElementById('adminError').style.display = 'block'; document.getElementById('adminInput').value = ''; document.getElementById('adminInput').focus(); }
 }
 
-async function openDM() {
+function openDM() {
   dmOpen = true;
-
-  await loadContacts();      // load users
-  await preloadAllChats();   // 🔥 preload all conversations
-
+  loadContacts();
   if (isMobile()) {
     document.getElementById('dmFullscreen').classList.add('show');
     document.getElementById('dmFsListView').style.display = 'flex';
@@ -2392,7 +2389,6 @@ async function openDM() {
     if (!activeDmId) showDmEmptyState();
   }
 }
-
 function closeDM() {
   dmOpen = false; activeDmId = null;
   document.getElementById('dmOverlay').classList.remove('show');
@@ -3367,35 +3363,6 @@ async function handleSignupSubmit() {
   const user = data.user;
   await supabaseClient.from('profiles').insert([{ id: user.id, username }]);
   showApp(); loadUserProfile();
-}
-
-async function preloadAllChats() {
-  const { data: { user } } = await supabaseClient.auth.getUser();
-  if (!user) return;
-
-  const { data, error } = await supabaseClient
-    .from('messages')
-    .select('*')
-    .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
-    .order('created_at', { ascending: false });
-
-  if (error || !data) return;
-
-  const latestMap = new Map();
-
-  data.forEach(msg => {
-    const otherId = msg.sender_id === user.id ? msg.receiver_id : msg.sender_id;
-
-    if (!latestMap.has(otherId)) {
-      latestMap.set(otherId, msg);
-    }
-  });
-
-  latestMap.forEach((msg, userId) => {
-    updateContactLastMsg(userId, msg, user.id);
-  });
-
-  buildDMConvList();
 }
 
 async function loadUserProfile() {
