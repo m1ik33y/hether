@@ -1697,7 +1697,9 @@ async function loadContacts() {
 
   const { data } = await supabaseClient
     .from('profiles')
-    .select('*');
+    .select('id, username');
+
+  if (!data) return;
 
   dmContacts.length = 0;
 
@@ -1772,10 +1774,10 @@ async function loadMessages(userId) {
   if (!user) return;
 
   // Unsubscribe from previous subscription
-  if (realtimeSubscription) {
-    supabaseClient.removeAllChannels();
-    realtimeSubscription = null;
-  }
+ if (realtimeSubscription) {
+  await realtimeSubscription.unsubscribe();
+  realtimeSubscription = null;
+}
 
   const msgsEl = document.getElementById('dmChatMessages');
   msgsEl.innerHTML = '';
@@ -1840,7 +1842,7 @@ async function loadFsMessages(userId) {
 
   // Unsubscribe from previous subscription
   if (realtimeSubscription) {
-    supabaseClient.removeAllChannels();
+    await realtimeSubscription.unsubscribe();
     realtimeSubscription = null;
   }
 
@@ -2192,20 +2194,7 @@ async function checkAuth() {
     showAuthPage();
   }
 }
-function subscribeToMessages() {
-  supabaseClient
-    .channel('messages')
-    .on(
-      'postgres_changes',
-      { event: 'INSERT', schema: 'public', table: 'messages' },
-      payload => {
-        if (activeDmId) {
-          loadMessages(activeDmId);
-        }
-      }
-    )
-    .subscribe();
-}
+
 function showAuthPage() {
   document.getElementById('authPage').style.display = 'flex';
   document.getElementById('mainApp').style.display = 'none';
@@ -2220,7 +2209,7 @@ function showApp() {
   closeProfileEdit();
 
   loadContacts();          // 👈 ADD THIS LINE
-  subscribeToMessages();   // 👈 AND THIS (if not already)
+  
 }
 function authenticateGuest() {
   localStorage.setItem('hether_authenticated', 'true');
