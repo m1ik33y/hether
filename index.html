@@ -519,10 +519,88 @@ body {
 }
 .dm-close-btn:hover { background: var(--surface2); color: var(--text); }
 
+/* ── DM SEARCH BAR ── */
+.dm-search-wrap {
+  padding: 10px 12px 8px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.dm-search-input-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 6px 10px;
+  transition: border-color var(--t);
+}
+.dm-search-input-row:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(91,106,240,0.1);
+}
+.dm-search-input-row svg {
+  width: 13px; height: 13px;
+  color: var(--text3); flex-shrink: 0;
+}
+
+#dmSearchInput {
+  flex: 1; background: transparent; border: none; outline: none;
+  color: var(--text); font-family: 'DM Sans', sans-serif;
+  font-size: 13px; min-width: 0;
+}
+#dmSearchInput::placeholder { color: var(--text3); }
+
+.dm-search-dropdown {
+  position: absolute;
+  left: 12px; right: 12px; top: calc(100% - 2px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.14);
+  z-index: 99;
+  overflow: hidden;
+  display: none;
+  animation: dropDown 0.14s ease;
+}
+.dm-search-dropdown.show { display: block; }
+@keyframes dropDown {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.dm-search-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; cursor: pointer;
+  transition: background var(--t);
+}
+.dm-search-item:hover { background: var(--surface2); }
+.dm-search-avatar {
+  width: 30px; height: 30px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: #fff;
+  flex-shrink: 0; overflow: hidden;
+}
+.dm-search-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.dm-search-name { font-size: 13px; font-weight: 500; color: var(--text); }
+.dm-search-empty { padding: 12px; text-align: center; font-size: 12.5px; color: var(--text3); }
+
+/* ── DM FS SEARCH ── */
+.dm-fs-search-wrap {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  flex-shrink: 0;
+}
+.dm-fs-search-wrap .dm-search-input-row { background: var(--surface2); }
+
 .dm-conv-list { flex: 1; overflow-y: auto; padding: 8px 8px; }
 .dm-conv-list::-webkit-scrollbar { width: 3px; }
 .dm-conv-list::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 2px; }
 
+/* ── DM CONV ITEM with delete icon ── */
 .dm-conv-item {
   display: flex; align-items: center; gap: 11px;
   padding: 10px 10px; border-radius: 10px;
@@ -531,6 +609,29 @@ body {
 }
 .dm-conv-item:hover { background: var(--surface2); }
 .dm-conv-item.active { background: rgba(91,106,240,0.1); }
+
+/* Delete chat button — appears on hover */
+.dm-conv-delete-btn {
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  width: 24px; height: 24px; border-radius: 6px;
+  background: transparent; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text3);
+  opacity: 0; pointer-events: none;
+  transition: opacity var(--t), background var(--t), color var(--t);
+  flex-shrink: 0;
+}
+.dm-conv-item:hover .dm-conv-delete-btn {
+  opacity: 1; pointer-events: auto;
+}
+.dm-conv-delete-btn:hover {
+  background: rgba(239,68,68,0.1);
+  color: #ef4444;
+}
+.dm-conv-delete-btn svg { width: 13px; height: 13px; }
+
+/* Adjust right spacing on conv info to make room for delete btn */
+.dm-conv-item:hover .dm-conv-info { padding-right: 20px; }
 
 .dm-conv-avatar {
   width: 40px; height: 40px; border-radius: 50%;
@@ -546,7 +647,7 @@ body {
   background: #22c55e; border: 2px solid var(--surface);
 }
 
-.dm-conv-info { flex: 1; min-width: 0; }
+.dm-conv-info { flex: 1; min-width: 0; transition: padding-right var(--t); }
 .dm-conv-name { font-size: 13.5px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .dm-conv-preview { font-size: 12px; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
 .dm-conv-preview.unread { color: var(--text); font-weight: 700; }
@@ -591,6 +692,18 @@ body {
 .dm-chat-topbar-info { flex: 1; min-width: 0; }
 .dm-chat-topbar-name { font-size: 14px; font-weight: 600; color: var(--text); }
 .dm-chat-topbar-status { font-size: 11.5px; color: #22c55e; }
+
+/* Clear chat button in topbar */
+.dm-topbar-clear-btn {
+  background: transparent; border: none; cursor: pointer;
+  color: var(--text3); padding: 6px 10px;
+  border-radius: var(--radius); font-size: 12px;
+  font-family: 'DM Sans', sans-serif;
+  display: flex; align-items: center; gap: 5px;
+  transition: background var(--t), color var(--t);
+}
+.dm-topbar-clear-btn:hover { background: rgba(239,68,68,0.08); color: #ef4444; }
+.dm-topbar-clear-btn svg { width: 13px; height: 13px; }
 
 .dm-chat-messages {
   flex: 1;
@@ -647,7 +760,7 @@ body {
 .dm-group-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 .dm-group-avatar.hidden-av { visibility: hidden; }
 
-/* THE FIX: bubbles container */
+/* bubbles container */
 .dm-msg-bubbles {
   display: flex;
   flex-direction: column;
@@ -665,16 +778,13 @@ body {
   max-width: 100%;
 }
 
-/* THE CORE FIX for bubble text */
 .dm-bubble {
   font-size: 13.5px;
   border-radius: 18px;
   padding: 10px 14px;
   display: inline-block;
   max-width: 100%;
-  /* Do NOT use white-space: pre-wrap — it narrows the inline formatting context */
   white-space: normal;
-  /* overflow-wrap: anywhere is factored into min-width, prevents premature wrapping */
   overflow-wrap: anywhere;
   word-break: normal;
   box-sizing: border-box;
@@ -840,7 +950,18 @@ body {
 
 .dm-fs-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; overflow: hidden; flex-shrink: 0; }
 .dm-fs-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
-.dm-fs-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.dm-fs-name { font-size: 14px; font-weight: 600; color: var(--text); flex: 1; }
+
+/* Clear chat btn in mobile topbar */
+.dm-fs-clear-btn {
+  background: transparent; border: none; cursor: pointer;
+  color: var(--text3); padding: 5px; border-radius: var(--radius);
+  display: flex; align-items: center; justify-content: center;
+  transition: background var(--t), color var(--t);
+}
+.dm-fs-clear-btn:hover { background: rgba(239,68,68,0.08); color: #ef4444; }
+.dm-fs-clear-btn svg { width: 15px; height: 15px; }
+
 .dm-fs-messages {
   flex: 1; overflow-y: auto; overflow-x: hidden;
   padding: 14px 14px; display: flex; flex-direction: column; gap: 2px;
@@ -953,6 +1074,16 @@ body {
 
 .note-save-status { font-size: 11px; color: var(--text3); }
 .note-save-status.saved { color: #22c55e; }
+
+/* ── CONFIRM DIALOG (reusable) ── */
+.confirm-popup {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 22px; width: 340px;
+  animation: popIn 0.18s ease; box-shadow: 0 24px 60px rgba(0,0,0,0.2);
+}
+.confirm-popup h3 { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+.confirm-popup p { font-size: 13px; color: var(--text2); margin-bottom: 18px; line-height: 1.5; }
+.confirm-popup .popup-btns { display: flex; gap: 8px; justify-content: flex-end; }
 
 /* ── MOBILE ── */
 @media (max-width: 640px) {
@@ -1146,6 +1277,8 @@ body {
   font-family: 'DM Sans', sans-serif;
 }
 .dm-ctx-item:hover { background: var(--surface2); color: var(--text); }
+.dm-ctx-item.danger { color: #ef4444; }
+.dm-ctx-item.danger:hover { background: rgba(239,68,68,0.08); }
 .dm-ctx-item svg { width: 13px; height: 13px; flex-shrink: 0; }
 
 /* Active chat wrap must be flex column filling remaining space */
@@ -1468,6 +1601,16 @@ body {
         </div>
         <button class="dm-close-btn" onclick="closeDM()" title="Close">×</button>
       </div>
+
+      <!-- SEARCH BAR -->
+      <div class="dm-search-wrap">
+        <div class="dm-search-input-row">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="dmSearchInput" placeholder="Search users..." oninput="onDmSearch(this.value)" autocomplete="off">
+        </div>
+        <div class="dm-search-dropdown" id="dmSearchDropdown"></div>
+      </div>
+
       <div class="dm-conv-list" id="dmConvList"></div>
     </div>
     <div class="dm-chat-panel" id="dmChatPanel">
@@ -1482,6 +1625,11 @@ body {
             <div class="dm-chat-topbar-name" id="dmTopbarName"></div>
             <div class="dm-chat-topbar-status">Active now</div>
           </div>
+          <!-- Clear chat btn -->
+          <button class="dm-topbar-clear-btn" onclick="promptClearChat()" title="Clear chat (Alt+C)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+            Clear
+          </button>
         </div>
         <div class="dm-reply-bar" id="dmReplyBar">
           <div class="dm-reply-bar-content">
@@ -1520,6 +1668,14 @@ body {
       </div>
       <button class="dm-close-btn" onclick="closeDM()">×</button>
     </div>
+    <!-- Mobile search bar -->
+    <div class="dm-fs-search-wrap">
+      <div class="dm-search-input-row">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="dmFsSearchInput" placeholder="Search users..." oninput="onDmFsSearch(this.value)" autocomplete="off">
+      </div>
+      <div class="dm-search-dropdown" id="dmFsSearchDropdown"></div>
+    </div>
     <div class="dm-conv-list" id="dmFsConvList" style="flex:1;overflow-y:auto;padding:8px;"></div>
   </div>
   <div id="dmFsChatView" style="display:none;flex-direction:column;height:100%;">
@@ -1529,6 +1685,10 @@ body {
       </button>
       <div class="dm-fs-avatar" id="dmFsAvatar"></div>
       <div class="dm-fs-name" id="dmFsName"></div>
+      <!-- Mobile clear chat btn -->
+      <button class="dm-fs-clear-btn" onclick="promptClearChat()" title="Clear chat (Alt+C)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+      </button>
     </div>
     <div class="dm-reply-bar" id="dmFsReplyBar">
       <div class="dm-reply-bar-content">
@@ -1616,6 +1776,18 @@ body {
   </div>
 </div>
 
+<!-- CONFIRM DIALOG OVERLAY (generic, reused for clear chat & delete chat) -->
+<div class="overlay" id="confirmOverlay">
+  <div class="confirm-popup" id="confirmPopup">
+    <h3 id="confirmTitle">Are you sure?</h3>
+    <p id="confirmMsg">This action cannot be undone.</p>
+    <div class="popup-btns">
+      <button class="btn-cancel" onclick="closeConfirm()">Cancel</button>
+      <button class="btn-confirm" id="confirmOkBtn" style="background:#ef4444;" onclick="confirmAction()">Confirm</button>
+    </div>
+  </div>
+</div>
+
 </div><!-- /mainApp -->
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1648,9 +1820,168 @@ const dmContacts = [];
 let activeDmId = null;
 let replyingTo = null;
 
+// Track hidden (locally deleted) chats: { contactId: true }
+let hiddenChats = JSON.parse(localStorage.getItem('hether_hidden_chats') || '{}');
+
 const renderedMsgIds = new Set();
 
 let profile = JSON.parse(localStorage.getItem('hether_profile') || 'null') || { name: 'User', username: '@user', email: 'user@example.com', avatarUrl: null };
+
+// ── CONFIRM DIALOG ──
+let _confirmCallback = null;
+function showConfirm(title, msg, okLabel, callback) {
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMsg').textContent = msg;
+  document.getElementById('confirmOkBtn').textContent = okLabel || 'Confirm';
+  _confirmCallback = callback;
+  document.getElementById('confirmOverlay').classList.add('show');
+}
+function closeConfirm() {
+  document.getElementById('confirmOverlay').classList.remove('show');
+  _confirmCallback = null;
+}
+function confirmAction() {
+  closeConfirm();
+  if (_confirmCallback) _confirmCallback();
+}
+
+// ── CLEAR CHAT (for active DM, local only) ──
+function promptClearChat() {
+  if (!activeDmId) return;
+  const contact = dmContacts.find(c => c.id === activeDmId);
+  const name = contact ? contact.name : 'this user';
+  showConfirm(
+    'Clear conversation?',
+    `This will hide all messages with ${name} from your view. The other person's messages are not deleted.`,
+    'Clear chat',
+    () => doClearChat(activeDmId)
+  );
+}
+
+function doClearChat(userId) {
+  // Mark as hidden locally (we don't delete from DB — only for this user's view)
+  hiddenChats[userId] = Date.now(); // store timestamp so we only hide msgs before this time
+  localStorage.setItem('hether_hidden_chats', JSON.stringify(hiddenChats));
+  // Re-render the chat as empty
+  const msgsEl = document.getElementById(isMobile() ? 'dmFsMessages' : 'dmChatMessages');
+  if (msgsEl) msgsEl.innerHTML = '';
+  // Reset last message in contact list
+  const contact = dmContacts.find(c => c.id === userId);
+  if (contact) {
+    contact.lastMessage = null;
+    contact.lastMessageTs = 0;
+  }
+  buildDMConvList();
+}
+
+// ── DELETE CHAT (remove from sidebar list, local only) ──
+function promptDeleteChat(contactId, e) {
+  e.stopPropagation(); // don't open the chat
+  const contact = dmContacts.find(c => c.id === contactId);
+  const name = contact ? contact.name : 'this conversation';
+  showConfirm(
+    `Delete conversation with ${name}?`,
+    'The chat will be removed from your list. You can find them again by searching their username and messaging them.',
+    'Delete',
+    () => doDeleteChat(contactId)
+  );
+}
+
+function doDeleteChat(contactId) {
+  // Hide and clear locally
+  hiddenChats[contactId] = Date.now();
+  localStorage.setItem('hether_hidden_chats', JSON.stringify(hiddenChats));
+  // Mark contact as hidden
+  const contact = dmContacts.find(c => c.id === contactId);
+  if (contact) {
+    contact.hidden = true;
+    contact.lastMessage = null;
+    contact.lastMessageTs = 0;
+  }
+  // If this was the active chat, close it
+  if (activeDmId === contactId) {
+    activeDmId = null;
+    showDmEmptyState();
+    if (isMobile()) {
+      document.getElementById('dmFsChatView').style.display = 'none';
+      document.getElementById('dmFsListView').style.display = 'flex';
+    }
+  }
+  buildDMConvList();
+}
+
+// Restore a hidden contact when they search and click them
+function restoreContact(contactId) {
+  if (hiddenChats[contactId]) {
+    // keep the clear timestamp but unset hidden flag so it shows in list again
+    const contact = dmContacts.find(c => c.id === contactId);
+    if (contact) {
+      contact.hidden = false;
+    }
+    // don't remove from hiddenChats — we still use the timestamp to filter old messages
+    buildDMConvList();
+  }
+}
+
+// ── SEARCH ──
+function onDmSearch(val) {
+  const dropdown = document.getElementById('dmSearchDropdown');
+  val = val.trim().toLowerCase();
+  if (!val) { dropdown.classList.remove('show'); return; }
+  const matches = dmContacts.filter(c => c.name.toLowerCase().includes(val));
+  renderSearchDropdown(dropdown, matches, 'desktop');
+}
+
+function onDmFsSearch(val) {
+  const dropdown = document.getElementById('dmFsSearchDropdown');
+  val = val.trim().toLowerCase();
+  if (!val) { dropdown.classList.remove('show'); return; }
+  const matches = dmContacts.filter(c => c.name.toLowerCase().includes(val));
+  renderSearchDropdown(dropdown, matches, 'mobile');
+}
+
+function renderSearchDropdown(dropdown, matches, mode) {
+  dropdown.innerHTML = '';
+  if (matches.length === 0) {
+    dropdown.innerHTML = '<div class="dm-search-empty">No users found</div>';
+    dropdown.classList.add('show');
+    return;
+  }
+  // Sort alphabetically
+  const sorted = [...matches].sort((a, b) => a.name.localeCompare(b.name));
+  sorted.forEach(c => {
+    const item = document.createElement('div');
+    item.className = 'dm-search-item';
+    item.innerHTML = `
+      <div class="dm-search-avatar" style="background:${c.color};">
+        ${c.avatarUrl ? `<img src="${c.avatarUrl}" alt="">` : c.initials}
+      </div>
+      <div class="dm-search-name">${escHtml(c.name)}</div>
+    `;
+    item.onclick = () => {
+      // Restore hidden contact if needed
+      restoreContact(c.id);
+      dropdown.classList.remove('show');
+      if (mode === 'mobile') {
+        document.getElementById('dmFsSearchInput').value = '';
+        openFsChat(c.id);
+      } else {
+        document.getElementById('dmSearchInput').value = '';
+        openDesktopChat(c.id);
+      }
+    };
+    dropdown.appendChild(item);
+  });
+  dropdown.classList.add('show');
+}
+
+// Close search dropdowns when clicking outside
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.dm-search-wrap') && !e.target.closest('.dm-fs-search-wrap')) {
+    document.getElementById('dmSearchDropdown')?.classList.remove('show');
+    document.getElementById('dmFsSearchDropdown')?.classList.remove('show');
+  }
+});
 
 async function saveProfile() {
   const name = document.getElementById('peDisplayName').value.trim();
@@ -1877,9 +2208,19 @@ function closeDM() {
 function dmOverlayClick(e) { if (e.target === document.getElementById('dmOverlay')) closeDM(); }
 
 function buildDMConvList() {
-  const sorted = [...dmContacts].sort((a, b) => (b.lastMessageTs||0) - (a.lastMessageTs||0));
+  // Sort: unread first, then by most recent message timestamp
+  const visible = dmContacts.filter(c => !c.hidden);
+  const sorted = [...visible].sort((a, b) => {
+    // unread & has messages bubble to top
+    const aUnread = a.unread && a.id !== activeDmId ? 1 : 0;
+    const bUnread = b.unread && b.id !== activeDmId ? 1 : 0;
+    if (bUnread !== aUnread) return bUnread - aUnread;
+    return (b.lastMessageTs || 0) - (a.lastMessageTs || 0);
+  });
+
   ['dmConvList','dmFsConvList'].forEach(listId => {
     const list = document.getElementById(listId);
+    if (!list) return;
     const isFsList = listId === 'dmFsConvList';
     list.innerHTML = '';
     sorted.forEach(c => {
@@ -1887,25 +2228,33 @@ function buildDMConvList() {
       item.className = 'dm-conv-item' + (c.id === activeDmId ? ' active' : '');
       item.dataset.id = c.id;
       item.onclick = () => { isFsList ? openFsChat(c.id) : openDesktopChat(c.id); };
+
       const lastMsg = c.lastMessage;
       const isUnread = c.unread && c.id !== activeDmId;
-      const previewClass = isUnread ? 'dm-conv-preview unread' : 'dm-conv-preview';
+      const previewClass = 'dm-conv-preview' + (isUnread ? ' unread' : '');
       const previewText = lastMsg
-        ? (lastMsg.type === 'sent' ? 'You: ' + lastMsg.text : (isUnread ? c.name + ': ' + lastMsg.text : lastMsg.text))
+        ? (lastMsg.type === 'sent' ? 'You: ' + lastMsg.text : lastMsg.text)
         : 'No messages yet';
+
       item.innerHTML = `
         <div class="dm-conv-avatar" style="background:${c.color};">
           ${c.avatarUrl ? `<img src="${c.avatarUrl}" alt="">` : c.initials}
           ${c.online ? '<div class="dm-online-dot"></div>' : ''}
         </div>
         <div class="dm-conv-info">
-          <div class="dm-conv-name">${c.name}</div>
+          <div class="dm-conv-name">${escHtml(c.name)}</div>
           <div class="${previewClass}">${escHtml(previewText)}</div>
         </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
           <div class="dm-conv-time">${lastMsg ? lastMsg.time : ''}</div>
           ${isUnread ? '<div class="dm-unread-dot"></div>' : ''}
         </div>
+        <button class="dm-conv-delete-btn" title="Delete conversation" onclick="promptDeleteChat('${c.id}', event)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+            <path d="M10 11v6"/><path d="M14 11v6"/>
+          </svg>
+        </button>
       `;
       list.appendChild(item);
     });
@@ -1938,7 +2287,8 @@ async function loadContacts() {
       online: true,
       lastMessage: null,
       lastMessageTs: 0,
-      unread: false
+      unread: false,
+      hidden: !!hiddenChats[u.id] // hidden until they get a new message
     });
     colorIdx++;
   });
@@ -1951,10 +2301,13 @@ function showDmEmptyState() {
 }
 
 function openDesktopChat(id) {
-  activeDmId = id;
+  // If contact was hidden, restore visibility
   const contact = dmContacts.find(c => c.id === id);
   if (!contact) return;
+  contact.hidden = false;
   contact.unread = false;
+  activeDmId = id;
+
   document.querySelectorAll('#dmConvList .dm-conv-item').forEach(el => el.classList.toggle('active', el.dataset.id === id));
   document.getElementById('dmTopbarName').textContent = contact.name;
   const av = document.getElementById('dmTopbarAvatar');
@@ -2075,7 +2428,7 @@ function renderGroupedMessages(container, groups, currentUserId, contact) {
 
       bubble.addEventListener('contextmenu', (e) => {
         e.preventDefault();
-        showCtxMenu(e.clientX, e.clientY, bWrap);
+        showCtxMenu(e.clientX, e.clientY, bWrap, msg, isSent);
       });
 
       bWrap.appendChild(bubble);
@@ -2116,7 +2469,7 @@ function addReaction(bWrap, emoji) {
   bWrap.appendChild(reaction);
 }
 
-function showCtxMenu(x, y, bWrap) {
+function showCtxMenu(x, y, bWrap, msg, isSent) {
   const menu = document.getElementById('dmCtxMenu');
   menu.innerHTML = '';
   menu.style.display = 'block';
@@ -2124,18 +2477,50 @@ function showCtxMenu(x, y, bWrap) {
   menu.style.top = y + 'px';
   const text = bWrap.dataset.text;
   const sender = bWrap.dataset.sender;
+
+  // Reply
   const replyBtn = document.createElement('button');
   replyBtn.className = 'dm-ctx-item';
   replyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg> Reply`;
   replyBtn.onclick = () => { startReply(text, sender); closeCtxMenu(); };
+
+  // React
   const reactBtn = document.createElement('button');
   reactBtn.className = 'dm-ctx-item';
   reactBtn.innerHTML = `❤️ React`;
   reactBtn.onclick = () => { addReaction(bWrap, '❤️'); closeCtxMenu(); };
+
+  // Delete message (only for sent messages)
+  const deleteBtn = document.createElement('button');
+  deleteBtn.className = 'dm-ctx-item danger';
+  deleteBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg> Delete message`;
+  deleteBtn.onclick = () => {
+    closeCtxMenu();
+    showConfirm('Delete message?', 'This message will be removed from your view.', 'Delete', () => {
+      deleteMessage(msg, bWrap);
+    });
+  };
+
   menu.appendChild(replyBtn);
   menu.appendChild(reactBtn);
-  if (x + 140 > window.innerWidth) menu.style.left = (x - 140) + 'px';
-  if (y + 80 > window.innerHeight) menu.style.top = (y - 80) + 'px';
+  menu.appendChild(deleteBtn);
+
+  if (x + 160 > window.innerWidth) menu.style.left = (x - 160) + 'px';
+  if (y + 100 > window.innerHeight) menu.style.top = (y - 100) + 'px';
+}
+
+function deleteMessage(msg, bWrap) {
+  // Remove the bubble-wrap from DOM
+  const parentGroup = bWrap.closest('.dm-msg-group');
+  bWrap.remove();
+  // If the group has no more bubbles, remove the whole group
+  if (parentGroup && parentGroup.querySelectorAll('.dm-bubble-wrap').length === 0) {
+    parentGroup.remove();
+  }
+  // Optionally delete from Supabase (only for own messages)
+  if (msg && msg.id) {
+    supabaseClient.from('messages').delete().eq('id', msg.id).then(() => {});
+  }
 }
 
 function closeCtxMenu() { document.getElementById('dmCtxMenu').style.display = 'none'; }
@@ -2164,11 +2549,18 @@ async function loadMessages(userId) {
   if (!msgsEl) return;
   msgsEl.innerHTML = '';
   const contact = dmContacts.find(c => c.id === userId);
+  const clearTs = hiddenChats[userId] || 0; // only show messages after this timestamp
+
   try {
-    const { data, error } = await supabaseClient
+    let query = supabaseClient
       .from('messages').select('*')
       .or(`and(sender_id.eq.${user.id},receiver_id.eq.${userId}),and(sender_id.eq.${userId},receiver_id.eq.${user.id})`)
       .order('created_at', { ascending: true });
+    // If chat was cleared, only show messages after the clear timestamp
+    if (clearTs) {
+      query = query.gt('created_at', new Date(clearTs).toISOString());
+    }
+    const { data, error } = await query;
     if (error) return;
     if (data && data.length > 0) {
       data.forEach(m => { if (m.id) renderedMsgIds.add(m.id); });
@@ -2188,6 +2580,13 @@ async function loadMessages(userId) {
         if (!isForThis) return;
         if (renderedMsgIds.has(newMsg.id)) return;
         renderedMsgIds.add(newMsg.id);
+
+        // If this contact was hidden and they sent us a new message, show them again
+        const c = dmContacts.find(c => c.id === userId);
+        if (c && c.hidden && newMsg.sender_id === userId) {
+          c.hidden = false;
+        }
+
         if (activeDmId === userId) {
           removeSendingBubble(msgsEl, newMsg.content);
           reloadAndRenderMessages(userId, 'desktop');
@@ -2208,11 +2607,17 @@ async function loadFsMessages(userId) {
   if (!msgsEl) return;
   msgsEl.innerHTML = '';
   const contact = dmContacts.find(c => c.id === userId);
+  const clearTs = hiddenChats[userId] || 0;
+
   try {
-    const { data, error } = await supabaseClient
+    let query = supabaseClient
       .from('messages').select('*')
       .or(`and(sender_id.eq.${user.id},receiver_id.eq.${userId}),and(sender_id.eq.${userId},receiver_id.eq.${user.id})`)
       .order('created_at', { ascending: true });
+    if (clearTs) {
+      query = query.gt('created_at', new Date(clearTs).toISOString());
+    }
+    const { data, error } = await query;
     if (error) return;
     if (data && data.length > 0) {
       data.forEach(m => { if (m.id) renderedMsgIds.add(m.id); });
@@ -2230,14 +2635,25 @@ async function loadFsMessages(userId) {
         if (!isForThis) return;
         if (renderedMsgIds.has(newMsg.id)) return;
         renderedMsgIds.add(newMsg.id);
+
+        const c = dmContacts.find(c => c.id === userId);
+        if (c && c.hidden && newMsg.sender_id === userId) {
+          c.hidden = false;
+        }
+
         if (activeDmId === userId) {
           removeSendingBubble(document.getElementById('dmFsMessages'), newMsg.content);
           reloadAndRenderMessages(userId, 'mobile');
           updateContactLastMsg(userId, newMsg, user.id);
           buildDMConvList();
         } else {
-          const c = dmContacts.find(c => c.id === userId);
-          if (c) { c.unread = true; buildDMConvList(); }
+          if (c) {
+            c.unread = true;
+            // Also un-hide if they sent a new message
+            if (newMsg.sender_id === userId) c.hidden = false;
+            updateContactLastMsg(userId, newMsg, user.id);
+            buildDMConvList();
+          }
         }
       }).subscribe();
     await subscriptionManager.replaceSubscription(channel);
@@ -2260,10 +2676,16 @@ async function reloadAndRenderMessages(userId, mode) {
   const msgsEl = document.getElementById(mode === 'mobile' ? 'dmFsMessages' : 'dmChatMessages');
   if (!msgsEl) return;
   const contact = dmContacts.find(c => c.id === userId);
-  const { data } = await supabaseClient
+  const clearTs = hiddenChats[userId] || 0;
+
+  let query = supabaseClient
     .from('messages').select('*')
     .or(`and(sender_id.eq.${user.id},receiver_id.eq.${userId}),and(sender_id.eq.${userId},receiver_id.eq.${user.id})`)
     .order('created_at', { ascending: true });
+  if (clearTs) {
+    query = query.gt('created_at', new Date(clearTs).toISOString());
+  }
+  const { data } = await query;
   if (data) {
     data.forEach(m => { if (m.id) renderedMsgIds.add(m.id); });
     const groups = groupMessages(data.map(m => ({ ...m, ts: m.created_at })));
@@ -2275,16 +2697,27 @@ function updateContactLastMsg(userId, msg, currentUserId) {
   const contact = dmContacts.find(c => c.id === userId);
   if (!contact) return;
   const d = new Date(msg.created_at);
+  // Check if message is after clear timestamp
+  const clearTs = hiddenChats[userId] || 0;
+  if (clearTs && d.getTime() < clearTs) return; // don't update preview for hidden messages
+
   contact.lastMessage = { type: msg.sender_id === currentUserId ? 'sent' : 'received', text: msg.content, time: formatMsgTime(d) };
   contact.lastMessageTs = d.getTime();
+
+  // Mark as unread if not the active chat
+  if (msg.sender_id !== currentUserId && activeDmId !== userId) {
+    contact.unread = true;
+  }
+
   buildDMConvList();
 }
 
 function openFsChat(id) {
-  activeDmId = id;
   const contact = dmContacts.find(c => c.id === id);
   if (!contact) return;
+  contact.hidden = false;
   contact.unread = false;
+  activeDmId = id;
   const av = document.getElementById('dmFsAvatar');
   if (contact.avatarUrl) { av.innerHTML = `<img src="${contact.avatarUrl}" alt="">`; av.style.background = 'transparent'; }
   else { av.style.background = contact.color; av.textContent = contact.initials; }
@@ -2327,11 +2760,14 @@ async function dmSend(mode) {
     reply_to_text: msgReplyTo?.text, reply_to_author: msgReplyTo?.author
   };
 
-  const { data: existingData } = await supabaseClient
+  const clearTs = hiddenChats[activeDmId] || 0;
+  let query = supabaseClient
     .from('messages').select('*')
     .or(`and(sender_id.eq.${user.id},receiver_id.eq.${activeDmId}),and(sender_id.eq.${activeDmId},receiver_id.eq.${user.id})`)
     .order('created_at', { ascending: true });
+  if (clearTs) query = query.gt('created_at', new Date(clearTs).toISOString());
 
+  const { data: existingData } = await query;
   const allMessages = [...(existingData || []), optimisticMsg];
   const groups = groupMessages(allMessages.map(m => ({ ...m, ts: m.created_at })));
   renderGroupedMessages(msgsEl, groups, user.id, contact);
@@ -2446,7 +2882,13 @@ document.addEventListener('keydown', e => {
     if (dmOpen) { closeDM(); return; }
     openAdminPopup();
   }
+  // Alt+C: clear active DM chat
+  if (e.altKey && e.key === 'c') {
+    e.preventDefault();
+    if (dmOpen && activeDmId) promptClearChat();
+  }
   if (e.key === 'Escape') {
+    if (document.getElementById('confirmOverlay').classList.contains('show')) { closeConfirm(); return; }
     closeAdminPopup(); closeProfileEdit(); closeLogout(); closeProfileDropdown(); closeLightbox(); closeCtxMenu();
   }
 });
