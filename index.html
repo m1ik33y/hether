@@ -1431,14 +1431,10 @@ let sidebarMini = false;
 let sidebarHideTimer = null;
 const isMobile = () => window.innerWidth <= 640;
 
-const dmContacts = [
-  { id: 1, name: 'Alice Chen',   initials: 'AC', color: 'linear-gradient(135deg,#5b6af0,#a855f7)', online: true,  messages: [{ type:'received', text:'Hey, admin here. Need your sign-off.', time: '9:12 AM' }] },
-  { id: 2, name: 'Bob Martin',   initials: 'BM', color: 'linear-gradient(135deg,#f97316,#ec4899)', online: false, messages: [{ type:'received', text:'Check the logs from last night.', time: 'Yesterday' }] },
-  { id: 3, name: 'Priya Nair',   initials: 'PN', color: 'linear-gradient(135deg,#22c55e,#06b6d4)', online: true,  messages: [{ type:'sent', text:'Will send the report shortly.', time: '8:45 AM' }] },
-  { id: 4, name: 'Dev Ops Bot',  initials: 'DO', color: 'linear-gradient(135deg,#6366f1,#0ea5e9)', online: true,  messages: [{ type:'received', text:'Deployment successful ✓', time: '7:30 AM' }] },
-];
+const dmContacts = [];
 
 let activeDmId = null;
+let realtimeSubscription = null;
 
 let profile = JSON.parse(localStorage.getItem('hether_profile') || 'null') || { name: 'User', username: '@user', email: 'user@example.com', avatarUrl: null };
 
@@ -1448,7 +1444,7 @@ async function saveProfile() {
 
   const { data: { user } } = await supabaseClient.auth.getUser();
 
-  await supabase
+  await supabaseClient
     .from('profiles')
     .update({
       username: username
@@ -1660,7 +1656,8 @@ function verifyAdmin() {
 
 // ── DM ──
 function openDM() {
-  dmOpen = true; buildDMConvList();
+  dmOpen = true; 
+  loadContacts(); // Load contacts from Supabase
   if (isMobile()) {
     document.getElementById('dmFullscreen').classList.add('show');
     document.getElementById('dmFsListView').style.display = 'flex';
@@ -1687,11 +1684,50 @@ function buildDMConvList() {
       item.className = 'dm-conv-item' + (c.id === activeDmId ? ' active' : '');
       item.dataset.id = c.id;
       item.onclick = () => { isFsList ? openFsChat(c.id) : openDesktopChat(c.id); };
-      const lastMsg = c.messages[c.messages.length - 1];
+      const lastMsg = c.lastMessage;
       item.innerHTML = `<div class="dm-conv-avatar" style="background:${c.color};">${c.online ? '<div class="dm-online-dot"></div>' : ''}${c.initials}</div><div class="dm-conv-info"><div class="dm-conv-name">${c.name}</div><div class="dm-conv-preview">${lastMsg ? (lastMsg.type==='sent'?'You: ':'')+lastMsg.text : 'No messages yet'}</div></div><div class="dm-conv-time">${lastMsg ? lastMsg.time : ''}</div>`;
       list.appendChild(item);
     });
   });
+}
+
+async function loadContacts() {
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (!user) return;
+
+  const { data } = await supabaseClient
+    .from('profiles')
+    .select('*');
+
+  dmContacts.length = 0;
+
+  // Generate colors for each contact
+  const colors = [
+    'linear-gradient(135deg,#5b6af0,#a855f7)',
+    'linear-gradient(135deg,#f97316,#ec4899)',
+    'linear-gradient(135deg,#22c55e,#06b6d4)',
+    'linear-gradient(135deg,#6366f1,#0ea5e9)',
+    'linear-gradient(135deg,#f43f5e,#8b5cf6)',
+    'linear-gradient(135deg,#14b8a6,#06b6d4)'
+  ];
+  let colorIdx = 0;
+
+  data.forEach(u => {
+    // Skip current user
+    if (u.id === user.id) return;
+    
+    dmContacts.push({
+      id: u.id,
+      name: u.username || 'User',
+      initials: (u.username || 'U')[0].toUpperCase(),
+      color: colors[colorIdx % colors.length],
+      online: true,
+      lastMessage: null
+    });
+    colorIdx++;
+  });
+
+  buildDMConvList();
 }
 
 function showDmEmptyState() {
@@ -1701,20 +1737,168 @@ function showDmEmptyState() {
 
 function openDesktopChat(id) {
   activeDmId = id;
+
   const contact = dmContacts.find(c => c.id === id);
   if (!contact) return;
-  document.querySelectorAll('#dmConvList .dm-conv-item').forEach(el => el.classList.toggle('active', parseInt(el.dataset.id) === id));
+
+  document.querySelectorAll('#dmConvList .dm-conv-item')
+    .forEach(el => el.classList.toggle('active', parseInt(el.dataset.id) === id));
+
   document.getElementById('dmTopbarName').textContent = contact.name;
+
   const av = document.getElementById('dmTopbarAvatar');
-  av.style.background = contact.color; av.textContent = contact.initials;
+  av.style.background = contact.color;
+  av.textContent = contact.initials;
+
+  loadMessages(id);
+
+  document.getElementById('dmEmptyState').style.display = 'none';
+
+  const wrap = document.getElementById('dmActiveChatWrap');
+  wrap.style.display = 'flex';
+  wrap.style.flexDirection = 'column';
+  wrap.style.flex = '1';
+  wrap.style.overflow = 'hidden';
+
+  document.getElementById('dmInput').focus();
+
+  // ✅ FIX
+  const msgsEl = document.getElementById('dmChatMessages');
+  msgsEl.scrollTop = msgsEl.scrollHeight;
+}
+
+async function loadMessages(userId) {
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (!user) return;
+
+  // Unsubscribe from previous subscription
+  if (realtimeSubscription) {
+    supabaseClient.removeAllChannels();
+    realtimeSubscription = null;
+  }
+
   const msgsEl = document.getElementById('dmChatMessages');
   msgsEl.innerHTML = '';
-  contact.messages.forEach(m => renderDmMsg(msgsEl, m));
-  document.getElementById('dmEmptyState').style.display = 'none';
-  const wrap = document.getElementById('dmActiveChatWrap');
-  wrap.style.display = 'flex'; wrap.style.flexDirection = 'column'; wrap.style.flex = '1'; wrap.style.overflow = 'hidden';
-  document.getElementById('dmInput').focus();
-  msgsEl.scrollTop = msgsEl.scrollHeight;
+
+  // Load initial messages from database
+  const { data } = await supabaseClient
+    .from('messages')
+    .select('*')
+    .or(`and(sender_id.eq.${user.id},receiver_id.eq.${userId}),and(sender_id.eq.${userId},receiver_id.eq.${user.id})`)
+    .order('created_at', { ascending: true });
+
+  // Display loaded messages
+  if (data) {
+    data.forEach(m => {
+      renderDmMsg(msgsEl, {
+        type: m.sender_id === user.id ? 'sent' : 'received',
+        text: m.content,
+        time: new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      });
+    });
+  }
+
+  // Set up real-time subscription for new messages
+  const channel = supabaseClient
+    .channel(`messages:${user.id}:${userId}`)
+    .on('postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'messages',
+        filter: `or(and(sender_id=eq.${user.id},receiver_id=eq.${userId}),and(sender_id=eq.${userId},receiver_id=eq.${user.id}))`
+      },
+      (payload) => {
+        const newMsg = payload.new;
+        if (activeDmId === userId) {
+          renderDmMsg(msgsEl, {
+            type: newMsg.sender_id === user.id ? 'sent' : 'received',
+            text: newMsg.content,
+            time: new Date(newMsg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          });
+          // Update last message in contact list
+          const contact = dmContacts.find(c => c.id === userId);
+          if (contact) {
+            contact.lastMessage = {
+              type: newMsg.sender_id === user.id ? 'sent' : 'received',
+              text: newMsg.content,
+              time: new Date(newMsg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+            buildDMConvList();
+          }
+        }
+      }
+    )
+    .subscribe();
+
+  realtimeSubscription = channel;
+}
+
+async function loadFsMessages(userId) {
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (!user) return;
+
+  // Unsubscribe from previous subscription
+  if (realtimeSubscription) {
+    supabaseClient.removeAllChannels();
+    realtimeSubscription = null;
+  }
+
+  const msgsEl = document.getElementById('dmFsMessages');
+  msgsEl.innerHTML = '';
+
+  // Load initial messages from database
+  const { data } = await supabaseClient
+    .from('messages')
+    .select('*')
+    .or(`and(sender_id.eq.${user.id},receiver_id.eq.${userId}),and(sender_id.eq.${userId},receiver_id.eq.${user.id})`)
+    .order('created_at', { ascending: true });
+
+  // Display loaded messages
+  if (data) {
+    data.forEach(m => {
+      renderDmMsg(msgsEl, {
+        type: m.sender_id === user.id ? 'sent' : 'received',
+        text: m.content,
+        time: new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      });
+    });
+  }
+
+  // Set up real-time subscription for new messages
+  const channel = supabaseClient
+    .channel(`fs-messages:${user.id}:${userId}`)
+    .on('postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'messages',
+        filter: `or(and(sender_id=eq.${user.id},receiver_id=eq.${userId}),and(sender_id=eq.${userId},receiver_id=eq.${user.id}))`
+      },
+      (payload) => {
+        const newMsg = payload.new;
+        if (activeDmId === userId) {
+          renderDmMsg(msgsEl, {
+            type: newMsg.sender_id === user.id ? 'sent' : 'received',
+            text: newMsg.content,
+            time: new Date(newMsg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          });
+          // Update last message in contact list
+          const contact = dmContacts.find(c => c.id === userId);
+          if (contact) {
+            contact.lastMessage = {
+              type: newMsg.sender_id === user.id ? 'sent' : 'received',
+              text: newMsg.content,
+              time: new Date(newMsg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+            buildDMConvList();
+          }
+        }
+      }
+    )
+    .subscribe();
+
+  realtimeSubscription = channel;
 }
 
 function openFsChat(id) {
@@ -1726,7 +1910,7 @@ function openFsChat(id) {
   document.getElementById('dmFsName').textContent = contact.name;
   const msgsEl = document.getElementById('dmFsMessages');
   msgsEl.innerHTML = '';
-  contact.messages.forEach(m => renderDmMsg(msgsEl, m));
+  loadFsMessages(id);
   document.getElementById('dmFsListView').style.display = 'none';
   const chatView = document.getElementById('dmFsChatView');
   chatView.style.display = 'flex'; chatView.style.flexDirection = 'column'; chatView.style.height = '100%';
@@ -1759,18 +1943,55 @@ function renderDmMsg(container, msgData) {
 }
 
 function dmHandleKey(e, mode) { if (e.key === 'Enter') dmSend(mode); }
-function dmSend(mode) {
+async function dmSend(mode) {
   const inputId = mode === 'mobile' ? 'dmFsInput' : 'dmInput';
+  const sendBtnId = mode === 'mobile' ? 'dmFsSendBtn' : 'dmSendBtn';
+
   const input = document.getElementById(inputId);
+  const sendBtn = document.getElementById(sendBtnId);
+
   const text = input.value.trim();
   if (!text || !activeDmId) return;
-  const contact = dmContacts.find(c => c.id === activeDmId);
-  const msg = { type: 'sent', text, time: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) };
-  contact.messages.push(msg);
-  input.value = '';
-  const msgsEl = document.getElementById(mode === 'mobile' ? 'dmFsMessages' : 'dmChatMessages');
-  renderDmMsg(msgsEl, msg);
-  buildDMConvList();
+
+  const { data: { user } } = await supabaseClient.auth.getUser();
+
+  sendBtn.disabled = true;
+  input.disabled = true;
+
+  try {
+    await supabaseClient.from('messages').insert({
+      sender_id: user.id,
+      receiver_id: activeDmId,
+      content: text
+    });
+
+    // ✅ INSTANT UI UPDATE (fixes blank issue)
+    const msgsEl = document.getElementById(
+      mode === 'mobile' ? 'dmFsMessages' : 'dmChatMessages'
+    );
+
+    renderDmMsg(msgsEl, {
+      type: 'sent',
+      text: text,
+      time: new Date().toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    });
+
+    input.value = '';
+
+    if (mode === 'desktop') toggleDmSendBtn();
+    else toggleDmFsSendBtn();
+
+  } catch (error) {
+    console.error('Error sending message:', error);
+    alert('Failed to send message. Try again.');
+  } finally {
+    sendBtn.disabled = false;
+    input.disabled = false;
+    input.focus();
+  }
 }
 
 function dmHandleMedia(e, mode) {
@@ -1851,15 +2072,7 @@ function handleAvatarUpload(e) {
   reader.readAsDataURL(file);
 }
 function removeAvatar() { profile.avatarUrl = null; renderProfileEverywhere(); document.getElementById('peImageUpload').value = ''; }
-function saveProfile() {
-  const name = document.getElementById('peDisplayName').value.trim();
-  const username = document.getElementById('peUsername').value.trim();
-  const email = document.getElementById('peEmail').value.trim();
-  if (name) profile.name = name;
-  if (username) profile.username = username.startsWith('@') ? username : '@' + username;
-  if (email) profile.email = email;
-  saveProfileState(); renderProfileEverywhere(); closeProfileEdit();
-}
+
 function clearHistory() { chatHistory = []; newChat(); }
 
 document.addEventListener('keydown', e => {
@@ -1979,6 +2192,20 @@ async function checkAuth() {
     showAuthPage();
   }
 }
+function subscribeToMessages() {
+  supabaseClient
+    .channel('messages')
+    .on(
+      'postgres_changes',
+      { event: 'INSERT', schema: 'public', table: 'messages' },
+      payload => {
+        if (activeDmId) {
+          loadMessages(activeDmId);
+        }
+      }
+    )
+    .subscribe();
+}
 function showAuthPage() {
   document.getElementById('authPage').style.display = 'flex';
   document.getElementById('mainApp').style.display = 'none';
@@ -1987,6 +2214,13 @@ function showAuthPage() {
 function showApp() {
   document.getElementById('authPage').style.display = 'none';
   document.getElementById('mainApp').style.display = 'flex';
+
+  closeLogout();
+  closeAdminPopup();
+  closeProfileEdit();
+
+  loadContacts();          // 👈 ADD THIS LINE
+  subscribeToMessages();   // 👈 AND THIS (if not already)
 }
 function authenticateGuest() {
   localStorage.setItem('hether_authenticated', 'true');
@@ -2076,7 +2310,7 @@ async function loadUserProfile() {
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (!user) return;
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseClient
     .from('profiles')
     .select('*')
     .eq('id', user.id)
