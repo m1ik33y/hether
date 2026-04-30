@@ -332,8 +332,10 @@ body {
 .bubble code { font-family: 'DM Mono', monospace; font-size: 12.5px; background: var(--surface2); padding: 1px 5px; border-radius: 4px; }
 .bubble pre { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; overflow-x: auto; margin: 8px 0; font-family: 'DM Mono', monospace; font-size: 12.5px; }
 
-.bubble img.chat-media { max-width: 260px; max-height: 220px; border-radius: 6px; display: block; margin-top: 6px; cursor: pointer; }
-.bubble video.chat-media { max-width: 260px; border-radius: 6px; display: block; margin-top: 6px; }
+.message.user .media-only { background: transparent; border: none; padding: 0; }
+.message.ai .media-only { background: transparent; border: none; padding: 0; }
+.chat-media-img { max-width: 260px; max-height: 220px; border-radius: 12px; display: block; cursor: pointer; box-shadow: 0 2px 12px rgba(0,0,0,0.13); }
+.chat-media-vid { max-width: 260px; border-radius: 12px; display: block; box-shadow: 0 2px 12px rgba(0,0,0,0.13); }
 
 /* ── WELCOME ── */
 .welcome {
@@ -380,12 +382,17 @@ body {
 .input-wrap {
   max-width: 740px; margin: 0 auto; position: relative;
   background: var(--input-bg); border: 1px solid rgb(147, 147, 147);
-  border-radius: 22px; display: flex; font-size:24px; align-items: center; gap: 6px; padding: 8px 12px 8px 8px;
+  border-radius: 18px; display: flex; align-items: flex-end; gap: 6px; padding: 8px 12px 8px 8px;
   transition: border-color var(--t), box-shadow var(--t);
 }
 .input-wrap:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(91,106,240,0.08); }
 
-#userInput { flex: 1; background: transparent; border: none; outline: none; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13.5px; resize: none; max-height: 160px; line-height: 1.5; padding: 0 6px; }
+#userInput {
+  flex: 1; background: transparent; border: none; outline: none;
+  color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13.5px;
+  resize: none; min-height: 22px; max-height: 160px; line-height: 1.55;
+  padding: 2px 6px; overflow-y: auto;
+}
 #userInput::placeholder { color: var(--text3); }
 
 .send-btn { width: 30px; height: 30px; border-radius: var(--radius); border: none; background: var(--accent); color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background var(--t), opacity var(--t), transform var(--t); flex-shrink: 0; }
@@ -394,6 +401,43 @@ body {
 .send-btn svg { width: 13px; height: 13px; }
 
 .input-hint { text-align: center; color: var(--text3); font-size: 11.5px; margin-top: 7px; max-width: 740px; margin-inline: auto; }
+
+.media-staging-wrap {
+  max-width: 740px; margin: 0 auto 8px; display: none;
+}
+.media-staging-wrap.show { display: block; }
+.media-staging-inner {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+  padding: 12px; display: flex; gap: 12px; align-items: flex-start;
+}
+.media-staging-thumb {
+  position: relative; flex-shrink: 0;
+}
+.media-staging-thumb img, .media-staging-thumb video {
+  width: 90px; height: 74px; object-fit: cover; border-radius: 8px; display: block;
+}
+.media-staging-remove {
+  position: absolute; top: -6px; right: -6px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: rgba(0,0,0,0.65); border: none; cursor: pointer; color: #fff;
+  display: flex; align-items: center; justify-content: center; font-size: 12px;
+  transition: background var(--t);
+}
+.media-staging-remove:hover { background: #ef4444; }
+.media-staging-right { flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.media-staging-caption {
+  background: transparent; border: none; outline: none;
+  color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px;
+  width: 100%; resize: none; min-height: 38px; max-height: 80px;
+  line-height: 1.5; padding: 4px 0;
+}
+.media-staging-caption::placeholder { color: var(--text3); }
+.media-staging-send {
+  align-self: flex-end; padding: 6px 14px; border-radius: 8px; border: none;
+  background: var(--accent); color: #fff; font-family: 'DM Sans', sans-serif;
+  font-size: 13px; font-weight: 500; cursor: pointer; transition: background var(--t);
+}
+.media-staging-send:hover { background: var(--accent-hover); }
 
 /* typing */
 .typing-dots { display: flex; gap: 4px; padding: 4px 0; }
@@ -462,7 +506,7 @@ body {
   height: min(640px, 90vh);
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: 8px;
   box-shadow: 0 32px 80px rgba(0,0,0,0.28);
   display: flex;
   overflow: hidden;
@@ -600,7 +644,6 @@ body {
 .dm-conv-list::-webkit-scrollbar { width: 3px; }
 .dm-conv-list::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 2px; }
 
-/* ── DM CONV ITEM with delete icon ── */
 .dm-conv-item {
   display: flex; align-items: center; gap: 11px;
   padding: 10px 10px; border-radius: 10px;
@@ -609,29 +652,6 @@ body {
 }
 .dm-conv-item:hover { background: var(--surface2); }
 .dm-conv-item.active { background: rgba(91,106,240,0.1); }
-
-/* Delete chat button — appears on hover */
-.dm-conv-delete-btn {
-  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
-  width: 24px; height: 24px; border-radius: 6px;
-  background: transparent; border: none; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  color: var(--text3);
-  opacity: 0; pointer-events: none;
-  transition: opacity var(--t), background var(--t), color var(--t);
-  flex-shrink: 0;
-}
-.dm-conv-item:hover .dm-conv-delete-btn {
-  opacity: 1; pointer-events: auto;
-}
-.dm-conv-delete-btn:hover {
-  background: rgba(239,68,68,0.1);
-  color: #ef4444;
-}
-.dm-conv-delete-btn svg { width: 13px; height: 13px; }
-
-/* Adjust right spacing on conv info to make room for delete btn */
-.dm-conv-item:hover .dm-conv-info { padding-right: 20px; }
 
 .dm-conv-avatar {
   width: 40px; height: 40px; border-radius: 50%;
@@ -647,7 +667,7 @@ body {
   background: #22c55e; border: 2px solid var(--surface);
 }
 
-.dm-conv-info { flex: 1; min-width: 0; transition: padding-right var(--t); }
+.dm-conv-info { flex: 1; min-width: 0; }
 .dm-conv-name { font-size: 13.5px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .dm-conv-preview { font-size: 12px; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
 .dm-conv-preview.unread { color: var(--text); font-weight: 700; }
@@ -693,18 +713,6 @@ body {
 .dm-chat-topbar-name { font-size: 14px; font-weight: 600; color: var(--text); }
 .dm-chat-topbar-status { font-size: 11.5px; color: #22c55e; }
 
-/* Clear chat button in topbar */
-.dm-topbar-clear-btn {
-  background: transparent; border: none; cursor: pointer;
-  color: var(--text3); padding: 6px 10px;
-  border-radius: var(--radius); font-size: 12px;
-  font-family: 'DM Sans', sans-serif;
-  display: flex; align-items: center; gap: 5px;
-  transition: background var(--t), color var(--t);
-}
-.dm-topbar-clear-btn:hover { background: rgba(239,68,68,0.08); color: #ef4444; }
-.dm-topbar-clear-btn svg { width: 13px; height: 13px; }
-
 .dm-chat-messages {
   flex: 1;
   overflow-y: auto;
@@ -744,7 +752,6 @@ body {
   max-width: 75%;
 }
 .dm-msg-group.sent .dm-msg-group-row {
-  flex-direction: row-reverse;
   margin-left: auto;
 }
 .dm-msg-group.received .dm-msg-group-row {
@@ -772,11 +779,48 @@ body {
 .dm-msg-group.sent .dm-msg-bubbles { align-items: flex-end; }
 .dm-msg-group.received .dm-msg-bubbles { align-items: flex-start; }
 
+/* ── FIX 2: Reply button positioning ── */
+/* bubble wrap is a normal row — no row-reverse */
 .dm-bubble-wrap {
   position: relative;
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   max-width: 100%;
 }
+
+.dm-msg-group.sent .dm-bubble-wrap {
+  justify-content: flex-end;
+}
+
+/* FIX 2: reply btn for SENT — appears to the RIGHT of bubble (button is after bubble in DOM) */
+/* reply btn for RECEIVED — appears to the LEFT of bubble (button is before bubble in DOM) */
+/* No flex-direction: row-reverse on .dm-bubble-wrap for sent — we control order via DOM */
+
+.dm-reply-btn {
+  opacity: 0;
+  pointer-events: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  width: 28px; height: 28px;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: opacity 0.15s ease, background var(--t), transform 0.15s ease;
+  color: var(--text3);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+.dm-bubble-wrap:hover .dm-reply-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+.dm-reply-btn:hover {
+  background: var(--surface2);
+  color: var(--accent);
+  transform: scale(1.1);
+}
+.dm-reply-btn svg { width: 13px; height: 13px; }
 
 .dm-bubble {
   font-size: 13.5px;
@@ -789,6 +833,7 @@ body {
   word-break: normal;
   box-sizing: border-box;
   vertical-align: top;
+  position: relative;
 }
 .dm-bubble:hover { opacity: 0.92; }
 .dm-msg-group.sent .dm-bubble { background: var(--accent); color: #fff; }
@@ -814,20 +859,20 @@ body {
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* Reaction — toggle, not counter */
+/* Reaction */
 .dm-reaction {
   position: absolute; bottom: -10px;
   background: var(--surface); border: 1px solid var(--border);
   border-radius: 12px; padding: 2px 7px; font-size: 14px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   animation: reactionPop 0.2s cubic-bezier(0.34,1.56,0.64,1);
-  z-index: 2; cursor: pointer; user-select: none;
+  z-index: 200; cursor: pointer; user-select: none;
 }
 .dm-msg-group.sent .dm-reaction { right: 4px; }
 .dm-msg-group.received .dm-reaction { left: 4px; }
 @keyframes reactionPop { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-/* Reply preview */
+/* Reply preview inside bubble */
 .dm-reply-preview {
   background: rgba(0,0,0,0.06); border-radius: 8px; padding: 6px 10px;
   font-size: 11.5px; color: var(--text2); margin-bottom: 4px;
@@ -840,14 +885,27 @@ body {
 
 .dm-group-time { font-size: 10.5px; color: var(--text3); padding: 2px 4px; margin-top: 2px; text-align: center; }
 
-.dm-bubble img.dm-media { max-width: 220px; max-height: 180px; border-radius: 10px; display: block; margin-top: 4px; cursor: pointer; }
-.dm-bubble video.dm-media { max-width: 220px; border-radius: 10px; display: block; margin-top: 4px; }
+/* DM media — no bubble */
+.dm-bubble-media-only {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+}
+.dm-bubble-media-only img, .dm-bubble-media-only video {
+  max-width: 220px; max-height: 180px; border-radius: 12px; display: block; cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+}
 
-/* Reply bar */
+/* ── FIX 1: Reply bar — sits ABOVE the input, not above messages ── */
 .dm-reply-bar {
-  display: none; padding: 8px 14px; background: var(--surface2);
-  border-top: 1px solid var(--border); font-size: 12.5px;
-  align-items: center; gap: 10px; flex-shrink: 0;
+  display: none;
+  padding: 8px 14px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  font-size: 12.5px;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
 }
 .dm-reply-bar.show { display: flex; }
 .dm-reply-bar-content { flex: 1; min-width: 0; }
@@ -856,7 +914,7 @@ body {
 .dm-reply-cancel { background: transparent; border: none; cursor: pointer; color: var(--text3); font-size: 18px; line-height: 1; transition: color var(--t); padding: 0 2px; }
 .dm-reply-cancel:hover { color: var(--text); }
 
-/* Input area — locked to bottom */
+/* DM input area */
 .dm-chat-input-area {
   padding: 6px 12px 10px;
   background: var(--surface);
@@ -864,19 +922,51 @@ body {
   flex-shrink: 0;
 }
 
+/* DM media staging */
+/* DM media staging */
+.dm-media-staging-wrap {
+  display: none; padding: 8px 14px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+  align-items: center;
+  gap: 10px;
+}
+.dm-media-staging-wrap.show { display: flex; }
+.dm-media-staging-inner {
+  display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;
+}
+.dm-media-staging-thumb img, .dm-media-staging-thumb video {
+  width: 44px; height: 44px; object-fit: cover; border-radius: 8px; display: block;
+}
+.dm-media-staging-thumb {
+  position: relative; flex-shrink: 0;
+}
+.dm-media-staging-thumb img, .dm-media-staging-thumb video {
+  width: 72px; height: 58px; object-fit: cover; border-radius: 7px; display: block;
+}
+.dm-media-staging-remove {
+  position: absolute; top: -6px; right: -6px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: rgba(0,0,0,0.6); border: none; cursor: pointer; color: #fff;
+  display: flex; align-items: center; justify-content: center; font-size: 11px;
+  transition: background var(--t);
+}
+.dm-media-staging-remove:hover { background: #ef4444; }
+
 .dm-input-row {
-  display: flex; gap: 6px; align-items: center;
+  display: flex; gap: 6px; align-items: flex-end;
   background: var(--input-bg); border: 1px solid rgb(168, 168, 168);
   border-radius: 22px; padding: 6px 8px 6px 6px;
   transition: border-color var(--t);
-  height: 40px;
 }
 .dm-input-row:focus-within { border-color: rgb(43, 43, 43); }
 
 #dmInput {
   flex: 1; background: transparent; border: none; outline: none;
   color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13.5px;
-  height: 30px; padding: 0 6px; min-width: 0;
+  resize: none; min-height: 22px; max-height: 120px; line-height: 1.55;
+  padding: 2px 6px; overflow-y: auto;
 }
 #dmInput::placeholder { color: var(--text3); }
 
@@ -952,25 +1042,28 @@ body {
 .dm-fs-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 .dm-fs-name { font-size: 14px; font-weight: 600; color: var(--text); flex: 1; }
 
-/* Clear chat btn in mobile topbar */
-.dm-fs-clear-btn {
-  background: transparent; border: none; cursor: pointer;
-  color: var(--text3); padding: 5px; border-radius: var(--radius);
-  display: flex; align-items: center; justify-content: center;
-  transition: background var(--t), color var(--t);
-}
-.dm-fs-clear-btn:hover { background: rgba(239,68,68,0.08); color: #ef4444; }
-.dm-fs-clear-btn svg { width: 15px; height: 15px; }
-
 .dm-fs-messages {
   flex: 1; overflow-y: auto; overflow-x: hidden;
   padding: 14px 14px; display: flex; flex-direction: column; gap: 2px;
   min-height: 0;
 }
 .dm-fs-input-area { padding: 10px 12px 14px; background: var(--surface); border-top: 1px solid var(--border); flex-shrink: 0; }
-.dm-fs-input-row { display: flex; gap: 6px; align-items: center; background: var(--input-bg); border: 1px solid var(--border); border-radius: 22px; padding: 6px 8px 6px 6px; }
-#dmFsInput { flex: 1; background: transparent; border: none; outline: none; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13.5px; padding: 0 6px; min-width: 0; }
+.dm-fs-input-row { display: flex; gap: 6px; align-items: flex-end; background: var(--input-bg); border: 1px solid var(--border); border-radius: 22px; padding: 6px 8px 6px 6px; }
+#dmFsInput {
+  flex: 1; background: transparent; border: none; outline: none;
+  color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13.5px;
+  resize: none; min-height: 22px; max-height: 100px; line-height: 1.55;
+  padding: 2px 6px; overflow-y: auto;
+}
 #dmFsInput::placeholder { color: var(--text3); }
+
+/* Mobile DM media staging */
+.dm-fs-media-staging-wrap {
+  display: none; padding: 6px 12px 2px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+.dm-fs-media-staging-wrap.show { display: block; }
 
 /* ── MOBILE HAMBURGER ── */
 .hamburger { display: none; background: transparent; border: none; cursor: pointer; padding: 4px; color: var(--text2); border-radius: var(--radius); transition: background var(--t); }
@@ -1281,7 +1374,6 @@ body {
 .dm-ctx-item.danger:hover { background: rgba(239,68,68,0.08); }
 .dm-ctx-item svg { width: 13px; height: 13px; flex-shrink: 0; }
 
-/* Active chat wrap must be flex column filling remaining space */
 #dmActiveChatWrap {
   display: flex;
   flex-direction: column;
@@ -1488,18 +1580,27 @@ body {
       </div>
     </div>
     <div class="input-area">
+      <div class="media-staging-wrap" id="mediaStagingWrap">
+        <div class="media-staging-inner">
+          <div class="media-staging-thumb" id="mediaStagingThumb"></div>
+          <div class="media-staging-right">
+            <textarea class="media-staging-caption" id="mediaStagingCaption" placeholder="Add a caption…" rows="2"></textarea>
+            <button class="media-staging-send" onclick="sendStagedMedia()">Send</button>
+          </div>
+        </div>
+      </div>
       <div class="input-wrap">
         <button class="emoji-btn" id="emojiBtn" onclick="toggleEmojiPicker('chat')">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></svg>
         </button>
-        <textarea id="userInput" rows="1" placeholder="Message hetherGPT..." oninput="autoResize(this); toggleMediaButton()" onkeydown="handleKey(event)"></textarea>
+        <textarea id="userInput" rows="1" placeholder="Message hetherGPT…" oninput="autoResize(this); toggleMediaButton()" onkeydown="handleKey(event)" onpaste="handleChatPaste(event)"></textarea>
         <button class="send-btn" id="sendBtn" onclick="sendMessage()" disabled>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
         </button>
-        <label class="emoji-btn hidden" id="aiMediaBtn" for="aiMediaUpload" title="Send media">
+        <label class="emoji-btn" id="aiMediaBtn" for="aiMediaUpload" title="Send media">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
         </label>
-        <input type="file" id="aiMediaUpload" accept="image/*,video/*" style="display:none" onchange="handleAIMedia(event)">
+        <input type="file" id="aiMediaUpload" accept="image/*,video/*" style="display:none" onchange="stageAIMedia(event)">
       </div>
       <div class="input-hint">hetherGPT can make mistakes. Verify important information.</div>
     </div>
@@ -1602,7 +1703,6 @@ body {
         <button class="dm-close-btn" onclick="closeDM()" title="Close">×</button>
       </div>
 
-      <!-- SEARCH BAR -->
       <div class="dm-search-wrap">
         <div class="dm-search-input-row">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -1625,30 +1725,44 @@ body {
             <div class="dm-chat-topbar-name" id="dmTopbarName"></div>
             <div class="dm-chat-topbar-status">Active now</div>
           </div>
-          <!-- Clear chat btn -->
-          <button class="dm-topbar-clear-btn" onclick="promptClearChat()" title="Clear chat (Alt+C)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
-            Clear
-          </button>
         </div>
+
+        <!-- Messages -->
+        <div class="dm-chat-messages" id="dmChatMessages"></div>
+
+        <!-- ✅ FIX: Media staging now sits right above reply bar + input -->
+        <div class="dm-media-staging-wrap" id="dmMediaStagingWrap">
+          <div class="dm-media-staging-inner">
+            <div class="dm-media-staging-thumb" id="dmMediaStagingThumb"></div>
+            <span style="font-size:12px;color:var(--text2);">Image ready to send</span>
+          </div>
+          <button class="dm-reply-cancel" onclick="clearDmStaging()" title="Remove image">×</button>
+        </div>
+
+        <!-- Reply bar -->
         <div class="dm-reply-bar" id="dmReplyBar">
+          <div style="display:flex;align-items:center;gap:6px;color:var(--accent);font-size:11.5px;font-weight:600;margin-bottom:2px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
+            Replying to
+          </div>
           <div class="dm-reply-bar-content">
             <div class="dm-reply-bar-author" id="dmReplyBarAuthor"></div>
             <div class="dm-reply-bar-text" id="dmReplyBarText"></div>
           </div>
           <button class="dm-reply-cancel" onclick="cancelReply()">×</button>
         </div>
-        <div class="dm-chat-messages" id="dmChatMessages"></div>
+
+        <!-- Input -->
         <div class="dm-chat-input-area">
           <div class="dm-input-row">
             <button class="emoji-btn" id="dmEmojiBtn" onclick="toggleEmojiPicker('dm')">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></svg>
             </button>
-            <input type="text" id="dmInput" placeholder="Message..." oninput="toggleDmSendBtn()" onkeydown="dmHandleKey(event,'desktop')">
+            <textarea id="dmInput" placeholder="Message…" oninput="toggleDmSendBtn(); autoResizeDm(this)" onkeydown="dmHandleKey(event,'desktop')" onpaste="handleDmPaste(event,'desktop')" rows="1"></textarea>
             <label class="emoji-btn" id="dmMediaBtn" for="dmMediaUpload" title="Send media">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
             </label>
-            <input type="file" id="dmMediaUpload" accept="image/*,video/*" style="display:none" onchange="dmHandleMedia(event,'desktop')">
+            <input type="file" id="dmMediaUpload" accept="image/*,video/*" style="display:none" onchange="stageDmMedia(event,'desktop')">
             <button class="dm-send-btn hidden" id="dmSendBtn" onclick="dmSend('desktop')">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
             </button>
@@ -1668,7 +1782,6 @@ body {
       </div>
       <button class="dm-close-btn" onclick="closeDM()">×</button>
     </div>
-    <!-- Mobile search bar -->
     <div class="dm-fs-search-wrap">
       <div class="dm-search-input-row">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -1685,19 +1798,34 @@ body {
       </button>
       <div class="dm-fs-avatar" id="dmFsAvatar"></div>
       <div class="dm-fs-name" id="dmFsName"></div>
-      <!-- Mobile clear chat btn -->
-      <button class="dm-fs-clear-btn" onclick="promptClearChat()" title="Clear chat (Alt+C)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
-      </button>
     </div>
+
+    <!-- Mobile messages -->
+    <div class="dm-fs-messages" id="dmFsMessages"></div>
+
+    <!-- ✅ FIX: Mobile media staging now sits right above reply bar + input -->
+    <div class="dm-fs-media-staging-wrap" id="dmFsMediaStagingWrap">
+      <div class="dm-media-staging-inner">
+        <div class="dm-media-staging-thumb" id="dmFsMediaStagingThumb"></div>
+        <span style="font-size:12px;color:var(--text2);">Image ready to send</span>
+      </div>
+      <button class="dm-reply-cancel" onclick="clearDmFsStaging()" title="Remove image">×</button>
+    </div>
+
+    <!-- Mobile reply bar -->
     <div class="dm-reply-bar" id="dmFsReplyBar">
+      <div style="display:flex;align-items:center;gap:6px;color:var(--accent);font-size:11.5px;font-weight:600;margin-bottom:2px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
+        Replying to
+      </div>
       <div class="dm-reply-bar-content">
         <div class="dm-reply-bar-author" id="dmFsReplyBarAuthor"></div>
         <div class="dm-reply-bar-text" id="dmFsReplyBarText"></div>
       </div>
       <button class="dm-reply-cancel" onclick="cancelReply('mobile')">×</button>
     </div>
-    <div class="dm-fs-messages" id="dmFsMessages"></div>
+
+    <!-- Mobile input -->
     <div class="dm-fs-input-area">
       <div class="dm-fs-input-row">
         <button class="emoji-btn" id="dmFsEmojiBtn" onclick="toggleEmojiPicker('mobile')">
@@ -1706,8 +1834,8 @@ body {
         <label class="emoji-btn" for="dmFsMediaUpload" title="Send media">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
         </label>
-        <input type="file" id="dmFsMediaUpload" accept="image/*,video/*" style="display:none" onchange="dmHandleMedia(event,'mobile')">
-        <input type="text" id="dmFsInput" placeholder="Message..." oninput="toggleDmFsSendBtn()" onkeydown="dmHandleKey(event,'mobile')">
+        <input type="file" id="dmFsMediaUpload" accept="image/*,video/*" style="display:none" onchange="stageDmMedia(event,'mobile')">
+        <textarea id="dmFsInput" placeholder="Message…" oninput="toggleDmFsSendBtn(); autoResizeDm(this)" onkeydown="dmHandleKey(event,'mobile')" onpaste="handleDmPaste(event,'mobile')" rows="1"></textarea>
         <button class="dm-send-btn" id="dmFsSendBtn" onclick="dmSend('mobile')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
         </button>
@@ -1776,7 +1904,7 @@ body {
   </div>
 </div>
 
-<!-- CONFIRM DIALOG OVERLAY (generic, reused for clear chat & delete chat) -->
+<!-- CONFIRM DIALOG OVERLAY (generic) -->
 <div class="overlay" id="confirmOverlay">
   <div class="confirm-popup" id="confirmPopup">
     <h3 id="confirmTitle">Are you sure?</h3>
@@ -1820,8 +1948,9 @@ const dmContacts = [];
 let activeDmId = null;
 let replyingTo = null;
 
-// Track hidden (locally deleted) chats: { contactId: true }
-let hiddenChats = JSON.parse(localStorage.getItem('hether_hidden_chats') || '{}');
+let dmStagedMedia = null;
+let dmFsStagedMedia = null;
+let aiStagedMedia = null;
 
 const renderedMsgIds = new Set();
 
@@ -1843,84 +1972,6 @@ function closeConfirm() {
 function confirmAction() {
   closeConfirm();
   if (_confirmCallback) _confirmCallback();
-}
-
-// ── CLEAR CHAT (for active DM, local only) ──
-function promptClearChat() {
-  if (!activeDmId) return;
-  const contact = dmContacts.find(c => c.id === activeDmId);
-  const name = contact ? contact.name : 'this user';
-  showConfirm(
-    'Clear conversation?',
-    `This will hide all messages with ${name} from your view. The other person's messages are not deleted.`,
-    'Clear chat',
-    () => doClearChat(activeDmId)
-  );
-}
-
-function doClearChat(userId) {
-  // Mark as hidden locally (we don't delete from DB — only for this user's view)
-  hiddenChats[userId] = Date.now(); // store timestamp so we only hide msgs before this time
-  localStorage.setItem('hether_hidden_chats', JSON.stringify(hiddenChats));
-  // Re-render the chat as empty
-  const msgsEl = document.getElementById(isMobile() ? 'dmFsMessages' : 'dmChatMessages');
-  if (msgsEl) msgsEl.innerHTML = '';
-  // Reset last message in contact list
-  const contact = dmContacts.find(c => c.id === userId);
-  if (contact) {
-    contact.lastMessage = null;
-    contact.lastMessageTs = 0;
-  }
-  buildDMConvList();
-}
-
-// ── DELETE CHAT (remove from sidebar list, local only) ──
-function promptDeleteChat(contactId, e) {
-  e.stopPropagation(); // don't open the chat
-  const contact = dmContacts.find(c => c.id === contactId);
-  const name = contact ? contact.name : 'this conversation';
-  showConfirm(
-    `Delete conversation with ${name}?`,
-    'The chat will be removed from your list. You can find them again by searching their username and messaging them.',
-    'Delete',
-    () => doDeleteChat(contactId)
-  );
-}
-
-function doDeleteChat(contactId) {
-  // Hide and clear locally
-  hiddenChats[contactId] = Date.now();
-  localStorage.setItem('hether_hidden_chats', JSON.stringify(hiddenChats));
-  // Mark contact as hidden
-  const contact = dmContacts.find(c => c.id === contactId);
-  if (contact) {
-    contact.hidden = true;
-    contact.lastMessage = null;
-    contact.lastMessageTs = 0;
-  }
-  // If this was the active chat, close it
-  if (activeDmId === contactId) {
-    activeDmId = null;
-    showDmEmptyState();
-    if (isMobile()) {
-      document.getElementById('dmFsChatView').style.display = 'none';
-      document.getElementById('dmFsListView').style.display = 'flex';
-    }
-  }
-  buildDMConvList();
-}
-
-// Restore a hidden contact when they search and click them
-function restoreContact(contactId) {
-  if (hiddenChats[contactId]) {
-    // keep the clear timestamp but unset hidden flag so it shows in list again
-    const contact = dmContacts.find(c => c.id === contactId);
-    if (contact) {
-      contact.hidden = false;
-    }
-    // don't remove from hiddenChats — we still use the timestamp to filter old messages
-    buildDMConvList();
-  }
 }
 
 // ── SEARCH ──
@@ -1947,7 +1998,6 @@ function renderSearchDropdown(dropdown, matches, mode) {
     dropdown.classList.add('show');
     return;
   }
-  // Sort alphabetically
   const sorted = [...matches].sort((a, b) => a.name.localeCompare(b.name));
   sorted.forEach(c => {
     const item = document.createElement('div');
@@ -1959,8 +2009,6 @@ function renderSearchDropdown(dropdown, matches, mode) {
       <div class="dm-search-name">${escHtml(c.name)}</div>
     `;
     item.onclick = () => {
-      // Restore hidden contact if needed
-      restoreContact(c.id);
       dropdown.classList.remove('show');
       if (mode === 'mobile') {
         document.getElementById('dmFsSearchInput').value = '';
@@ -1975,7 +2023,6 @@ function renderSearchDropdown(dropdown, matches, mode) {
   dropdown.classList.add('show');
 }
 
-// Close search dropdowns when clicking outside
 document.addEventListener('click', (e) => {
   if (!e.target.closest('.dm-search-wrap') && !e.target.closest('.dm-fs-search-wrap')) {
     document.getElementById('dmSearchDropdown')?.classList.remove('show');
@@ -2088,11 +2135,58 @@ function autoResize(el) {
   el.style.height = Math.min(el.scrollHeight, 160) + 'px';
   document.getElementById('sendBtn').disabled = el.value.trim() === '';
 }
-function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }
+
+function autoResizeDm(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+
+function handleChatPaste(e) {
+  const items = e.clipboardData?.items;
+  if (!items) return;
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      e.preventDefault();
+      const file = item.getAsFile();
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => stageAIMediaFromDataUrl(ev.target.result, false);
+      reader.readAsDataURL(file);
+      return;
+    }
+  }
+}
+
+function handleDmPaste(e, mode) {
+  const items = e.clipboardData?.items;
+  if (!items) return;
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      e.preventDefault();
+      const file = item.getAsFile();
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        // Dismiss reply bar when image is pasted — they're mutually exclusive
+        cancelReply(mode);
+        if (mode === 'mobile') stageDmMediaFromDataUrl(ev.target.result, false, 'mobile');
+        else stageDmMediaFromDataUrl(ev.target.result, false, 'desktop');
+      };
+      reader.readAsDataURL(file);
+      return;
+    }
+  }
+}
+
 function fillSuggestion(text) { const i = document.getElementById('userInput'); i.value = text; autoResize(i); i.focus(); }
 
 function newChat() {
   chatHistory = [];
+  clearAIStaging();
   const msgs = document.getElementById('messages');
   msgs.innerHTML = '';
   const w = document.createElement('div');
@@ -2113,9 +2207,22 @@ function newChat() {
 async function sendMessage() {
   const input = document.getElementById('userInput');
   const text = input.value.trim();
-  if (!text || isTyping) return;
+  if (!text && !aiStagedMedia || isTyping) return;
   const welcome = document.getElementById('welcomeScreen');
   if (welcome) welcome.remove();
+
+  if (aiStagedMedia) {
+    const caption = document.getElementById('mediaStagingCaption').value.trim();
+    appendMediaMessage('user', aiStagedMedia.dataUrl, aiStagedMedia.isVideo, caption);
+    clearAIStaging();
+    if (!text) {
+      input.value = ''; input.style.height = 'auto';
+      document.getElementById('sendBtn').disabled = true;
+      return;
+    }
+  }
+
+  if (!text) return;
   appendMessage('user', text);
   chatHistory.push({ role: 'user', content: text });
   input.value = ''; input.style.height = 'auto';
@@ -2135,6 +2242,43 @@ async function sendMessage() {
     appendMessage('ai', `Error: ${err.message}`);
   }
   isTyping = false;
+}
+
+function appendMediaMessage(role, dataUrl, isVideo, caption) {
+  const msgs = document.getElementById('messages');
+
+  const mediaDiv = document.createElement('div');
+  mediaDiv.className = `message ${role}`;
+  const av1 = document.createElement('div');
+  av1.className = `avatar ${role === 'ai' ? 'ai' : 'user-av'}`;
+  if (role !== 'ai' && profile.avatarUrl) { av1.innerHTML = `<img src="${profile.avatarUrl}" alt="">`; }
+  else { av1.textContent = role === 'ai' ? 'AI' : getInitial(profile.name); }
+  const mediaBubble = document.createElement('div');
+  mediaBubble.className = 'bubble media-only';
+  if (isVideo) {
+    mediaBubble.innerHTML = `<video class="chat-media-vid" controls src="${dataUrl}"></video>`;
+  } else {
+    mediaBubble.innerHTML = `<img class="chat-media-img" src="${dataUrl}" alt="media" onclick="openLightbox(this.src)">`;
+  }
+  mediaDiv.appendChild(av1);
+  mediaDiv.appendChild(mediaBubble);
+  msgs.appendChild(mediaDiv);
+
+  if (caption) {
+    const captionDiv = document.createElement('div');
+    captionDiv.className = `message ${role}`;
+    const av2 = document.createElement('div');
+    av2.className = `avatar ${role === 'ai' ? 'ai' : 'user-av'}`;
+    av2.style.visibility = 'hidden';
+    const captionBubble = document.createElement('div');
+    captionBubble.className = 'bubble';
+    captionBubble.innerHTML = formatText(caption);
+    captionDiv.appendChild(av2);
+    captionDiv.appendChild(captionBubble);
+    msgs.appendChild(captionDiv);
+  }
+
+  msgs.scrollTop = msgs.scrollHeight;
 }
 
 function appendMessage(role, text) {
@@ -2174,6 +2318,51 @@ function formatText(text) {
 }
 function escHtml(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
+function stageAIMedia(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => stageAIMediaFromDataUrl(ev.target.result, file.type.startsWith('video/'));
+  reader.readAsDataURL(file);
+  event.target.value = '';
+}
+
+function stageAIMediaFromDataUrl(dataUrl, isVideo) {
+  aiStagedMedia = { dataUrl, isVideo };
+  const wrap = document.getElementById('mediaStagingWrap');
+  const thumb = document.getElementById('mediaStagingThumb');
+  thumb.innerHTML = isVideo
+    ? `<video src="${dataUrl}" style="width:90px;height:74px;object-fit:cover;border-radius:8px;"></video>`
+    : `<img src="${dataUrl}" style="width:90px;height:74px;object-fit:cover;border-radius:8px;">`;
+  const removeBtn = document.createElement('button');
+  removeBtn.className = 'media-staging-remove';
+  removeBtn.textContent = '×';
+  removeBtn.onclick = clearAIStaging;
+  thumb.appendChild(removeBtn);
+  wrap.classList.add('show');
+  document.getElementById('mediaStagingCaption').value = '';
+  document.getElementById('sendBtn').disabled = false;
+  document.getElementById('mediaStagingCaption').focus();
+}
+
+function clearAIStaging() {
+  aiStagedMedia = null;
+  document.getElementById('mediaStagingWrap').classList.remove('show');
+  document.getElementById('mediaStagingThumb').innerHTML = '';
+  document.getElementById('mediaStagingCaption').value = '';
+  toggleMediaButton();
+}
+
+function sendStagedMedia() {
+  if (!aiStagedMedia) return;
+  const welcome = document.getElementById('welcomeScreen');
+  if (welcome) welcome.remove();
+  const caption = document.getElementById('mediaStagingCaption').value.trim();
+  appendMediaMessage('user', aiStagedMedia.dataUrl, aiStagedMedia.isVideo, caption);
+  clearAIStaging();
+}
+
+// ADMIN
 function openAdminPopup() {
   document.getElementById('adminOverlay').classList.add('show');
   document.getElementById('adminInput').value = '';
@@ -2208,10 +2397,7 @@ function closeDM() {
 function dmOverlayClick(e) { if (e.target === document.getElementById('dmOverlay')) closeDM(); }
 
 function buildDMConvList() {
-  // Sort: unread first, then by most recent message timestamp
-  const visible = dmContacts.filter(c => !c.hidden);
-  const sorted = [...visible].sort((a, b) => {
-    // unread & has messages bubble to top
+  const sorted = [...dmContacts].sort((a, b) => {
     const aUnread = a.unread && a.id !== activeDmId ? 1 : 0;
     const bUnread = b.unread && b.id !== activeDmId ? 1 : 0;
     if (bUnread !== aUnread) return bUnread - aUnread;
@@ -2249,12 +2435,6 @@ function buildDMConvList() {
           <div class="dm-conv-time">${lastMsg ? lastMsg.time : ''}</div>
           ${isUnread ? '<div class="dm-unread-dot"></div>' : ''}
         </div>
-        <button class="dm-conv-delete-btn" title="Delete conversation" onclick="promptDeleteChat('${c.id}', event)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-            <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-            <path d="M10 11v6"/><path d="M14 11v6"/>
-          </svg>
-        </button>
       `;
       list.appendChild(item);
     });
@@ -2288,7 +2468,6 @@ async function loadContacts() {
       lastMessage: null,
       lastMessageTs: 0,
       unread: false,
-      hidden: !!hiddenChats[u.id] // hidden until they get a new message
     });
     colorIdx++;
   });
@@ -2301,10 +2480,8 @@ function showDmEmptyState() {
 }
 
 function openDesktopChat(id) {
-  // If contact was hidden, restore visibility
   const contact = dmContacts.find(c => c.id === id);
   if (!contact) return;
-  contact.hidden = false;
   contact.unread = false;
   activeDmId = id;
 
@@ -2320,6 +2497,7 @@ function openDesktopChat(id) {
   }
   loadMessages(id);
   cancelReply();
+  clearDmStaging();
   document.getElementById('dmEmptyState').style.display = 'none';
   document.getElementById('dmActiveChatWrap').style.display = 'flex';
   document.getElementById('dmInput').focus();
@@ -2359,6 +2537,10 @@ function groupMessages(messages) {
   return groups;
 }
 
+// ── FIX 2: renderGroupedMessages — correct reply button sides ──
+// For SENT messages: bubble first in DOM, then replyBtn → replyBtn appears on RIGHT
+// For RECEIVED messages: replyBtn first in DOM, then bubble → replyBtn appears on LEFT
+// No flex-direction: row-reverse on .dm-bubble-wrap, so DOM order = visual order
 function renderGroupedMessages(container, groups, currentUserId, contact) {
   container.innerHTML = '';
   renderedMsgIds.clear();
@@ -2402,17 +2584,41 @@ function renderGroupedMessages(container, groups, currentUserId, contact) {
       bWrap.dataset.text = msg.content || msg.text || '';
       bWrap.dataset.sender = isSent ? 'You' : (contact ? contact.name : 'User');
 
-      if (msg.reply_to_text) {
-        const rp = document.createElement('div');
-        rp.className = 'dm-reply-preview';
-        rp.innerHTML = `<div class="dm-reply-author">${escHtml(msg.reply_to_author || '')}</div><div class="dm-reply-text">${escHtml(msg.reply_to_text)}</div>`;
-        bWrap.appendChild(rp);
-      }
+      const replyBtn = document.createElement('button');
+      replyBtn.className = 'dm-reply-btn';
+      replyBtn.title = 'Reply';
+      replyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>`;
+      const msgText = msg.content || msg.text || '';
+      const msgSender = isSent ? 'You' : (contact ? contact.name : 'User');
+      replyBtn.onclick = (e) => {
+        e.stopPropagation();
+        startReply(msgText, msgSender);
+      };
 
       const bubble = document.createElement('div');
       bubble.className = 'dm-bubble' + (msg.sending ? ' sending' : '');
       bubble.dataset.msgId = msg.id || '';
-      bubble.textContent = msg.content || msg.text || '';
+
+      if (msg.reply_to_text) {
+        const rp = document.createElement('div');
+        rp.className = 'dm-reply-preview';
+        rp.innerHTML = `<div class="dm-reply-author">${escHtml(msg.reply_to_author || '')}</div><div class="dm-reply-text">${escHtml(msg.reply_to_text)}</div>`;
+        bubble.prepend(rp);
+      }
+
+      if (msg.media_url) {
+  if (msg.is_video) {
+    bubble.innerHTML += `<video controls src="${msg.media_url}" style="max-width:220px;border-radius:10px;"></video>`;
+  } else {
+    bubble.innerHTML += `<img src="${msg.media_url}" style="max-width:220px;border-radius:10px;">`;
+  }
+}
+
+if (msg.content) {
+  const textNode = document.createElement('div');
+  textNode.textContent = msg.content;
+  bubble.appendChild(textNode);
+}
 
       if (msg.sending) {
         const spin = document.createElement('span');
@@ -2428,10 +2634,21 @@ function renderGroupedMessages(container, groups, currentUserId, contact) {
 
       bubble.addEventListener('contextmenu', (e) => {
         e.preventDefault();
-        showCtxMenu(e.clientX, e.clientY, bWrap, msg, isSent);
+        showCtxMenu(e.clientX, e.clientY, bWrap, msg, isSent, contact);
       });
 
-      bWrap.appendChild(bubble);
+      // FIX 2: DOM order controls visual order (no row-reverse on bWrap)
+      // SENT: bubble → replyBtn  (replyBtn ends up on the RIGHT)
+      // RECEIVED: replyBtn → bubble  (replyBtn ends up on the LEFT)
+      // AFTER (correct — Instagram-style)
+if (isSent) {
+  bWrap.appendChild(replyBtn);   // reply btn LEFT of sent bubble
+  bWrap.appendChild(bubble);
+} else {
+  bWrap.appendChild(bubble);     // bubble LEFT, reply btn RIGHT for received
+  bWrap.appendChild(replyBtn);
+}
+
       bubblesWrap.appendChild(bWrap);
     });
 
@@ -2449,7 +2666,6 @@ function renderGroupedMessages(container, groups, currentUserId, contact) {
   container.scrollTop = container.scrollHeight;
 }
 
-/* REACTION: toggle on/off, one per message */
 function addReaction(bWrap, emoji) {
   let existing = bWrap.querySelector('.dm-reaction');
   if (existing) {
@@ -2469,7 +2685,7 @@ function addReaction(bWrap, emoji) {
   bWrap.appendChild(reaction);
 }
 
-function showCtxMenu(x, y, bWrap, msg, isSent) {
+function showCtxMenu(x, y, bWrap, msg, isSent, contact) {
   const menu = document.getElementById('dmCtxMenu');
   menu.innerHTML = '';
   menu.style.display = 'block';
@@ -2478,19 +2694,16 @@ function showCtxMenu(x, y, bWrap, msg, isSent) {
   const text = bWrap.dataset.text;
   const sender = bWrap.dataset.sender;
 
-  // Reply
   const replyBtn = document.createElement('button');
   replyBtn.className = 'dm-ctx-item';
   replyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg> Reply`;
   replyBtn.onclick = () => { startReply(text, sender); closeCtxMenu(); };
 
-  // React
   const reactBtn = document.createElement('button');
   reactBtn.className = 'dm-ctx-item';
   reactBtn.innerHTML = `❤️ React`;
   reactBtn.onclick = () => { addReaction(bWrap, '❤️'); closeCtxMenu(); };
 
-  // Delete message (only for sent messages)
   const deleteBtn = document.createElement('button');
   deleteBtn.className = 'dm-ctx-item danger';
   deleteBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg> Delete message`;
@@ -2510,14 +2723,11 @@ function showCtxMenu(x, y, bWrap, msg, isSent) {
 }
 
 function deleteMessage(msg, bWrap) {
-  // Remove the bubble-wrap from DOM
   const parentGroup = bWrap.closest('.dm-msg-group');
   bWrap.remove();
-  // If the group has no more bubbles, remove the whole group
   if (parentGroup && parentGroup.querySelectorAll('.dm-bubble-wrap').length === 0) {
     parentGroup.remove();
   }
-  // Optionally delete from Supabase (only for own messages)
   if (msg && msg.id) {
     supabaseClient.from('messages').delete().eq('id', msg.id).then(() => {});
   }
@@ -2526,12 +2736,29 @@ function deleteMessage(msg, bWrap) {
 function closeCtxMenu() { document.getElementById('dmCtxMenu').style.display = 'none'; }
 document.addEventListener('click', () => closeCtxMenu());
 
+// FIX 1: startReply fills the reply bar which now sits above the input
 function startReply(text, author) {
   replyingTo = { text, author };
+
+  // Dismiss any staged image — reply and image preview are mutually exclusive
+  clearDmStaging();
+  clearDmFsStaging();
+
   const bar = document.getElementById('dmReplyBar');
-  if (bar) { bar.classList.add('show'); document.getElementById('dmReplyBarAuthor').textContent = author; document.getElementById('dmReplyBarText').textContent = text; }
+  if (bar) {
+    bar.classList.add('show');
+    document.getElementById('dmReplyBarAuthor').textContent = author;
+    document.getElementById('dmReplyBarText').textContent = text;
+  }
   const fsBar = document.getElementById('dmFsReplyBar');
-  if (fsBar) { fsBar.classList.add('show'); document.getElementById('dmFsReplyBarAuthor').textContent = author; document.getElementById('dmFsReplyBarText').textContent = text; }
+  if (fsBar) {
+    fsBar.classList.add('show');
+    document.getElementById('dmFsReplyBarAuthor').textContent = author;
+    document.getElementById('dmFsReplyBarText').textContent = text;
+  }
+
+  const inputEl = isMobile() ? document.getElementById('dmFsInput') : document.getElementById('dmInput');
+  if (inputEl) inputEl.focus();
 }
 
 function cancelReply(mode) {
@@ -2549,18 +2776,12 @@ async function loadMessages(userId) {
   if (!msgsEl) return;
   msgsEl.innerHTML = '';
   const contact = dmContacts.find(c => c.id === userId);
-  const clearTs = hiddenChats[userId] || 0; // only show messages after this timestamp
 
   try {
-    let query = supabaseClient
+    const { data, error } = await supabaseClient
       .from('messages').select('*')
       .or(`and(sender_id.eq.${user.id},receiver_id.eq.${userId}),and(sender_id.eq.${userId},receiver_id.eq.${user.id})`)
       .order('created_at', { ascending: true });
-    // If chat was cleared, only show messages after the clear timestamp
-    if (clearTs) {
-      query = query.gt('created_at', new Date(clearTs).toISOString());
-    }
-    const { data, error } = await query;
     if (error) return;
     if (data && data.length > 0) {
       data.forEach(m => { if (m.id) renderedMsgIds.add(m.id); });
@@ -2580,13 +2801,6 @@ async function loadMessages(userId) {
         if (!isForThis) return;
         if (renderedMsgIds.has(newMsg.id)) return;
         renderedMsgIds.add(newMsg.id);
-
-        // If this contact was hidden and they sent us a new message, show them again
-        const c = dmContacts.find(c => c.id === userId);
-        if (c && c.hidden && newMsg.sender_id === userId) {
-          c.hidden = false;
-        }
-
         if (activeDmId === userId) {
           removeSendingBubble(msgsEl, newMsg.content);
           reloadAndRenderMessages(userId, 'desktop');
@@ -2607,17 +2821,12 @@ async function loadFsMessages(userId) {
   if (!msgsEl) return;
   msgsEl.innerHTML = '';
   const contact = dmContacts.find(c => c.id === userId);
-  const clearTs = hiddenChats[userId] || 0;
 
   try {
-    let query = supabaseClient
+    const { data, error } = await supabaseClient
       .from('messages').select('*')
       .or(`and(sender_id.eq.${user.id},receiver_id.eq.${userId}),and(sender_id.eq.${userId},receiver_id.eq.${user.id})`)
       .order('created_at', { ascending: true });
-    if (clearTs) {
-      query = query.gt('created_at', new Date(clearTs).toISOString());
-    }
-    const { data, error } = await query;
     if (error) return;
     if (data && data.length > 0) {
       data.forEach(m => { if (m.id) renderedMsgIds.add(m.id); });
@@ -2635,22 +2844,15 @@ async function loadFsMessages(userId) {
         if (!isForThis) return;
         if (renderedMsgIds.has(newMsg.id)) return;
         renderedMsgIds.add(newMsg.id);
-
-        const c = dmContacts.find(c => c.id === userId);
-        if (c && c.hidden && newMsg.sender_id === userId) {
-          c.hidden = false;
-        }
-
         if (activeDmId === userId) {
           removeSendingBubble(document.getElementById('dmFsMessages'), newMsg.content);
           reloadAndRenderMessages(userId, 'mobile');
           updateContactLastMsg(userId, newMsg, user.id);
           buildDMConvList();
         } else {
+          const c = dmContacts.find(c => c.id === userId);
           if (c) {
             c.unread = true;
-            // Also un-hide if they sent a new message
-            if (newMsg.sender_id === userId) c.hidden = false;
             updateContactLastMsg(userId, newMsg, user.id);
             buildDMConvList();
           }
@@ -2676,16 +2878,10 @@ async function reloadAndRenderMessages(userId, mode) {
   const msgsEl = document.getElementById(mode === 'mobile' ? 'dmFsMessages' : 'dmChatMessages');
   if (!msgsEl) return;
   const contact = dmContacts.find(c => c.id === userId);
-  const clearTs = hiddenChats[userId] || 0;
-
-  let query = supabaseClient
+  const { data } = await supabaseClient
     .from('messages').select('*')
     .or(`and(sender_id.eq.${user.id},receiver_id.eq.${userId}),and(sender_id.eq.${userId},receiver_id.eq.${user.id})`)
     .order('created_at', { ascending: true });
-  if (clearTs) {
-    query = query.gt('created_at', new Date(clearTs).toISOString());
-  }
-  const { data } = await query;
   if (data) {
     data.forEach(m => { if (m.id) renderedMsgIds.add(m.id); });
     const groups = groupMessages(data.map(m => ({ ...m, ts: m.created_at })));
@@ -2697,25 +2893,17 @@ function updateContactLastMsg(userId, msg, currentUserId) {
   const contact = dmContacts.find(c => c.id === userId);
   if (!contact) return;
   const d = new Date(msg.created_at);
-  // Check if message is after clear timestamp
-  const clearTs = hiddenChats[userId] || 0;
-  if (clearTs && d.getTime() < clearTs) return; // don't update preview for hidden messages
-
   contact.lastMessage = { type: msg.sender_id === currentUserId ? 'sent' : 'received', text: msg.content, time: formatMsgTime(d) };
   contact.lastMessageTs = d.getTime();
-
-  // Mark as unread if not the active chat
   if (msg.sender_id !== currentUserId && activeDmId !== userId) {
     contact.unread = true;
   }
-
   buildDMConvList();
 }
 
 function openFsChat(id) {
   const contact = dmContacts.find(c => c.id === id);
   if (!contact) return;
-  contact.hidden = false;
   contact.unread = false;
   activeDmId = id;
   const av = document.getElementById('dmFsAvatar');
@@ -2725,6 +2913,7 @@ function openFsChat(id) {
   document.getElementById('dmFsMessages').innerHTML = '';
   loadFsMessages(id);
   cancelReply('mobile');
+  clearDmFsStaging();
   document.getElementById('dmFsListView').style.display = 'none';
   const chatView = document.getElementById('dmFsChatView');
   chatView.style.display = 'flex'; chatView.style.flexDirection = 'column'; chatView.style.height = '100%';
@@ -2737,19 +2926,33 @@ function dmFsBack() {
   activeDmId = null; buildDMConvList();
 }
 
-function dmHandleKey(e, mode) { if (e.key === 'Enter') dmSend(mode); }
+function dmHandleKey(e, mode) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); dmSend(mode); }
+}
 
 async function dmSend(mode) {
   const inputId = mode === 'mobile' ? 'dmFsInput' : 'dmInput';
   const sendBtnId = mode === 'mobile' ? 'dmFsSendBtn' : 'dmSendBtn';
   const input = document.getElementById(inputId);
   const sendBtn = document.getElementById(sendBtnId);
+
+  const staged = mode === 'mobile' ? dmFsStagedMedia : dmStagedMedia;
+  if (staged) {
+    const msgsEl = document.getElementById(mode === 'mobile' ? 'dmFsMessages' : 'dmChatMessages');
+    const contact = dmContacts.find(c => c.id === activeDmId);
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    appendDmMediaBubble(msgsEl, staged.dataUrl, staged.isVideo, user ? user.id : null, contact);
+    if (mode === 'mobile') clearDmFsStaging(); else clearDmStaging();
+  }
+
   const text = input.value.trim();
-  if (!text || !activeDmId) return;
+  if ((!text && !staged) || !activeDmId) { input.style.height = 'auto'; return; }
+
   const { data: { user } } = await supabaseClient.auth.getUser();
   const msgReplyTo = replyingTo ? { ...replyingTo } : null;
   cancelReply(mode);
   input.value = '';
+  input.style.height = 'auto';
   if (mode === 'mobile') toggleDmFsSendBtn(); else toggleDmSendBtn();
 
   const msgsEl = document.getElementById(mode === 'mobile' ? 'dmFsMessages' : 'dmChatMessages');
@@ -2760,21 +2963,29 @@ async function dmSend(mode) {
     reply_to_text: msgReplyTo?.text, reply_to_author: msgReplyTo?.author
   };
 
-  const clearTs = hiddenChats[activeDmId] || 0;
-  let query = supabaseClient
+  const { data: existingData } = await supabaseClient
     .from('messages').select('*')
     .or(`and(sender_id.eq.${user.id},receiver_id.eq.${activeDmId}),and(sender_id.eq.${activeDmId},receiver_id.eq.${user.id})`)
     .order('created_at', { ascending: true });
-  if (clearTs) query = query.gt('created_at', new Date(clearTs).toISOString());
 
-  const { data: existingData } = await query;
   const allMessages = [...(existingData || []), optimisticMsg];
   const groups = groupMessages(allMessages.map(m => ({ ...m, ts: m.created_at })));
   renderGroupedMessages(msgsEl, groups, user.id, contact);
   sendBtn.disabled = true;
 
   try {
-    const insertData = { sender_id: user.id, receiver_id: activeDmId, content: text };
+    const insertData = {
+  sender_id: user.id,
+  receiver_id: activeDmId,
+  content: text || null,
+  media_url: staged ? staged.dataUrl : null,
+  is_video: staged ? staged.isVideo : false
+};
+
+if (msgReplyTo) {
+  insertData.reply_to_text = msgReplyTo.text;
+  insertData.reply_to_author = msgReplyTo.author;
+}
     if (msgReplyTo) { insertData.reply_to_text = msgReplyTo.text; insertData.reply_to_author = msgReplyTo.author; }
     const { error } = await supabaseClient.from('messages').insert(insertData);
     if (error) throw error;
@@ -2787,31 +2998,75 @@ async function dmSend(mode) {
   }
 }
 
-function dmHandleMedia(e, mode) {
+function stageDmMedia(e, mode) {
   const file = e.target.files[0];
-  if (!file || !activeDmId) return;
+  if (!file) return;
   const reader = new FileReader();
-  reader.onload = ev => {
-    const isVideo = file.type.startsWith('video/');
-    const msgsEl = document.getElementById(mode === 'mobile' ? 'dmFsMessages' : 'dmChatMessages');
-    const group = document.createElement('div');
-    group.className = 'dm-msg-group sent';
-    const row = document.createElement('div');
-    row.className = 'dm-msg-group-row';
-    const bubblesWrap = document.createElement('div');
-    bubblesWrap.className = 'dm-msg-bubbles';
-    const bWrap = document.createElement('div');
-    bWrap.className = 'dm-bubble-wrap';
-    const b = document.createElement('div');
-    b.className = 'dm-bubble';
-    b.innerHTML = isVideo
-      ? `<video class="dm-media" controls src="${ev.target.result}"></video>`
-      : `<img class="dm-media" src="${ev.target.result}" alt="media" onclick="openLightbox(this.src)">`;
-    bWrap.appendChild(b); bubblesWrap.appendChild(bWrap); row.appendChild(bubblesWrap);
-    group.appendChild(row); msgsEl.appendChild(group); msgsEl.scrollTop = msgsEl.scrollHeight;
-  };
+  reader.onload = ev => stageDmMediaFromDataUrl(ev.target.result, file.type.startsWith('video/'), mode);
   reader.readAsDataURL(file);
   e.target.value = '';
+}
+
+function stageDmMediaFromDataUrl(dataUrl, isVideo, mode) {
+  if (mode === 'mobile') {
+    dmFsStagedMedia = { dataUrl, isVideo };
+    const wrap = document.getElementById('dmFsMediaStagingWrap');
+    const thumb = document.getElementById('dmFsMediaStagingThumb');
+    thumb.innerHTML = isVideo
+      ? `<video src="${dataUrl}" style="width:72px;height:58px;object-fit:cover;border-radius:7px;"></video>`
+      : `<img src="${dataUrl}" style="width:72px;height:58px;object-fit:cover;border-radius:7px;">`;
+    wrap.classList.add('show');
+    toggleDmFsSendBtn();
+  } else {
+    dmStagedMedia = { dataUrl, isVideo };
+    const wrap = document.getElementById('dmMediaStagingWrap');
+    const thumb = document.getElementById('dmMediaStagingThumb');
+    thumb.innerHTML = isVideo
+      ? `<video src="${dataUrl}" style="width:72px;height:58px;object-fit:cover;border-radius:7px;"></video>`
+      : `<img src="${dataUrl}" style="width:72px;height:58px;object-fit:cover;border-radius:7px;">`;
+    wrap.classList.add('show');
+    toggleDmSendBtn();
+  }
+}
+
+function clearDmStaging() {
+  dmStagedMedia = null;
+  document.getElementById('dmMediaStagingWrap').classList.remove('show');
+  document.getElementById('dmMediaStagingThumb').innerHTML = '';
+}
+function clearDmFsStaging() {
+  dmFsStagedMedia = null;
+  document.getElementById('dmFsMediaStagingWrap').classList.remove('show');
+  const el = document.getElementById('dmFsMediaStagingThumb');
+  if (el) el.innerHTML = '';
+}
+
+function appendDmMediaBubble(container, dataUrl, isVideo, currentUserId, contact) {
+  const groupEl = document.createElement('div');
+  groupEl.className = 'dm-msg-group sent';
+  const rowEl = document.createElement('div');
+  rowEl.className = 'dm-msg-group-row';
+  const bubblesWrap = document.createElement('div');
+  bubblesWrap.className = 'dm-msg-bubbles';
+  const bWrap = document.createElement('div');
+  bWrap.className = 'dm-bubble-wrap';
+  const bubble = document.createElement('div');
+  bubble.className = 'dm-bubble dm-bubble-media-only';
+  if (isVideo) {
+    bubble.innerHTML = `<video controls src="${dataUrl}" style="max-width:220px;max-height:180px;border-radius:12px;display:block;box-shadow:0 2px 10px rgba(0,0,0,0.12);"></video>`;
+  } else {
+    const img = document.createElement('img');
+    img.src = dataUrl;
+    img.style.cssText = 'max-width:220px;max-height:180px;border-radius:12px;display:block;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,0.12);';
+    img.onclick = () => openLightbox(dataUrl);
+    bubble.appendChild(img);
+  }
+  bWrap.appendChild(bubble);
+  bubblesWrap.appendChild(bWrap);
+  rowEl.appendChild(bubblesWrap);
+  groupEl.appendChild(rowEl);
+  container.appendChild(groupEl);
+  container.scrollTop = container.scrollHeight;
 }
 
 function openLightbox(src) { document.getElementById('lightboxImg').src = src; document.getElementById('lightbox').classList.add('show'); }
@@ -2882,11 +3137,6 @@ document.addEventListener('keydown', e => {
     if (dmOpen) { closeDM(); return; }
     openAdminPopup();
   }
-  // Alt+C: clear active DM chat
-  if (e.altKey && e.key === 'c') {
-    e.preventDefault();
-    if (dmOpen && activeDmId) promptClearChat();
-  }
   if (e.key === 'Escape') {
     if (document.getElementById('confirmOverlay').classList.contains('show')) { closeConfirm(); return; }
     closeAdminPopup(); closeProfileEdit(); closeLogout(); closeProfileDropdown(); closeLightbox(); closeCtxMenu();
@@ -2951,43 +3201,23 @@ function insertEmoji(emoji) {
 function toggleMediaButton() {
   const input = document.getElementById('userInput');
   const sendBtn = document.getElementById('sendBtn');
-  const mediaBtn = document.getElementById('aiMediaBtn');
-  if (input.value.trim() === '') { sendBtn.disabled = true; mediaBtn.classList.add('hidden'); }
-  else { sendBtn.disabled = false; mediaBtn.classList.remove('hidden'); }
+  if (input.value.trim() === '' && !aiStagedMedia) { sendBtn.disabled = true; }
+  else { sendBtn.disabled = false; }
 }
 
 function toggleDmSendBtn() {
   const input = document.getElementById('dmInput');
   const sendBtn = document.getElementById('dmSendBtn');
   const mediaBtn = document.getElementById('dmMediaBtn');
-  if (input.value.trim() === '') { sendBtn.classList.add('hidden'); mediaBtn.classList.remove('hidden'); }
+  if (input.value.trim() === '' && !dmStagedMedia) { sendBtn.classList.add('hidden'); mediaBtn.classList.remove('hidden'); }
   else { sendBtn.classList.remove('hidden'); mediaBtn.classList.add('hidden'); }
 }
 
 function toggleDmFsSendBtn() {
   const input = document.getElementById('dmFsInput');
   const sendBtn = document.getElementById('dmFsSendBtn');
-  if (input.value.trim() === '') sendBtn.classList.add('hidden');
+  if (input.value.trim() === '' && !dmFsStagedMedia) sendBtn.classList.add('hidden');
   else sendBtn.classList.remove('hidden');
-}
-
-function handleAIMedia(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const isVideo = file.type.startsWith('video/');
-    const content = e.target.result;
-    const msgEl = document.getElementById('messages');
-    const msgDiv = document.createElement('div');
-    msgDiv.className = 'message user';
-    const avHtml = profile.avatarUrl ? `<img src="${profile.avatarUrl}" alt="">` : `<span>${getInitial(profile.name)}</span>`;
-    if (isVideo) { msgDiv.innerHTML = `<div class="avatar user-av">${avHtml}</div><div class="bubble"><video class="chat-media" controls src="${content}"></video></div>`; }
-    else { msgDiv.innerHTML = `<div class="avatar user-av">${avHtml}</div><div class="bubble"><img class="chat-media" src="${content}" onclick="openLightbox(this.src)"></div>`; }
-    msgEl.appendChild(msgDiv); msgEl.scrollTop = msgEl.scrollHeight;
-    document.getElementById('aiMediaUpload').value = '';
-  };
-  reader.readAsDataURL(file);
 }
 
 window.addEventListener('load', function() {
