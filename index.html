@@ -2445,9 +2445,18 @@ function buildDMConvList() {
 async function loadContacts() {
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (!user) return;
-  const { data } = await supabaseClient.from('profiles').select('id, username, avatar_url');
-  if (!data) return;
+
+  const { data, error } = await supabaseClient
+    .from('profiles')
+    .select('id, username, avatar_url');
+
+  if (error) {
+    console.error('Error loading contacts:', error);
+    return;
+  }
+
   dmContacts.length = 0;
+
   const colors = [
     'linear-gradient(135deg,#5b6af0,#a855f7)',
     'linear-gradient(135deg,#f97316,#ec4899)',
@@ -2456,22 +2465,30 @@ async function loadContacts() {
     'linear-gradient(135deg,#f43f5e,#8b5cf6)',
     'linear-gradient(135deg,#14b8a6,#06b6d4)'
   ];
+
   let colorIdx = 0;
+
   data.forEach(u => {
+    // skip yourself
     if (u.id === user.id) return;
+
+    const name = u.username || 'User';
+
     dmContacts.push({
       id: u.id,
-      name: u.username || 'User',
-      initials: (u.username || 'U')[0].toUpperCase(),
-      avatarUrl: u.avatar_url || null,
+      name: name,
+      initials: name[0].toUpperCase(),
+      avatarUrl: u.avatar_url ? u.avatar_url + '?t=' + Date.now() : null, // 👈 cache-buster
       color: colors[colorIdx % colors.length],
       online: true,
       lastMessage: null,
       lastMessageTs: 0,
       unread: false,
     });
+
     colorIdx++;
   });
+
   buildDMConvList();
 }
 
@@ -3121,11 +3138,44 @@ function openProfileEdit() {
   setTimeout(() => document.getElementById('peDisplayName').focus(), 50);
 }
 function closeProfileEdit() { document.getElementById('profileEditOverlay').classList.remove('show'); }
-function handleAvatarUpload(e) {
-  const file = e.target.files[0]; if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => { profile.avatarUrl = ev.target.result; renderProfileEverywhere(); };
-  reader.readAsDataURL(file);
+async function handleAvatarUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (!user) return;
+
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${user.id}.${fileExt}`;
+
+  // upload to storage
+  const { error: uploadError } = await supabaseClient
+    .storage
+    .from('avatars')
+    .upload(fileName, file, { upsert: true });
+
+  if (uploadError) {
+    alert('Upload failed');
+    return;
+  }
+
+  // get public URL
+  const { data } = supabaseClient
+    .storage
+    .from('avatars')
+    .getPublicUrl(fileName);
+
+  const publicUrl = data.publicUrl;
+
+  // save to DB
+  await supabaseClient
+    .from('profiles')
+    .update({ avatar_url: publicUrl })
+    .eq('id', user.id);
+
+  // update locally
+  profile.avatarUrl = publicUrl;
+  renderProfileEverywhere();
 }
 function removeAvatar() { profile.avatarUrl = null; renderProfileEverywhere(); document.getElementById('peImageUpload').value = ''; }
 function clearHistory() { chatHistory = []; newChat(); }
