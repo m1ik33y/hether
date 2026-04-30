@@ -49,7 +49,7 @@
 }
 
 body {
-  font-family: 'Arial', arial;
+  font-family: 'DM Sans', sans-serif;
   background: var(--bg);
   color: var(--text);
   display: block;
@@ -239,7 +239,7 @@ body {
   padding: 8px 10px; border-radius: 7px; cursor: pointer;
   font-size: 13px; color: var(--text2);
   transition: background var(--t), color var(--t);
-  border: none; background: transparent; width: 100%; text-align: left; font-family: 'Arial', arial;
+  border: none; background: transparent; width: 100%; text-align: left; font-family: 'DM Sans', sans-serif;
 }
 .pd-item:hover { background: var(--surface2); color: var(--text); }
 .pd-item svg { width: 14px; height: 14px; flex-shrink: 0; opacity: 0.75; }
@@ -335,7 +335,7 @@ body {
 .bubble img.chat-media { max-width: 260px; max-height: 220px; border-radius: 6px; display: block; margin-top: 6px; cursor: pointer; }
 .bubble video.chat-media { max-width: 260px; border-radius: 6px; display: block; margin-top: 6px; }
 
-/* ── WELCOME — redesigned ── */
+/* ── WELCOME ── */
 .welcome {
   max-width: 620px;
   margin: auto;
@@ -346,7 +346,7 @@ body {
 @keyframes fadeUp { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
 
 .welcome-greeting {
-  font-family: 'Arial', arial;
+  font-family: 'DM Sans', sans-serif;
   font-weight: 800;
   font-size: 68px;
   letter-spacing: -2.5px;
@@ -446,7 +446,7 @@ body {
 .btn-confirm:hover { background: var(--accent-hover); }
 
 /* ══════════════════════════════════════════
-   ADMIN DM — DESKTOP: Instagram-style popup
+   ADMIN DM — DESKTOP
    ══════════════════════════════════════════ */
 .dm-overlay {
   display: none; position: fixed; inset: 0;
@@ -548,7 +548,14 @@ body {
 .dm-conv-info { flex: 1; min-width: 0; }
 .dm-conv-name { font-size: 13.5px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .dm-conv-preview { font-size: 12px; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+.dm-conv-preview.unread { color: var(--text); font-weight: 700; }
 .dm-conv-time { font-size: 11px; color: var(--text3); flex-shrink: 0; }
+
+/* Unread dot */
+.dm-unread-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent); flex-shrink: 0;
+}
 
 .dm-chat-panel {
   flex: 1; display: flex; flex-direction: column; overflow: hidden;
@@ -582,26 +589,130 @@ body {
 
 .dm-chat-messages {
   flex: 1; overflow-y: auto; padding: 16px 18px;
-  display: flex; flex-direction: column; gap: 8px;
+  display: flex; flex-direction: column; gap: 2px;
 }
 .dm-chat-messages::-webkit-scrollbar { width: 3px; }
 .dm-chat-messages::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 2px; }
 
-.dm-msg { display: flex; flex-direction: column; gap: 2px; animation: msgIn 0.15s ease; }
-.dm-msg.sent { align-items: flex-end; }
-.dm-msg.received { align-items: flex-start; }
+/* ── MESSAGE GROUPS & BUBBLES ── */
+.dm-time-separator {
+  text-align: center; font-size: 11px; color: var(--text3);
+  padding: 8px 0; margin: 6px 0; font-weight: 500;
+}
+
+.dm-msg-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 8px;
+  animation: msgIn 0.15s ease;
+}
+.dm-msg-group.sent { align-items: flex-end; }
+.dm-msg-group.received { align-items: flex-start; }
+
+.dm-msg-group-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+.dm-msg-group.sent .dm-msg-group-row { flex-direction: row-reverse; }
+
+.dm-group-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; color: #fff;
+  flex-shrink: 0; overflow: hidden; align-self: flex-end;
+}
+.dm-group-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.dm-group-avatar.hidden-av { visibility: hidden; }
+
+.dm-msg-bubbles {
+  display: flex; flex-direction: column; gap: 2px;
+  max-width: 70%;
+}
+.dm-msg-group.sent .dm-msg-bubbles { align-items: flex-end; }
+.dm-msg-group.received .dm-msg-bubbles { align-items: flex-start; }
+
+.dm-bubble-wrap {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+}
 
 .dm-bubble {
-  padding: 9px 13px; border-radius: 16px;
-  font-size: 13.5px; max-width: 72%; line-height: 1.5; word-break: break-word;
+  padding: 9px 13px; border-radius: 18px;
+  font-size: 13.5px; line-height: 1.5; word-break: break-word;
+  display: inline-block; position: relative;
+  cursor: pointer; transition: opacity 0.15s;
 }
-.dm-msg.sent .dm-bubble { background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
-.dm-msg.received .dm-bubble { background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+.dm-bubble:hover { opacity: 0.92; }
+.dm-msg-group.sent .dm-bubble { background: var(--accent); color: #fff; }
+.dm-msg-group.received .dm-bubble { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+
+/* Bubble radius shaping per group position */
+.dm-msg-group.sent .dm-bubble-wrap:first-child .dm-bubble { border-bottom-right-radius: 6px; }
+.dm-msg-group.sent .dm-bubble-wrap:last-child .dm-bubble { border-top-right-radius: 6px; }
+.dm-msg-group.sent .dm-bubble-wrap:not(:first-child):not(:last-child) .dm-bubble { border-top-right-radius: 6px; border-bottom-right-radius: 6px; }
+.dm-msg-group.received .dm-bubble-wrap:first-child .dm-bubble { border-bottom-left-radius: 6px; }
+.dm-msg-group.received .dm-bubble-wrap:last-child .dm-bubble { border-top-left-radius: 6px; }
+.dm-msg-group.received .dm-bubble-wrap:not(:first-child):not(:last-child) .dm-bubble { border-top-left-radius: 6px; border-bottom-left-radius: 6px; }
+
+/* Sending state */
+.dm-bubble.sending { opacity: 0.6; }
+.dm-sending-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 12px; height: 12px; margin-left: 4px; vertical-align: middle;
+}
+.dm-sending-spinner {
+  width: 10px; height: 10px; border: 1.5px solid rgba(255,255,255,0.4);
+  border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Reaction */
+.dm-reaction {
+  position: absolute; bottom: -10px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 2px 6px; font-size: 13px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  animation: reactionPop 0.2s cubic-bezier(0.34,1.56,0.64,1);
+  z-index: 2; cursor: pointer; display: flex; align-items: center; gap: 3px;
+  white-space: nowrap;
+}
+.dm-msg-group.sent .dm-reaction { right: 4px; }
+.dm-msg-group.received .dm-reaction { left: 4px; }
+@keyframes reactionPop { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+/* Reply/follow-up */
+.dm-reply-preview {
+  background: rgba(0,0,0,0.06); border-radius: 8px; padding: 6px 10px;
+  font-size: 11.5px; color: var(--text2); margin-bottom: 4px;
+  border-left: 3px solid var(--accent); max-width: 100%;
+  cursor: pointer;
+}
+.dm-reply-preview .dm-reply-author { font-weight: 600; font-size: 11px; color: var(--accent); margin-bottom: 2px; }
+.dm-reply-preview .dm-reply-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.dm-msg-group.sent .dm-reply-preview { background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.8); border-color: rgba(255,255,255,0.5); }
+
+/* Group time */
+.dm-group-time { font-size: 10.5px; color: var(--text3); padding: 2px 4px; margin-top: 2px; text-align: center; }
 
 .dm-bubble img.dm-media { max-width: 220px; max-height: 180px; border-radius: 10px; display: block; margin-top: 4px; cursor: pointer; }
 .dm-bubble video.dm-media { max-width: 220px; border-radius: 10px; display: block; margin-top: 4px; }
 
-.dm-time { font-size: 10.5px; color: var(--text3); padding: 0 4px; }
+/* Reply bar */
+.dm-reply-bar {
+  display: none; padding: 8px 14px; background: var(--surface2);
+  border-top: 1px solid var(--border); font-size: 12.5px;
+  align-items: center; gap: 10px; flex-shrink: 0;
+}
+.dm-reply-bar.show { display: flex; }
+.dm-reply-bar-content { flex: 1; min-width: 0; }
+.dm-reply-bar-author { font-weight: 600; font-size: 11px; color: var(--accent); }
+.dm-reply-bar-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text2); }
+.dm-reply-cancel { background: transparent; border: none; cursor: pointer; color: var(--text3); font-size: 18px; line-height: 1; transition: color var(--t); padding: 0 2px; }
+.dm-reply-cancel:hover { color: var(--text); }
 
 .dm-chat-input-area {
   padding: 6px 12px 8px;
@@ -655,16 +766,19 @@ body {
 .emoji-btn:hover { color: var(--accent); background: rgba(91,106,240,0.08); }
 .emoji-btn.hidden { display: none; }
 
+/* FIX #1: Emoji picker above DM popup */
 .emoji-picker-overlay { display: none; position: fixed; inset: 0; z-index: 9999; }
 .emoji-picker-overlay.show { display: block; }
 
-.emoji-picker { position: fixed; bottom: 110px; left: 16%; right: 20px; background: var(--surface);
+.emoji-picker {
+  position: fixed; background: var(--surface);
   border: 1px solid var(--border); border-radius: 12px; padding: 12px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.15); z-index: 301;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2); z-index: 10000;
   display: none; grid-template-columns: repeat(8, 1fr); gap: 6px;
-  max-width: 350px; animation: slideUp 0.2s ease;
+  max-width: 340px; animation: slideUp 0.2s ease;
 }
 .emoji-picker.show { display: grid; }
+@keyframes slideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 .emoji-item { width: 32px; height: 32px; border: none; background: var(--surface2);
   border-radius: 6px; cursor: pointer; font-size: 18px; transition: all var(--t);
   display: flex; align-items: center; justify-content: center;
@@ -693,7 +807,7 @@ body {
 .dm-fs-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; overflow: hidden; flex-shrink: 0; }
 .dm-fs-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 .dm-fs-name { font-size: 14px; font-weight: 600; color: var(--text); }
-.dm-fs-messages { flex: 1; overflow-y: auto; padding: 14px 14px; display: flex; flex-direction: column; gap: 8px; }
+.dm-fs-messages { flex: 1; overflow-y: auto; padding: 14px 14px; display: flex; flex-direction: column; gap: 2px; }
 .dm-fs-input-area { padding: 10px 12px 14px; background: var(--surface); border-top: 1px solid var(--border); flex-shrink: 0; }
 .dm-fs-input-row { display: flex; gap: 6px; align-items: center; background: var(--input-bg); border: 1px solid var(--border); border-radius: 22px; padding: 6px 8px 6px 6px; }
 #dmFsInput { flex: 1; background: transparent; border: none; outline: none; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13.5px; padding: 0 6px; }
@@ -704,9 +818,107 @@ body {
 .hamburger:hover { background: var(--surface2); color: var(--text); }
 .hamburger svg { width: 18px; height: 18px; }
 
+/* ── NOTES VIEW ── */
+.notes-view { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+.notes-view.show { display: flex; }
+
+.notes-header {
+  padding: 14px 24px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--surface); flex-shrink: 0;
+}
+.notes-title-area { display: flex; align-items: center; gap: 10px; }
+.notes-title-area h2 { font-size: 15px; font-weight: 600; }
+
+.notes-layout { display: flex; flex: 1; overflow: hidden; }
+
+.notes-list-panel {
+  width: 240px; border-right: 1px solid var(--border);
+  background: var(--surface); display: flex; flex-direction: column;
+  flex-shrink: 0; overflow: hidden;
+}
+.notes-list-header {
+  padding: 14px 14px 10px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.notes-list-header span { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.7px; color: var(--text3); }
+.notes-new-btn {
+  width: 26px; height: 26px; border-radius: var(--radius); border: none;
+  background: var(--accent); color: #fff; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  transition: background var(--t);
+}
+.notes-new-btn:hover { background: var(--accent-hover); }
+.notes-new-btn svg { width: 12px; height: 12px; }
+
+.notes-list { flex: 1; overflow-y: auto; padding: 8px; }
+.notes-list::-webkit-scrollbar { width: 3px; }
+.notes-list::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 2px; }
+
+.note-item {
+  padding: 10px 12px; border-radius: 8px; cursor: pointer;
+  transition: background var(--t); margin-bottom: 2px;
+  border: 1px solid transparent;
+}
+.note-item:hover { background: var(--surface2); }
+.note-item.active { background: rgba(91,106,240,0.08); border-color: rgba(91,106,240,0.2); }
+.note-item-title { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
+.note-item-preview { font-size: 11.5px; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.note-item-date { font-size: 10.5px; color: var(--text3); margin-top: 4px; }
+
+.notes-empty {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 8px; color: var(--text3); padding: 20px;
+}
+.notes-empty svg { opacity: 0.3; }
+.notes-empty p { font-size: 13px; font-weight: 500; opacity: 0.7; text-align: center; }
+
+.notes-editor-panel {
+  flex: 1; display: flex; flex-direction: column; overflow: hidden;
+  background: var(--bg);
+}
+
+.notes-editor-empty {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 8px; color: var(--text3);
+}
+.notes-editor-empty svg { opacity: 0.25; }
+.notes-editor-empty p { font-size: 14px; opacity: 0.6; }
+
+.notes-editor-top {
+  padding: 16px 20px 10px; border-bottom: 1px solid var(--border);
+  background: var(--surface); display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+.notes-editor-top .note-delete-btn {
+  background: transparent; border: none; cursor: pointer; color: var(--text3);
+  font-size: 12px; padding: 5px 10px; border-radius: 6px;
+  transition: all var(--t); font-family: 'DM Sans', sans-serif;
+  display: flex; align-items: center; gap: 5px;
+}
+.notes-editor-top .note-delete-btn:hover { background: rgba(239,68,68,0.08); color: #ef4444; }
+
+#noteTitleInput {
+  flex: 1; background: transparent; border: none; outline: none;
+  color: var(--text); font-family: 'DM Sans', sans-serif;
+  font-size: 17px; font-weight: 600; width: 100%;
+}
+#noteTitleInput::placeholder { color: var(--text3); }
+
+#noteBodyInput {
+  flex: 1; background: transparent; border: none; outline: none;
+  color: var(--text); font-family: 'DM Sans', sans-serif;
+  font-size: 14px; line-height: 1.7; resize: none;
+  padding: 16px 20px; width: 100%;
+}
+#noteBodyInput::placeholder { color: var(--text3); }
+
+.note-save-status { font-size: 11px; color: var(--text3); }
+.note-save-status.saved { color: #22c55e; }
+
 /* ── MOBILE ── */
 @media (max-width: 640px) {
-  :root { --sidebar-w: 75vw; }
+  :root { --sidebar-w: 80vw; }
   body { position: relative; }
   .sidebar { position: fixed; z-index: 100; box-shadow: 4px 0 24px rgba(0,0,0,0.12); }
   .sidebar.mini { transform: translateX(-100%); width: var(--sidebar-w); }
@@ -725,6 +937,8 @@ body {
   .profile-dropdown { left: 6px; bottom: 68px; }
   .dm-overlay { display: none !important; }
   .dm-fullscreen.show { display: flex; }
+  .notes-list-panel { width: 200px; }
+  .dm-msg-bubbles { max-width: 78%; }
 }
 
 @media (min-width: 641px) {
@@ -747,7 +961,7 @@ body {
 .lightbox img { max-width: 92vw; max-height: 92vh; border-radius: 10px; box-shadow: 0 24px 60px rgba(0,0,0,0.4); }
 
 /* ══════════════════════════════
-   AUTH PAGE — redesigned
+   AUTH PAGE
    ══════════════════════════════ */
 .auth-page {
   display: flex; align-items: center; justify-content: center;
@@ -758,7 +972,6 @@ body {
 }
 .auth-page.hidden { display: none; }
 
-/* Soft ambient glow behind the card */
 .auth-page::before {
   content: '';
   position: absolute;
@@ -783,7 +996,6 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Logo area */
 .auth-logo-wrap {
   display: flex; align-items: center; justify-content: center; gap: 10px;
   margin-bottom: 32px;
@@ -802,7 +1014,6 @@ body {
   color: var(--text);
 }
 
-/* The form panel */
 .auth-panel {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -827,170 +1038,79 @@ body {
   margin-bottom: 24px;
 }
 
-/* Landing buttons (the initial 3-choice view) */
-.auth-landing-btns {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
+.auth-landing-btns { display: flex; flex-direction: column; gap: 10px; }
 
 .auth-main-btn {
-  width: 100%;
-  padding: 11px 18px;
-  border-radius: 10px;
-  border: none;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.18s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+  width: 100%; padding: 11px 18px; border-radius: 10px; border: none;
+  font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500;
+  cursor: pointer; transition: all 0.18s ease;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
 }
+.auth-main-btn.primary { background: var(--accent); color: #fff; box-shadow: 0 2px 14px rgba(102,100,194,0.28); }
+.auth-main-btn.primary:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 4px 20px rgba(102,100,194,0.36); }
+.auth-main-btn.secondary { background: transparent; color: var(--text); border: 1px solid var(--border); }
+.auth-main-btn.secondary:hover { background: var(--surface2); border-color: var(--accent); }
 
-.auth-main-btn.primary {
-  background: var(--accent);
-  color: #fff;
-  box-shadow: 0 2px 14px rgba(102,100,194,0.28);
-}
-.auth-main-btn.primary:hover {
-  background: var(--accent-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 20px rgba(102,100,194,0.36);
-}
-
-.auth-main-btn.secondary {
-  background: transparent;
-  color: var(--text);
-  border: 1px solid var(--border);
-}
-.auth-main-btn.secondary:hover {
-  background: var(--surface2);
-  border-color: var(--accent);
-}
-
-.auth-divider {
-  display: flex; align-items: center; gap: 10px;
-  margin: 4px 0;
-}
+.auth-divider { display: flex; align-items: center; gap: 10px; margin: 4px 0; }
 .auth-divider-line { flex: 1; height: 1px; background: var(--border); }
 .auth-divider-text { font-size: 11px; color: var(--text3); letter-spacing: 0.5px; }
 
-/* Form fields */
 .auth-form { display: flex; flex-direction: column; gap: 12px; }
-
-.auth-field-label {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: var(--text3);
-  text-transform: uppercase;
-  letter-spacing: 0.7px;
-  margin-bottom: 5px;
-}
+.auth-field-label { font-size: 11.5px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 5px; }
 .auth-field { display: flex; flex-direction: column; }
-
 .auth-input {
-  width: 100%;
-  padding: 10px 13px;
-  border: 1px solid var(--border);
-  border-radius: 9px;
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'DM Sans', sans-serif;
-  font-size: 13.5px;
-  outline: none;
+  width: 100%; padding: 10px 13px; border: 1px solid var(--border);
+  border-radius: 9px; background: var(--bg); color: var(--text);
+  font-family: 'DM Sans', sans-serif; font-size: 13.5px; outline: none;
   transition: border-color var(--t), box-shadow var(--t);
 }
-.auth-input:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(91,106,240,0.1);
-}
+.auth-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(91,106,240,0.1); }
 .auth-input::placeholder { color: var(--text3); }
 
 .auth-submit-btn {
-  width: 100%;
-  padding: 11px;
-  border-radius: 10px;
-  border: none;
-  background: var(--accent);
-  color: #fff;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
+  width: 100%; padding: 11px; border-radius: 10px; border: none;
+  background: var(--accent); color: #fff; font-family: 'DM Sans', sans-serif;
+  font-size: 14px; font-weight: 600; cursor: pointer;
   transition: background var(--t), transform var(--t), box-shadow var(--t);
-  margin-top: 4px;
-  box-shadow: 0 2px 14px rgba(102,100,194,0.28);
+  margin-top: 4px; box-shadow: 0 2px 14px rgba(102,100,194,0.28);
 }
-.auth-submit-btn:hover {
-  background: var(--accent-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 20px rgba(102,100,194,0.36);
-}
+.auth-submit-btn:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 4px 20px rgba(102,100,194,0.36); }
 
 .auth-form-error {
-  font-size: 12px;
-  color: #ef4444;
-  text-align: center;
-  display: none;
-  padding: 8px 12px;
-  background: rgba(239,68,68,0.07);
-  border-radius: 7px;
+  font-size: 12px; color: #ef4444; text-align: center; display: none;
+  padding: 8px 12px; background: rgba(239,68,68,0.07); border-radius: 7px;
   border: 1px solid rgba(239,68,68,0.15);
 }
 
-.auth-back-link {
-  text-align: center;
-  margin-top: 16px;
-  font-size: 12.5px;
-  color: var(--text3);
-}
-.auth-back-link button {
-  background: none;
-  border: none;
-  color: var(--accent);
-  cursor: pointer;
-  font-size: 12.5px;
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 500;
-  transition: color var(--t);
-  padding: 0;
-}
+.auth-back-link { text-align: center; margin-top: 16px; font-size: 12.5px; color: var(--text3); }
+.auth-back-link button { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 12.5px; font-family: 'DM Sans', sans-serif; font-weight: 500; transition: color var(--t); padding: 0; }
 .auth-back-link button:hover { color: var(--accent-hover); text-decoration: underline; }
 
-.auth-switch-link {
-  text-align: center;
-  margin-top: 16px;
-  font-size: 12.5px;
-  color: var(--text3);
-}
-.auth-switch-link button {
-  background: none;
-  border: none;
-  color: var(--accent);
-  cursor: pointer;
-  font-size: 12.5px;
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 500;
-  padding: 0;
-  transition: color var(--t);
-}
+.auth-switch-link { text-align: center; margin-top: 16px; font-size: 12.5px; color: var(--text3); }
+.auth-switch-link button { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 12.5px; font-family: 'DM Sans', sans-serif; font-weight: 500; padding: 0; transition: color var(--t); }
 .auth-switch-link button:hover { color: var(--accent-hover); }
 
-.auth-footer {
-  text-align: center;
-  margin-top: 20px;
-  font-size: 11px;
-  color: var(--text3);
-  line-height: 1.6;
-}
+.auth-footer { text-align: center; margin-top: 20px; font-size: 11px; color: var(--text3); line-height: 1.6; }
 
-/* Auth panel transition */
 .auth-panel-view { display: none; }
 .auth-panel-view.active { display: block; }
 
+/* Context menu for reply */
+.dm-ctx-menu {
+  position: fixed; background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 6px; box-shadow: 0 8px 24px rgba(0,0,0,0.14);
+  z-index: 10001; min-width: 130px; animation: popIn 0.15s ease;
+}
+.dm-ctx-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; border-radius: 7px; cursor: pointer;
+  font-size: 13px; color: var(--text2);
+  transition: background var(--t), color var(--t);
+  border: none; background: transparent; width: 100%; text-align: left;
+  font-family: 'DM Sans', sans-serif;
+}
+.dm-ctx-item:hover { background: var(--surface2); color: var(--text); }
+.dm-ctx-item svg { width: 13px; height: 13px; flex-shrink: 0; }
 </style>
 </head>
 <body>
@@ -998,8 +1118,6 @@ body {
 <!-- AUTH PAGE -->
 <div class="auth-page" id="authPage">
   <div class="auth-card">
-
-    <!-- Logo -->
     <div class="auth-logo-wrap">
       <div class="auth-logo-icon">
         <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
@@ -1008,8 +1126,6 @@ body {
     </div>
 
     <div class="auth-panel">
-
-      <!-- LANDING VIEW -->
       <div class="auth-panel-view active" id="authLanding">
         <div class="auth-panel-title">Welcome back</div>
         <div class="auth-panel-sub">Your AI assistant for everything.</div>
@@ -1018,21 +1134,12 @@ body {
             Log in
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
-          <div class="auth-divider">
-            <div class="auth-divider-line"></div>
-            <span class="auth-divider-text">OR</span>
-            <div class="auth-divider-line"></div>
-          </div>
-          <button class="auth-main-btn secondary" onclick="showAuthView('signup')">
-            Create an account
-          </button>
-          <button class="auth-main-btn secondary" onclick="authenticateGuest()">
-            Continue as guest
-          </button>
+          <div class="auth-divider"><div class="auth-divider-line"></div><span class="auth-divider-text">OR</span><div class="auth-divider-line"></div></div>
+          <button class="auth-main-btn secondary" onclick="showAuthView('signup')">Create an account</button>
+          <button class="auth-main-btn secondary" onclick="authenticateGuest()">Continue as guest</button>
         </div>
       </div>
 
-      <!-- LOGIN VIEW -->
       <div class="auth-panel-view" id="authLoginView">
         <div class="auth-panel-title">Log in</div>
         <div class="auth-panel-sub">Enter your credentials to continue.</div>
@@ -1048,15 +1155,10 @@ body {
           <div class="auth-form-error" id="loginError">Invalid email or password. Please try again.</div>
           <button class="auth-submit-btn" onclick="handleLoginSubmit()">Log in</button>
         </div>
-        <div class="auth-switch-link">
-          Don't have an account? <button onclick="showAuthView('signup')">Sign up</button>
-        </div>
-        <div class="auth-back-link">
-          <button onclick="showAuthView('landing')">← Back</button>
-        </div>
+        <div class="auth-switch-link">Don't have an account? <button onclick="showAuthView('signup')">Sign up</button></div>
+        <div class="auth-back-link"><button onclick="showAuthView('landing')">← Back</button></div>
       </div>
 
-      <!-- SIGN UP VIEW -->
       <div class="auth-panel-view" id="authSignupView">
         <div class="auth-panel-title">Create account</div>
         <div class="auth-panel-sub">Join hether — it's free.</div>
@@ -1076,19 +1178,12 @@ body {
           <div class="auth-form-error" id="signupError">Please fill in all fields correctly.</div>
           <button class="auth-submit-btn" onclick="handleSignupSubmit()">Create account</button>
         </div>
-        <div class="auth-switch-link">
-          Already have an account? <button onclick="showAuthView('login')">Log in</button>
-        </div>
-        <div class="auth-back-link">
-          <button onclick="showAuthView('landing')">← Back</button>
-        </div>
+        <div class="auth-switch-link">Already have an account? <button onclick="showAuthView('login')">Log in</button></div>
+        <div class="auth-back-link"><button onclick="showAuthView('landing')">← Back</button></div>
       </div>
-
-    </div><!-- /auth-panel -->
-
+    </div>
     <div class="auth-footer">By continuing, you agree to our Terms of Service &amp; Privacy Policy.</div>
-
-  </div><!-- /auth-card -->
+  </div>
 </div>
 
 <div class="mobile-overlay" id="mobileOverlay" onclick="hideSidebar()"></div>
@@ -1116,6 +1211,11 @@ body {
   <button class="nav-btn active" id="navChat" onclick="showView('chat')" data-tip="hetherGPT">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
     <span class="nav-btn-label">hetherGPT</span>
+  </button>
+
+  <button class="nav-btn" id="navNotes" onclick="showView('notes')" data-tip="Notes">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+    <span class="nav-btn-label">Notes</span>
   </button>
 
   <div class="section-label" style="margin-top:8px;">Account</div>
@@ -1211,8 +1311,8 @@ body {
     </div>
     <div class="input-area">
       <div class="input-wrap">
-        <button class="emoji-btn" id="emojiBtn" onclick="toggleEmojiPicker()">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></svg>
+        <button class="emoji-btn" id="emojiBtn" onclick="toggleEmojiPicker('chat')">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></svg>
         </button>
         <textarea id="userInput" rows="1" placeholder="Message hetherGPT..." oninput="autoResize(this); toggleMediaButton()" onkeydown="handleKey(event)"></textarea>
         <button class="send-btn" id="sendBtn" onclick="sendMessage()" disabled>
@@ -1224,6 +1324,46 @@ body {
         <input type="file" id="aiMediaUpload" accept="image/*,video/*" style="display:none" onchange="handleAIMedia(event)">
       </div>
       <div class="input-hint">hetherGPT can make mistakes. Verify important information.</div>
+    </div>
+  </div>
+
+  <!-- NOTES VIEW -->
+  <div class="notes-view" id="notesView">
+    <div class="notes-header">
+      <div class="notes-title-area">
+        <button class="hamburger" style="display:flex;" onclick="toggleSidebarMobile()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <h2>Notes</h2>
+      </div>
+    </div>
+    <div class="notes-layout">
+      <div class="notes-list-panel">
+        <div class="notes-list-header">
+          <span>All Notes</span>
+          <button class="notes-new-btn" onclick="createNote()" title="New note">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+        </div>
+        <div class="notes-list" id="notesList"></div>
+      </div>
+      <div class="notes-editor-panel" id="notesEditorPanel">
+        <div class="notes-editor-empty" id="notesEditorEmpty">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <p>Select a note or create a new one</p>
+        </div>
+        <div id="notesEditorActive" style="display:none;flex:1;flex-direction:column;overflow:hidden;">
+          <div class="notes-editor-top">
+            <input type="text" id="noteTitleInput" placeholder="Note title..." oninput="autoSaveNote()">
+            <span class="note-save-status" id="noteSaveStatus">saved</span>
+            <button class="note-delete-btn" onclick="deleteActiveNote()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="13" height="13"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+              Delete
+            </button>
+          </div>
+          <textarea id="noteBodyInput" placeholder="Start writing..." oninput="autoSaveNote()"></textarea>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1290,7 +1430,7 @@ body {
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         <p>Select a conversation</p>
       </div>
-      <div id="dmActiveChatWrap" style="display:none;flex:1;flex-direction:column;overflow:hidden;display:none;">
+      <div id="dmActiveChatWrap" style="display:none;flex:1;flex-direction:column;overflow:hidden;">
         <div class="dm-chat-topbar" id="dmChatTopbar">
           <div class="dm-chat-topbar-avatar" id="dmTopbarAvatar"></div>
           <div class="dm-chat-topbar-info">
@@ -1298,11 +1438,19 @@ body {
             <div class="dm-chat-topbar-status">Active now</div>
           </div>
         </div>
+        <!-- Reply bar -->
+        <div class="dm-reply-bar" id="dmReplyBar">
+          <div class="dm-reply-bar-content">
+            <div class="dm-reply-bar-author" id="dmReplyBarAuthor"></div>
+            <div class="dm-reply-bar-text" id="dmReplyBarText"></div>
+          </div>
+          <button class="dm-reply-cancel" onclick="cancelReply()">×</button>
+        </div>
         <div class="dm-chat-messages" id="dmChatMessages"></div>
         <div class="dm-chat-input-area">
           <div class="dm-input-row">
             <button class="emoji-btn" id="dmEmojiBtn" onclick="toggleEmojiPicker('dm')">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></svg>
             </button>
             <input type="text" id="dmInput" placeholder="Message..." oninput="toggleDmSendBtn()" onkeydown="dmHandleKey(event,'desktop')">
             <label class="emoji-btn" id="dmMediaBtn" for="dmMediaUpload" title="Send media">
@@ -1338,10 +1486,20 @@ body {
       <div class="dm-fs-avatar" id="dmFsAvatar"></div>
       <div class="dm-fs-name" id="dmFsName"></div>
     </div>
+    <!-- Mobile reply bar -->
+    <div class="dm-reply-bar" id="dmFsReplyBar">
+      <div class="dm-reply-bar-content">
+        <div class="dm-reply-bar-author" id="dmFsReplyBarAuthor"></div>
+        <div class="dm-reply-bar-text" id="dmFsReplyBarText"></div>
+      </div>
+      <button class="dm-reply-cancel" onclick="cancelReply('mobile')">×</button>
+    </div>
     <div class="dm-fs-messages" id="dmFsMessages"></div>
     <div class="dm-fs-input-area">
       <div class="dm-fs-input-row">
-        <button class="emoji-btn" id="dmFsEmojiBtn" onclick="toggleEmojiPicker('mobile')">😊</button>
+        <button class="emoji-btn" id="dmFsEmojiBtn" onclick="toggleEmojiPicker('mobile')">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></svg>
+        </button>
         <label class="emoji-btn" for="dmFsMediaUpload" title="Send media">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
         </label>
@@ -1360,9 +1518,12 @@ body {
   <img id="lightboxImg" src="" alt="">
 </div>
 
-<!-- EMOJI PICKER -->
+<!-- EMOJI PICKER (top z-index) -->
 <div class="emoji-picker-overlay" id="emojiPickerOverlay" onclick="closeEmojiPicker()"></div>
 <div class="emoji-picker" id="emojiPicker"></div>
+
+<!-- Context menu -->
+<div class="dm-ctx-menu" id="dmCtxMenu" style="display:none;"></div>
 
 <!-- ADMIN KEY POPUP -->
 <div class="overlay" id="adminOverlay">
@@ -1415,19 +1576,16 @@ body {
 </div><!-- /mainApp -->
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <script>
 const supabaseClient = window.supabase.createClient(
   "https://zdxevrzwndranrcerrhs.supabase.co",
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpkeGV2cnp3bmRyYW5yY2VycmhzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NzA1NjYsImV4cCI6MjA5MzA0NjU2Nn0.F6HWXevFCBF1KTd7IahlqbfHhm3koC0pqmRFK4TPPfM"
 );
 
-// ✅ Global real-time subscription tracker
 const subscriptionManager = {
   activeSubscription: null,
   async replaceSubscription(newChannel) {
     if (this.activeSubscription) {
-      console.log('🔌 Unsubscribing from previous channel...');
       await this.activeSubscription.unsubscribe();
     }
     this.activeSubscription = newChannel;
@@ -1444,31 +1602,25 @@ let sidebarHideTimer = null;
 const isMobile = () => window.innerWidth <= 640;
 
 const dmContacts = [];
-
 let activeDmId = null;
-let realtimeSubscription = null;
+let replyingTo = null; // { text, author, msgId }
+
+// Message dedup: track IDs we've already rendered
+const renderedMsgIds = new Set();
 
 let profile = JSON.parse(localStorage.getItem('hether_profile') || 'null') || { name: 'User', username: '@user', email: 'user@example.com', avatarUrl: null };
 
 async function saveProfile() {
   const name = document.getElementById('peDisplayName').value.trim();
   const username = document.getElementById('peUsername').value.replace('@','').trim();
-
   const { data: { user } } = await supabaseClient.auth.getUser();
-
-  await supabaseClient
-    .from('profiles')
-    .update({
-      username: username
-    })
-    .eq('id', user.id);
-
+  await supabaseClient.from('profiles').update({ username }).eq('id', user.id);
   profile.name = name;
   profile.username = '@' + username;
-
   renderProfileEverywhere();
   closeProfileEdit();
 }
+
 function getInitial(name) { return (name || 'U').trim()[0].toUpperCase(); }
 
 function renderProfileEverywhere() {
@@ -1508,14 +1660,14 @@ initTheme();
 function setWelcomeGreeting() {
   const h = new Date().getHours();
   const pools = {
-    morning: ['Good morning.', 'Morning! Ready to dive in?', 'Rise and shine.'],
-    afternoon: ['Good afternoon.', 'Hello there.', 'Afternoon.'],
-    evening: ['Good evening.', 'Evening! How can I help?', 'Hi there.'],
-    night: ['Working late?', 'Burning the midnight oil.', 'Hello, night owl.'],
+    morning: ['Good morning.','Morning! Ready to dive in?','Rise and shine.'],
+    afternoon: ['Good afternoon.','Hello there.','Afternoon.'],
+    evening: ['Good evening.','Evening! How can I help?','Hi there.'],
+    night: ['Working late?','Burning the midnight oil.','Hello, night owl.'],
   };
-  const pool = h>=5&&h<12 ? pools.morning : h>=12&&h<17 ? pools.afternoon : h>=17&&h<21 ? pools.evening : pools.night;
+  const pool = h>=5&&h<12?pools.morning:h>=12&&h<17?pools.afternoon:h>=17&&h<21?pools.evening:pools.night;
   const el = document.getElementById('welcomeGreeting');
-  if (el) el.textContent = pool[Math.floor(Math.random() * pool.length)];
+  if (el) el.textContent = pool[Math.floor(Math.random()*pool.length)];
 }
 setWelcomeGreeting();
 
@@ -1554,8 +1706,11 @@ function showView(view) {
   currentView = view;
   document.getElementById('chatView').style.display = view === 'chat' ? 'flex' : 'none';
   document.getElementById('settingsView').classList.toggle('show', view === 'settings');
+  document.getElementById('notesView').classList.toggle('show', view === 'notes');
   document.getElementById('navChat').classList.toggle('active', view === 'chat');
   document.getElementById('navSettings').classList.toggle('active', view === 'settings');
+  document.getElementById('navNotes').classList.toggle('active', view === 'notes');
+  if (view === 'notes') renderNotesList();
   if (isMobile()) hideSidebar();
 }
 
@@ -1668,8 +1823,8 @@ function verifyAdmin() {
 
 // ── DM ──
 function openDM() {
-  dmOpen = true; 
-  loadContacts(); // Load contacts from Supabase
+  dmOpen = true;
+  loadContacts();
   if (isMobile()) {
     document.getElementById('dmFullscreen').classList.add('show');
     document.getElementById('dmFsListView').style.display = 'flex';
@@ -1687,17 +1842,44 @@ function closeDM() {
 function dmOverlayClick(e) { if (e.target === document.getElementById('dmOverlay')) closeDM(); }
 
 function buildDMConvList() {
+  // Sort by lastMessage time desc, then by name
+  const sorted = [...dmContacts].sort((a, b) => {
+    const aTime = a.lastMessageTs || 0;
+    const bTime = b.lastMessageTs || 0;
+    return bTime - aTime;
+  });
+
   ['dmConvList','dmFsConvList'].forEach(listId => {
     const list = document.getElementById(listId);
     const isFsList = listId === 'dmFsConvList';
     list.innerHTML = '';
-    dmContacts.forEach(c => {
+    sorted.forEach(c => {
       const item = document.createElement('div');
       item.className = 'dm-conv-item' + (c.id === activeDmId ? ' active' : '');
       item.dataset.id = c.id;
       item.onclick = () => { isFsList ? openFsChat(c.id) : openDesktopChat(c.id); };
+
       const lastMsg = c.lastMessage;
-      item.innerHTML = `<div class="dm-conv-avatar" style="background:${c.color};">${c.online ? '<div class="dm-online-dot"></div>' : ''}${c.initials}</div><div class="dm-conv-info"><div class="dm-conv-name">${c.name}</div><div class="dm-conv-preview">${lastMsg ? (lastMsg.type==='sent'?'You: ':'')+lastMsg.text : 'No messages yet'}</div></div><div class="dm-conv-time">${lastMsg ? lastMsg.time : ''}</div>`;
+      const isUnread = c.unread && c.id !== activeDmId;
+      const previewClass = isUnread ? 'dm-conv-preview unread' : 'dm-conv-preview';
+      const previewText = lastMsg
+        ? (lastMsg.type === 'sent' ? 'You: ' + lastMsg.text : (isUnread ? c.name + ': ' + lastMsg.text : lastMsg.text))
+        : 'No messages yet';
+
+      item.innerHTML = `
+        <div class="dm-conv-avatar" style="background:${c.color};">
+          ${c.avatarUrl ? `<img src="${c.avatarUrl}" alt="">` : c.initials}
+          ${c.online ? '<div class="dm-online-dot"></div>' : ''}
+        </div>
+        <div class="dm-conv-info">
+          <div class="dm-conv-name">${c.name}</div>
+          <div class="${previewClass}">${escHtml(previewText)}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+          <div class="dm-conv-time">${lastMsg ? lastMsg.time : ''}</div>
+          ${isUnread ? '<div class="dm-unread-dot"></div>' : ''}
+        </div>
+      `;
       list.appendChild(item);
     });
   });
@@ -1707,15 +1889,10 @@ async function loadContacts() {
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (!user) return;
 
-  const { data } = await supabaseClient
-    .from('profiles')
-    .select('id, username');
-
+  const { data } = await supabaseClient.from('profiles').select('id, username, avatar_url');
   if (!data) return;
 
   dmContacts.length = 0;
-
-  // Generate colors for each contact
   const colors = [
     'linear-gradient(135deg,#5b6af0,#a855f7)',
     'linear-gradient(135deg,#f97316,#ec4899)',
@@ -1727,16 +1904,17 @@ async function loadContacts() {
   let colorIdx = 0;
 
   data.forEach(u => {
-    // Skip current user
     if (u.id === user.id) return;
-    
     dmContacts.push({
       id: u.id,
       name: u.username || 'User',
       initials: (u.username || 'U')[0].toUpperCase(),
+      avatarUrl: u.avatar_url || null,
       color: colors[colorIdx % colors.length],
       online: true,
-      lastMessage: null
+      lastMessage: null,
+      lastMessageTs: 0,
+      unread: false
     });
     colorIdx++;
   });
@@ -1751,57 +1929,265 @@ function showDmEmptyState() {
 
 function openDesktopChat(id) {
   activeDmId = id;
-
   const contact = dmContacts.find(c => c.id === id);
   if (!contact) return;
+  contact.unread = false;
 
   document.querySelectorAll('#dmConvList .dm-conv-item')
-    .forEach(el => el.classList.toggle('active', parseInt(el.dataset.id) === id));
+    .forEach(el => el.classList.toggle('active', el.dataset.id === id));
 
   document.getElementById('dmTopbarName').textContent = contact.name;
-
   const av = document.getElementById('dmTopbarAvatar');
-  av.style.background = contact.color;
-  av.textContent = contact.initials;
+  if (contact.avatarUrl) {
+    av.innerHTML = `<img src="${contact.avatarUrl}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    av.style.background = 'transparent';
+  } else {
+    av.style.background = contact.color;
+    av.textContent = contact.initials;
+  }
 
   loadMessages(id);
+  cancelReply();
 
   document.getElementById('dmEmptyState').style.display = 'none';
-
   const wrap = document.getElementById('dmActiveChatWrap');
   wrap.style.display = 'flex';
   wrap.style.flexDirection = 'column';
   wrap.style.flex = '1';
   wrap.style.overflow = 'hidden';
-
   document.getElementById('dmInput').focus();
+}
 
-  // ✅ FIX
-  const msgsEl = document.getElementById('dmChatMessages');
-  msgsEl.scrollTop = msgsEl.scrollHeight;
+// ── TIME GROUPING LOGIC ──
+function formatMsgTime(date) {
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+function formatTimeSeparator(date) {
+  const now = new Date();
+  const diff = now - date;
+  const dayMs = 86400000;
+  if (diff < dayMs && date.getDate() === now.getDate()) return 'Today';
+  if (diff < 2*dayMs) return 'Yesterday';
+  return date.toLocaleDateString([], { weekday:'long', month:'short', day:'numeric' });
+}
+
+// Group messages: same sender + same minute = same group
+function groupMessages(messages) {
+  const groups = [];
+  let currentGroup = null;
+  let lastDayLabel = null;
+
+  messages.forEach(msg => {
+    const d = new Date(msg.created_at || msg.ts || Date.now());
+    const minuteKey = `${msg.sender_id}_${d.getFullYear()}_${d.getMonth()}_${d.getDate()}_${d.getHours()}_${d.getMinutes()}`;
+    const dayLabel = formatTimeSeparator(d);
+
+    if (dayLabel !== lastDayLabel) {
+      groups.push({ type: 'separator', label: dayLabel });
+      lastDayLabel = dayLabel;
+    }
+
+    if (currentGroup && currentGroup.minuteKey === minuteKey) {
+      currentGroup.messages.push(msg);
+    } else {
+      currentGroup = { type: 'group', minuteKey, sender_id: msg.sender_id, messages: [msg], time: formatMsgTime(d) };
+      groups.push(currentGroup);
+    }
+  });
+  return groups;
+}
+
+function renderGroupedMessages(container, groups, currentUserId, contact) {
+  container.innerHTML = '';
+  renderedMsgIds.clear();
+
+  groups.forEach(item => {
+    if (item.type === 'separator') {
+      const sep = document.createElement('div');
+      sep.className = 'dm-time-separator';
+      sep.textContent = item.label;
+      container.appendChild(sep);
+      return;
+    }
+
+    const isSent = item.sender_id === currentUserId;
+    const groupEl = document.createElement('div');
+    groupEl.className = `dm-msg-group ${isSent ? 'sent' : 'received'}`;
+
+    // Avatar for received messages (contact's avatar)
+    const rowEl = document.createElement('div');
+    rowEl.className = 'dm-msg-group-row';
+
+    if (!isSent) {
+      const av = document.createElement('div');
+      av.className = 'dm-group-avatar';
+      if (contact && contact.avatarUrl) {
+        av.innerHTML = `<img src="${contact.avatarUrl}" alt="">`;
+      } else if (contact) {
+        av.style.background = contact.color;
+        av.textContent = contact.initials;
+      }
+      rowEl.appendChild(av);
+    }
+
+    const bubblesWrap = document.createElement('div');
+    bubblesWrap.className = 'dm-msg-bubbles';
+
+    item.messages.forEach((msg, idx) => {
+      if (msg.id) renderedMsgIds.add(msg.id);
+      const bWrap = document.createElement('div');
+      bWrap.className = 'dm-bubble-wrap';
+      bWrap.dataset.msgId = msg.id || '';
+      bWrap.dataset.text = msg.content || msg.text || '';
+      bWrap.dataset.sender = isSent ? 'You' : (contact ? contact.name : 'User');
+
+      // Reply preview inside bubble
+      if (msg.reply_to_text) {
+        const rp = document.createElement('div');
+        rp.className = 'dm-reply-preview';
+        rp.innerHTML = `<div class="dm-reply-author">${escHtml(msg.reply_to_author || '')}</div><div class="dm-reply-text">${escHtml(msg.reply_to_text)}</div>`;
+        bWrap.appendChild(rp);
+      }
+
+      const bubble = document.createElement('div');
+      bubble.className = 'dm-bubble' + (msg.sending ? ' sending' : '');
+      bubble.dataset.msgId = msg.id || '';
+      bubble.textContent = msg.content || msg.text || '';
+
+      if (msg.sending) {
+        const spin = document.createElement('span');
+        spin.className = 'dm-sending-icon';
+        spin.innerHTML = `<div class="dm-sending-spinner"></div>`;
+        bWrap.appendChild(spin);
+      }
+
+      // Double-click for heart reaction
+      bubble.addEventListener('dblclick', (e) => {
+        e.preventDefault();
+        addReaction(bWrap, '❤️');
+      });
+
+      // Right-click / long-press for context menu
+      bubble.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        showCtxMenu(e.clientX, e.clientY, bWrap);
+      });
+
+      bWrap.appendChild(bubble);
+      bubblesWrap.appendChild(bWrap);
+    });
+
+    rowEl.appendChild(bubblesWrap);
+    groupEl.appendChild(rowEl);
+
+    // Group time shown once at bottom
+    const timeEl = document.createElement('div');
+    timeEl.className = 'dm-group-time';
+    timeEl.textContent = item.time;
+    groupEl.appendChild(timeEl);
+
+    container.appendChild(groupEl);
+  });
+
+  container.scrollTop = container.scrollHeight;
+}
+
+// Add reaction to a bubble wrap
+function addReaction(bWrap, emoji) {
+  let existing = bWrap.querySelector('.dm-reaction');
+  if (existing) {
+    const countEl = existing.querySelector('.dm-reaction-count');
+    const count = parseInt(countEl ? countEl.textContent : '1') + 1;
+    existing.innerHTML = `${emoji} <span class="dm-reaction-count">${count}</span>`;
+    return;
+  }
+  const reaction = document.createElement('div');
+  reaction.className = 'dm-reaction';
+  reaction.innerHTML = `${emoji} <span class="dm-reaction-count">1</span>`;
+  reaction.onclick = () => addReaction(bWrap, emoji);
+  bWrap.appendChild(reaction);
+}
+
+// Context menu
+function showCtxMenu(x, y, bWrap) {
+  const menu = document.getElementById('dmCtxMenu');
+  menu.innerHTML = '';
+  menu.style.display = 'block';
+  menu.style.left = x + 'px';
+  menu.style.top = y + 'px';
+
+  const text = bWrap.dataset.text;
+  const sender = bWrap.dataset.sender;
+
+  const replyBtn = document.createElement('button');
+  replyBtn.className = 'dm-ctx-item';
+  replyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg> Reply`;
+  replyBtn.onclick = () => {
+    startReply(text, sender);
+    closeCtxMenu();
+  };
+
+  const reactBtn = document.createElement('button');
+  reactBtn.className = 'dm-ctx-item';
+  reactBtn.innerHTML = `❤️ React`;
+  reactBtn.onclick = () => {
+    addReaction(bWrap, '❤️');
+    closeCtxMenu();
+  };
+
+  menu.appendChild(replyBtn);
+  menu.appendChild(reactBtn);
+
+  // Position adjustment
+  const rect = menu.getBoundingClientRect();
+  if (x + 140 > window.innerWidth) menu.style.left = (x - 140) + 'px';
+  if (y + rect.height > window.innerHeight) menu.style.top = (y - rect.height) + 'px';
+}
+
+function closeCtxMenu() {
+  document.getElementById('dmCtxMenu').style.display = 'none';
+}
+
+document.addEventListener('click', () => closeCtxMenu());
+
+// Reply
+function startReply(text, author) {
+  replyingTo = { text, author };
+  // Desktop
+  const bar = document.getElementById('dmReplyBar');
+  if (bar) {
+    bar.classList.add('show');
+    document.getElementById('dmReplyBarAuthor').textContent = author;
+    document.getElementById('dmReplyBarText').textContent = text;
+  }
+  // Mobile
+  const fsBar = document.getElementById('dmFsReplyBar');
+  if (fsBar) {
+    fsBar.classList.add('show');
+    document.getElementById('dmFsReplyBarAuthor').textContent = author;
+    document.getElementById('dmFsReplyBarText').textContent = text;
+  }
+}
+
+function cancelReply(mode) {
+  replyingTo = null;
+  document.getElementById('dmReplyBar')?.classList.remove('show');
+  document.getElementById('dmFsReplyBar')?.classList.remove('show');
 }
 
 async function loadMessages(userId) {
   const { data: { user } } = await supabaseClient.auth.getUser();
-  if (!user) {
-    console.error('❌ No authenticated user found');
-    return;
-  }
+  if (!user) return;
 
-  console.log(`📥 Loading messages for conversation: ${user.id} <-> ${userId}`);
-
-  // Unsubscribe from previous subscription using manager
   await subscriptionManager.replaceSubscription(null);
+  renderedMsgIds.clear();
 
   const msgsEl = document.getElementById('dmChatMessages');
-  if (!msgsEl) {
-    console.error('❌ dmChatMessages element not found');
-    return;
-  }
-  
+  if (!msgsEl) return;
   msgsEl.innerHTML = '';
 
-  // Load initial messages from database
+  const contact = dmContacts.find(c => c.id === userId);
+
   try {
     const { data, error } = await supabaseClient
       .from('messages')
@@ -1809,116 +2195,60 @@ async function loadMessages(userId) {
       .or(`and(sender_id.eq.${user.id},receiver_id.eq.${userId}),and(sender_id.eq.${userId},receiver_id.eq.${user.id})`)
       .order('created_at', { ascending: true });
 
-    if (error) {
-      console.error('❌ Error loading messages:', error);
-      return;
-    }
+    if (error) return;
 
-    // Display loaded messages
     if (data && data.length > 0) {
-      console.log(`✅ Loaded ${data.length} initial messages`);
-      data.forEach(m => {
-        renderDmMsg(msgsEl, {
-          type: m.sender_id === user.id ? 'sent' : 'received',
-          text: m.content,
-          time: new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        });
-      });
-    } else {
-      console.log('ℹ️ No messages in conversation yet');
-    }
-  } catch (err) {
-    console.error('❌ Exception loading messages:', err);
-  }
+      data.forEach(m => { if (m.id) renderedMsgIds.add(m.id); });
+      const groups = groupMessages(data.map(m => ({ ...m, ts: m.created_at })));
+      renderGroupedMessages(msgsEl, groups, user.id, contact);
 
-  // Set up real-time subscription for new messages
+      // Update contact lastMessage
+      if (data.length > 0) {
+        const last = data[data.length - 1];
+        updateContactLastMsg(userId, last, user.id);
+      }
+    }
+  } catch(err) {}
+
+  // Real-time
   try {
     const channel = supabaseClient
       .channel(`messages:${user.id}:${userId}`)
-      .on('postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages'
-        },
-        (payload) => {
-          const newMsg = payload.new;
-          console.log('📨 Real-time INSERT received (desktop):', newMsg);
-          
-          // Filter in callback - check if this message is for this conversation
-          const isForThisConversation = 
-            (newMsg.sender_id === user.id && newMsg.receiver_id === userId) ||
-            (newMsg.sender_id === userId && newMsg.receiver_id === user.id);
-          
-          if (!isForThisConversation) {
-            console.log('⏭️ Message not for this conversation, skipping');
-            return;
-          }
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
+        const newMsg = payload.new;
+        const isForThis = (newMsg.sender_id === user.id && newMsg.receiver_id === userId) ||
+                          (newMsg.sender_id === userId && newMsg.receiver_id === user.id);
+        if (!isForThis) return;
+        if (renderedMsgIds.has(newMsg.id)) return; // dedup
+        renderedMsgIds.add(newMsg.id);
 
-          // Double-check we're still in the right conversation
-          if (activeDmId === userId) {
-            const currentMsgsEl = document.getElementById('dmChatMessages');
-            if (currentMsgsEl) {
-              console.log('✅ Rendering new message in desktop chat');
-              renderDmMsg(currentMsgsEl, {
-                type: newMsg.sender_id === user.id ? 'sent' : 'received',
-                text: newMsg.content,
-                time: new Date(newMsg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-              });
-              
-              // Update contact preview
-              const contact = dmContacts.find(c => c.id === userId);
-              if (contact) {
-                contact.lastMessage = {
-                  type: newMsg.sender_id === user.id ? 'sent' : 'received',
-                  text: newMsg.content,
-                  time: new Date(newMsg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                };
-                buildDMConvList();
-              }
-            }
-          } else {
-            console.log('⚠️ Message received but not active in this conversation');
-          }
+        if (activeDmId === userId) {
+          // Remove optimistic (sending) bubble if exists
+          removeSendingBubble(msgsEl, newMsg.content);
+          // Re-render all messages for proper grouping
+          reloadAndRenderMessages(userId, 'desktop');
+          updateContactLastMsg(userId, newMsg, user.id);
+          buildDMConvList();
         }
-      )
-      .subscribe((status) => {
-        console.log(`📡 Desktop subscription status: ${status}`);
-        if (status === 'SUBSCRIBED') {
-          console.log('✅ Successfully subscribed to real-time messages for desktop');
-        } else if (status === 'CHANNEL_ERROR') {
-          console.error('❌ Channel error - subscription failed');
-        }
-      });
-
+      })
+      .subscribe();
     await subscriptionManager.replaceSubscription(channel);
-    console.log('🔌 Real-time subscription established for desktop');
-  } catch (err) {
-    console.error('❌ Exception setting up subscription:', err);
-  }
+  } catch(err) {}
 }
 
 async function loadFsMessages(userId) {
   const { data: { user } } = await supabaseClient.auth.getUser();
-  if (!user) {
-    console.error('❌ No authenticated user found');
-    return;
-  }
+  if (!user) return;
 
-  console.log(`📱 Loading mobile messages for conversation: ${user.id} <-> ${userId}`);
-
-  // Unsubscribe from previous subscription using manager
   await subscriptionManager.replaceSubscription(null);
+  renderedMsgIds.clear();
 
   const msgsEl = document.getElementById('dmFsMessages');
-  if (!msgsEl) {
-    console.error('❌ dmFsMessages element not found');
-    return;
-  }
-  
+  if (!msgsEl) return;
   msgsEl.innerHTML = '';
 
-  // Load initial messages from database
+  const contact = dmContacts.find(c => c.id === userId);
+
   try {
     const { data, error } = await supabaseClient
       .from('messages')
@@ -1926,110 +2256,115 @@ async function loadFsMessages(userId) {
       .or(`and(sender_id.eq.${user.id},receiver_id.eq.${userId}),and(sender_id.eq.${userId},receiver_id.eq.${user.id})`)
       .order('created_at', { ascending: true });
 
-    if (error) {
-      console.error('❌ Error loading messages:', error);
-      return;
-    }
+    if (error) return;
 
-    // Display loaded messages
     if (data && data.length > 0) {
-      console.log(`✅ Loaded ${data.length} initial messages for mobile`);
-      data.forEach(m => {
-        renderDmMsg(msgsEl, {
-          type: m.sender_id === user.id ? 'sent' : 'received',
-          text: m.content,
-          time: new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        });
-      });
-    } else {
-      console.log('ℹ️ No messages in conversation yet');
+      data.forEach(m => { if (m.id) renderedMsgIds.add(m.id); });
+      const groups = groupMessages(data.map(m => ({ ...m, ts: m.created_at })));
+      renderGroupedMessages(msgsEl, groups, user.id, contact);
     }
-  } catch (err) {
-    console.error('❌ Exception loading messages:', err);
-  }
+  } catch(err) {}
 
-  // Set up real-time subscription for new messages
   try {
     const channel = supabaseClient
       .channel(`fs-messages:${user.id}:${userId}`)
-      .on('postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages'
-        },
-        (payload) => {
-          const newMsg = payload.new;
-          console.log('📨 Real-time INSERT received (mobile):', newMsg);
-          
-          // Filter in callback - check if this message is for this conversation
-          const isForThisConversation = 
-            (newMsg.sender_id === user.id && newMsg.receiver_id === userId) ||
-            (newMsg.sender_id === userId && newMsg.receiver_id === user.id);
-          
-          if (!isForThisConversation) {
-            console.log('⏭️ Message not for this conversation, skipping');
-            return;
-          }
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
+        const newMsg = payload.new;
+        const isForThis = (newMsg.sender_id === user.id && newMsg.receiver_id === userId) ||
+                          (newMsg.sender_id === userId && newMsg.receiver_id === user.id);
+        if (!isForThis) return;
+        if (renderedMsgIds.has(newMsg.id)) return;
+        renderedMsgIds.add(newMsg.id);
 
-          // Double-check we're still in the right conversation
-          if (activeDmId === userId) {
-            const currentMsgsEl = document.getElementById('dmFsMessages');
-            if (currentMsgsEl) {
-              console.log('✅ Rendering new message in mobile chat');
-              renderDmMsg(currentMsgsEl, {
-                type: newMsg.sender_id === user.id ? 'sent' : 'received',
-                text: newMsg.content,
-                time: new Date(newMsg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-              });
-              
-              // Update contact preview
-              const contact = dmContacts.find(c => c.id === userId);
-              if (contact) {
-                contact.lastMessage = {
-                  type: newMsg.sender_id === user.id ? 'sent' : 'received',
-                  text: newMsg.content,
-                  time: new Date(newMsg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                };
-                buildDMConvList();
-              }
-            }
-          } else {
-            console.log('⚠️ Message received but not active in this conversation');
-          }
+        if (activeDmId === userId) {
+          removeSendingBubble(document.getElementById('dmFsMessages'), newMsg.content);
+          reloadAndRenderMessages(userId, 'mobile');
+          updateContactLastMsg(userId, newMsg, user.id);
+          buildDMConvList();
+        } else {
+          // mark unread
+          const c = dmContacts.find(c => c.id === userId);
+          if (c) { c.unread = true; buildDMConvList(); }
         }
-      )
-      .subscribe((status) => {
-        console.log(`📡 Mobile subscription status: ${status}`);
-        if (status === 'SUBSCRIBED') {
-          console.log('✅ Successfully subscribed to real-time messages for mobile');
-        } else if (status === 'CHANNEL_ERROR') {
-          console.error('❌ Channel error - subscription failed');
-        }
-      });
-
+      })
+      .subscribe();
     await subscriptionManager.replaceSubscription(channel);
-    console.log('🔌 Real-time subscription established for mobile');
-  } catch (err) {
-    console.error('❌ Exception setting up subscription:', err);
+  } catch(err) {}
+}
+
+// Remove optimistic sending bubble by matching text
+function removeSendingBubble(container, text) {
+  if (!container) return;
+  const sendingBubbles = container.querySelectorAll('.dm-bubble.sending');
+  sendingBubbles.forEach(b => {
+    if (b.textContent === text) {
+      // remove entire group-row if it becomes empty
+      const wrap = b.closest('.dm-bubble-wrap');
+      if (wrap) wrap.remove();
+    }
+  });
+}
+
+async function reloadAndRenderMessages(userId, mode) {
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (!user) return;
+
+  const msgsEl = document.getElementById(mode === 'mobile' ? 'dmFsMessages' : 'dmChatMessages');
+  if (!msgsEl) return;
+
+  const contact = dmContacts.find(c => c.id === userId);
+
+  const { data } = await supabaseClient
+    .from('messages')
+    .select('*')
+    .or(`and(sender_id.eq.${user.id},receiver_id.eq.${userId}),and(sender_id.eq.${userId},receiver_id.eq.${user.id})`)
+    .order('created_at', { ascending: true });
+
+  if (data) {
+    data.forEach(m => { if (m.id) renderedMsgIds.add(m.id); });
+    const groups = groupMessages(data.map(m => ({ ...m, ts: m.created_at })));
+    renderGroupedMessages(msgsEl, groups, user.id, contact);
   }
+}
+
+function updateContactLastMsg(userId, msg, currentUserId) {
+  const contact = dmContacts.find(c => c.id === userId);
+  if (!contact) return;
+  const d = new Date(msg.created_at);
+  contact.lastMessage = {
+    type: msg.sender_id === currentUserId ? 'sent' : 'received',
+    text: msg.content,
+    time: formatMsgTime(d)
+  };
+  contact.lastMessageTs = d.getTime();
+  buildDMConvList();
 }
 
 function openFsChat(id) {
   activeDmId = id;
   const contact = dmContacts.find(c => c.id === id);
   if (!contact) return;
+  contact.unread = false;
+
   const av = document.getElementById('dmFsAvatar');
-  av.style.background = contact.color; av.textContent = contact.initials;
+  if (contact.avatarUrl) {
+    av.innerHTML = `<img src="${contact.avatarUrl}" alt="">`;
+    av.style.background = 'transparent';
+  } else {
+    av.style.background = contact.color;
+    av.textContent = contact.initials;
+  }
   document.getElementById('dmFsName').textContent = contact.name;
+
   const msgsEl = document.getElementById('dmFsMessages');
   msgsEl.innerHTML = '';
   loadFsMessages(id);
+  cancelReply('mobile');
+
   document.getElementById('dmFsListView').style.display = 'none';
   const chatView = document.getElementById('dmFsChatView');
   chatView.style.display = 'flex'; chatView.style.flexDirection = 'column'; chatView.style.height = '100%';
   document.getElementById('dmFsInput').focus();
-  msgsEl.scrollTop = msgsEl.scrollHeight;
 }
 
 function dmFsBack() {
@@ -2038,83 +2373,70 @@ function dmFsBack() {
   activeDmId = null; buildDMConvList();
 }
 
-function renderDmMsg(container, msgData) {
-  const div = document.createElement('div');
-  div.className = `dm-msg ${msgData.type}`;
-  const bubble = document.createElement('div');
-  bubble.className = 'dm-bubble';
-  if (msgData.mediaUrl) {
-    if (msgData.mediaType === 'video') { bubble.innerHTML = `<video class="dm-media" controls src="${msgData.mediaUrl}"></video>`; }
-    else { bubble.innerHTML = `<img class="dm-media" src="${msgData.mediaUrl}" alt="media" onclick="openLightbox(this.src)">`; }
-    if (msgData.text) bubble.innerHTML += `<span>${escHtml(msgData.text)}</span>`;
-  } else { bubble.textContent = msgData.text; }
-  const time = document.createElement('div');
-  time.className = 'dm-time';
-  time.textContent = msgData.time || new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-  div.appendChild(bubble); div.appendChild(time);
-  container.appendChild(div);
-  container.scrollTop = container.scrollHeight;
-}
-
 function dmHandleKey(e, mode) { if (e.key === 'Enter') dmSend(mode); }
+
 async function dmSend(mode) {
   const inputId = mode === 'mobile' ? 'dmFsInput' : 'dmInput';
   const sendBtnId = mode === 'mobile' ? 'dmFsSendBtn' : 'dmSendBtn';
-
   const input = document.getElementById(inputId);
   const sendBtn = document.getElementById(sendBtnId);
-
   const text = input.value.trim();
   if (!text || !activeDmId) return;
 
   const { data: { user } } = await supabaseClient.auth.getUser();
+  const msgReplyTo = replyingTo ? { ...replyingTo } : null;
+  cancelReply(mode);
+
+  input.value = '';
+  if (mode === 'mobile') toggleDmFsSendBtn(); else toggleDmSendBtn();
+
+  // Optimistic: show immediately with sending spinner
+  const msgsEl = document.getElementById(mode === 'mobile' ? 'dmFsMessages' : 'dmChatMessages');
+  const contact = dmContacts.find(c => c.id === activeDmId);
+  const optimisticMsg = {
+    id: null,
+    sender_id: user.id,
+    content: text,
+    created_at: new Date().toISOString(),
+    sending: true,
+    reply_to_text: msgReplyTo?.text,
+    reply_to_author: msgReplyTo?.author
+  };
+
+  // Get current messages + optimistic
+  const { data: existingData } = await supabaseClient
+    .from('messages')
+    .select('*')
+    .or(`and(sender_id.eq.${user.id},receiver_id.eq.${activeDmId}),and(sender_id.eq.${activeDmId},receiver_id.eq.${user.id})`)
+    .order('created_at', { ascending: true });
+
+  const allMessages = [...(existingData || []), optimisticMsg];
+  const groups = groupMessages(allMessages.map(m => ({ ...m, ts: m.created_at })));
+  renderGroupedMessages(msgsEl, groups, user.id, contact);
 
   sendBtn.disabled = true;
-  input.disabled = true;
 
   try {
-    console.log(`💬 Sending message from ${user.id} to ${activeDmId}: "${text}"`);
-    
-    // Show message immediately (optimistic UI)
-    const msgsEl = document.getElementById(
-      mode === 'mobile' ? 'dmFsMessages' : 'dmChatMessages'
-    );
-    
-    renderDmMsg(msgsEl, {
-      type: 'sent',
-      text: text,
-      time: new Date().toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit'
-      })
-    });
-
-    // Insert into database
-    const { error } = await supabaseClient.from('messages').insert({
+    const insertData = {
       sender_id: user.id,
       receiver_id: activeDmId,
       content: text
-    });
-
-    if (error) {
-      console.error('❌ Error inserting message:', error);
-      throw error;
+    };
+    if (msgReplyTo) {
+      insertData.reply_to_text = msgReplyTo.text;
+      insertData.reply_to_author = msgReplyTo.author;
     }
 
-    console.log('✅ Message sent to database');
-    input.value = '';
+    const { error } = await supabaseClient.from('messages').insert(insertData);
+    if (error) throw error;
 
-    if (mode === 'mobile') toggleDmFsSendBtn();
-    else toggleDmSendBtn();
-
-  } catch (error) {
-    console.error('❌ Error sending message:', error);
-    alert('Failed to send message. Try again.');
-    // Restore text on error
+    // The realtime handler will remove optimistic + re-render confirmed
+  } catch (err) {
+    // Revert optimistic
+    reloadAndRenderMessages(activeDmId, mode);
     input.value = text;
   } finally {
     sendBtn.disabled = false;
-    input.disabled = false;
     input.focus();
   }
 }
@@ -2122,15 +2444,30 @@ async function dmSend(mode) {
 function dmHandleMedia(e, mode) {
   const file = e.target.files[0];
   if (!file || !activeDmId) return;
-  const contact = dmContacts.find(c => c.id === activeDmId);
   const reader = new FileReader();
   reader.onload = ev => {
     const isVideo = file.type.startsWith('video/');
-    const msg = { type: 'sent', text: '', mediaUrl: ev.target.result, mediaType: isVideo ? 'video' : 'image', time: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) };
-    contact.messages.push(msg);
+    // Just show locally for now
     const msgsEl = document.getElementById(mode === 'mobile' ? 'dmFsMessages' : 'dmChatMessages');
-    renderDmMsg(msgsEl, msg);
-    buildDMConvList();
+    const group = document.createElement('div');
+    group.className = 'dm-msg-group sent';
+    const row = document.createElement('div');
+    row.className = 'dm-msg-group-row';
+    const bubblesWrap = document.createElement('div');
+    bubblesWrap.className = 'dm-msg-bubbles';
+    const bWrap = document.createElement('div');
+    bWrap.className = 'dm-bubble-wrap';
+    const b = document.createElement('div');
+    b.className = 'dm-bubble';
+    b.innerHTML = isVideo
+      ? `<video class="dm-media" controls src="${ev.target.result}"></video>`
+      : `<img class="dm-media" src="${ev.target.result}" alt="media" onclick="openLightbox(this.src)">`;
+    bWrap.appendChild(b);
+    bubblesWrap.appendChild(bWrap);
+    row.appendChild(bubblesWrap);
+    group.appendChild(row);
+    msgsEl.appendChild(group);
+    msgsEl.scrollTop = msgsEl.scrollHeight;
   };
   reader.readAsDataURL(file);
   e.target.value = '';
@@ -2173,10 +2510,8 @@ function logOut() { closeProfileDropdown(); document.getElementById('logoutOverl
 function closeLogout() { document.getElementById('logoutOverlay').classList.remove('show'); }
 async function confirmLogout() {
   await supabaseClient.auth.signOut();
-
   profile = { name: 'User', username: '@user', email: 'user@example.com', avatarUrl: null };
   renderProfileEverywhere();
-
   showAuthPage();
 }
 
@@ -2209,16 +2544,16 @@ document.addEventListener('keydown', e => {
     openAdminPopup();
   }
   if (e.key === 'Escape') {
-    closeAdminPopup(); closeProfileEdit(); closeLogout(); closeProfileDropdown(); closeLightbox();
+    closeAdminPopup(); closeProfileEdit(); closeLogout(); closeProfileDropdown(); closeLightbox(); closeCtxMenu();
   }
 });
 
 showView('chat');
 </script>
 
-<!-- Emoji Picker and Input Management -->
+<!-- EMOJI PICKER -->
 <script>
-const emojis = ['😊', '😂', '❤️', '🔥', '👍', '😍', '😭', '🙌', '💯', '✨', '🎉', '🚀', '💪', '😎', '🤔', '👌', '😱', '💔', '👏', '🌟', '😴', '😡', '🤗', '🥳', '😤', '😌', '🤐', '😏', '🙃', '😊'];
+const emojis = ['😊','😂','❤️','🔥','👍','😍','😭','🙌','💯','✨','🎉','🚀','💪','😎','🤔','👌','😱','💔','👏','🌟','😴','😡','🤗','🥳','😤','😌','🤐','😏','🙃','😊'];
 
 function initEmojiPicker() {
   const picker = document.getElementById('emojiPicker');
@@ -2234,24 +2569,46 @@ let emojiPickerMode = null;
 function toggleEmojiPicker(mode = 'chat') {
   const overlay = document.getElementById('emojiPickerOverlay');
   const picker = document.getElementById('emojiPicker');
-  if (emojiPickerMode === mode && overlay.classList.contains('show')) { closeEmojiPicker(); }
-  else { emojiPickerMode = mode; overlay.classList.add('show'); picker.classList.add('show'); }
+  if (emojiPickerMode === mode && overlay.classList.contains('show')) {
+    closeEmojiPicker();
+    return;
+  }
+  emojiPickerMode = mode;
+
+  // Position picker above the triggering button
+  let triggerEl;
+  if (mode === 'dm') triggerEl = document.getElementById('dmEmojiBtn');
+  else if (mode === 'mobile') triggerEl = document.getElementById('dmFsEmojiBtn');
+  else triggerEl = document.getElementById('emojiBtn');
+
+  if (triggerEl) {
+    const rect = triggerEl.getBoundingClientRect();
+    picker.style.bottom = (window.innerHeight - rect.top + 8) + 'px';
+    picker.style.left = Math.max(8, rect.left - 10) + 'px';
+    picker.style.top = 'auto';
+    picker.style.right = 'auto';
+  }
+
+  overlay.classList.add('show');
+  picker.classList.add('show');
 }
+
 function closeEmojiPicker() {
   document.getElementById('emojiPickerOverlay').classList.remove('show');
   document.getElementById('emojiPicker').classList.remove('show');
   emojiPickerMode = null;
 }
+
 function insertEmoji(emoji) {
   let input;
-  if (emojiPickerMode === 'dm') { input = document.getElementById('dmInput'); }
-  else if (emojiPickerMode === 'mobile') { input = document.getElementById('dmFsInput'); }
-  else { input = document.getElementById('userInput'); }
+  if (emojiPickerMode === 'dm') input = document.getElementById('dmInput');
+  else if (emojiPickerMode === 'mobile') input = document.getElementById('dmFsInput');
+  else input = document.getElementById('userInput');
   if (input) {
     input.value += emoji; input.focus();
-    if (emojiPickerMode === null) { toggleMediaButton(); }
-    else if (emojiPickerMode === 'dm') { toggleDmSendBtn(); }
-    else if (emojiPickerMode === 'mobile') { toggleDmFsSendBtn(); }
+    if (emojiPickerMode === 'chat' || emojiPickerMode === null) toggleMediaButton();
+    else if (emojiPickerMode === 'dm') toggleDmSendBtn();
+    else if (emojiPickerMode === 'mobile') toggleDmFsSendBtn();
   }
 }
 
@@ -2274,7 +2631,8 @@ function toggleDmSendBtn() {
 function toggleDmFsSendBtn() {
   const input = document.getElementById('dmFsInput');
   const sendBtn = document.getElementById('dmFsSendBtn');
-  if (input.value.trim() === '') { sendBtn.classList.add('hidden'); } else { sendBtn.classList.remove('hidden'); }
+  if (input.value.trim() === '') sendBtn.classList.add('hidden');
+  else sendBtn.classList.remove('hidden');
 }
 
 function handleAIMedia(event) {
@@ -2287,8 +2645,9 @@ function handleAIMedia(event) {
     const msgEl = document.getElementById('messages');
     const msgDiv = document.createElement('div');
     msgDiv.className = 'message user';
-    if (isVideo) { msgDiv.innerHTML = `<div class="avatar user-av"><span>U</span></div><div class="bubble"><video class="chat-media" controls src="${content}"></video></div>`; }
-    else { msgDiv.innerHTML = `<div class="avatar user-av"><span>U</span></div><div class="bubble"><img class="chat-media" src="${content}" onclick="openLightbox(this.src)"></div>`; }
+    const avHtml = profile.avatarUrl ? `<img src="${profile.avatarUrl}" alt="">` : `<span>${getInitial(profile.name)}</span>`;
+    if (isVideo) { msgDiv.innerHTML = `<div class="avatar user-av">${avHtml}</div><div class="bubble"><video class="chat-media" controls src="${content}"></video></div>`; }
+    else { msgDiv.innerHTML = `<div class="avatar user-av">${avHtml}</div><div class="bubble"><img class="chat-media" src="${content}" onclick="openLightbox(this.src)"></div>`; }
     msgEl.appendChild(msgDiv); msgEl.scrollTop = msgEl.scrollHeight;
     document.getElementById('aiMediaUpload').value = '';
   };
@@ -2298,24 +2657,112 @@ function handleAIMedia(event) {
 window.addEventListener('load', function() {
   initEmojiPicker();
   toggleMediaButton();
-  const dmSendBtn = document.getElementById('dmSendBtn');
-  if (dmSendBtn) dmSendBtn.classList.add('hidden');
-  const dmFsSendBtn = document.getElementById('dmFsSendBtn');
-  if (dmFsSendBtn) dmFsSendBtn.classList.add('hidden');
+  document.getElementById('dmSendBtn')?.classList.add('hidden');
+  document.getElementById('dmFsSendBtn')?.classList.add('hidden');
 });
 </script>
 
-<!-- Auth -->
+<!-- NOTES -->
+<script>
+let notes = JSON.parse(localStorage.getItem('hether_notes') || '[]');
+let activeNoteId = null;
+let noteSaveTimer = null;
+
+function createNote() {
+  const id = Date.now().toString();
+  const note = { id, title: '', body: '', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+  notes.unshift(note);
+  saveNotesToStorage();
+  renderNotesList();
+  openNote(id);
+}
+
+function openNote(id) {
+  activeNoteId = id;
+  const note = notes.find(n => n.id === id);
+  if (!note) return;
+
+  document.getElementById('notesEditorEmpty').style.display = 'none';
+  const activeEl = document.getElementById('notesEditorActive');
+  activeEl.style.display = 'flex';
+  activeEl.style.flexDirection = 'column';
+  activeEl.style.flex = '1';
+  activeEl.style.overflow = 'hidden';
+
+  document.getElementById('noteTitleInput').value = note.title;
+  document.getElementById('noteBodyInput').value = note.body;
+  document.getElementById('noteSaveStatus').textContent = 'saved';
+  document.getElementById('noteSaveStatus').className = 'note-save-status saved';
+
+  renderNotesList();
+  document.getElementById('noteTitleInput').focus();
+}
+
+function autoSaveNote() {
+  if (!activeNoteId) return;
+  document.getElementById('noteSaveStatus').textContent = 'saving…';
+  document.getElementById('noteSaveStatus').className = 'note-save-status';
+  clearTimeout(noteSaveTimer);
+  noteSaveTimer = setTimeout(() => {
+    const note = notes.find(n => n.id === activeNoteId);
+    if (!note) return;
+    note.title = document.getElementById('noteTitleInput').value;
+    note.body = document.getElementById('noteBodyInput').value;
+    note.updatedAt = new Date().toISOString();
+    // Move to top
+    notes = [note, ...notes.filter(n => n.id !== activeNoteId)];
+    saveNotesToStorage();
+    renderNotesList();
+    document.getElementById('noteSaveStatus').textContent = 'saved';
+    document.getElementById('noteSaveStatus').className = 'note-save-status saved';
+  }, 600);
+}
+
+function deleteActiveNote() {
+  if (!activeNoteId) return;
+  if (!confirm('Delete this note?')) return;
+  notes = notes.filter(n => n.id !== activeNoteId);
+  activeNoteId = null;
+  saveNotesToStorage();
+  renderNotesList();
+  document.getElementById('notesEditorEmpty').style.display = 'flex';
+  document.getElementById('notesEditorActive').style.display = 'none';
+}
+
+function saveNotesToStorage() {
+  localStorage.setItem('hether_notes', JSON.stringify(notes));
+}
+
+function renderNotesList() {
+  const list = document.getElementById('notesList');
+  list.innerHTML = '';
+  if (notes.length === 0) {
+    list.innerHTML = `<div class="notes-empty"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><p>No notes yet.<br>Create one above.</p></div>`;
+    return;
+  }
+  notes.forEach(note => {
+    const item = document.createElement('div');
+    item.className = 'note-item' + (note.id === activeNoteId ? ' active' : '');
+    item.onclick = () => openNote(note.id);
+    const preview = note.body.split('\n')[0] || 'No content';
+    const d = new Date(note.updatedAt);
+    const dateStr = d.toLocaleDateString([], { month:'short', day:'numeric' });
+    item.innerHTML = `
+      <div class="note-item-title">${escHtml(note.title || 'Untitled')}</div>
+      <div class="note-item-preview">${escHtml(preview)}</div>
+      <div class="note-item-date">${dateStr}</div>
+    `;
+    list.appendChild(item);
+  });
+}
+</script>
+
+<!-- AUTH -->
 <script>
 async function checkAuth() {
   const { data: { session } } = await supabaseClient.auth.getSession();
-
-  if (session) {
-    showApp();
-    loadUserProfile();
-  } else {
-    showAuthPage();
-  }
+  if (session) { showApp(); loadUserProfile(); }
+  else showAuthPage();
 }
 
 function showAuthPage() {
@@ -2326,119 +2773,58 @@ function showAuthPage() {
 function showApp() {
   document.getElementById('authPage').style.display = 'none';
   document.getElementById('mainApp').style.display = 'flex';
-
-  closeLogout();
-  closeAdminPopup();
-  closeProfileEdit();
-
-  loadContacts();          // 👈 ADD THIS LINE
-  
+  closeLogout(); closeAdminPopup(); closeProfileEdit();
+  loadContacts();
 }
 function authenticateGuest() {
-  localStorage.setItem('hether_authenticated', 'true');
-  localStorage.setItem('hether_user_type', 'guest');
   profile = { name: 'Guest', username: '@guest', email: 'guest@hether.app', avatarUrl: null };
   renderProfileEverywhere();
   showApp();
 }
 
-// Auth view switcher
 function showAuthView(view) {
   document.querySelectorAll('.auth-panel-view').forEach(el => el.classList.remove('active'));
-  const views = { landing: 'authLanding', login: 'authLoginView', signup: 'authSignupView' };
+  const views = { landing:'authLanding', login:'authLoginView', signup:'authSignupView' };
   const el = document.getElementById(views[view]);
   if (el) el.classList.add('active');
-  // Clear errors
   ['loginError','signupError'].forEach(id => { const e = document.getElementById(id); if(e) e.style.display='none'; });
 }
 
 function authKeyHandler(e, formType) {
-  if (e.key === 'Enter') {
-    if (formType === 'login') handleLoginSubmit();
-    else handleSignupSubmit();
-  }
+  if (e.key === 'Enter') { if (formType === 'login') handleLoginSubmit(); else handleSignupSubmit(); }
 }
 
 async function handleLoginSubmit() {
   const email = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value;
-
   const err = document.getElementById('loginError');
-
-  const { data, error } = await supabaseClient.auth.signInWithPassword({
-    email,
-    password
-  });
-
-  if (error) {
-    err.textContent = error.message;
-    err.style.display = 'block';
-    return;
-  }
-
-  setTimeout(() => {
-  showApp();
-  loadUserProfile();
-}, 100);
+  const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+  if (error) { err.textContent = error.message; err.style.display = 'block'; return; }
+  setTimeout(() => { showApp(); loadUserProfile(); }, 100);
 }
 
 async function handleSignupSubmit() {
   const username = document.getElementById('signupUsername').value.trim();
   const email = document.getElementById('signupEmail').value.trim();
   const password = document.getElementById('signupPassword').value;
-
-  const { data, error } = await supabaseClient.auth.signUp({
-    email,
-    password
-  });
-
-  if (error) {
-    document.getElementById('signupError').textContent = error.message;
-    document.getElementById('signupError').style.display = 'block';
-    return;
-  }
-
+  const { data, error } = await supabaseClient.auth.signUp({ email, password });
+  if (error) { document.getElementById('signupError').textContent = error.message; document.getElementById('signupError').style.display = 'block'; return; }
   const user = data.user;
-
-  // ✅ NOW THIS WORKS because user is authenticated
-  const { error: insertError } = await supabaseClient
-    .from('profiles')
-    .insert([
-      {
-        id: user.id,
-        username: username
-      }
-    ]);
-
-  if (insertError) {
-    console.error("Insert error:", insertError);
-  }
-
-  showApp();
-  loadUserProfile();
+  await supabaseClient.from('profiles').insert([{ id: user.id, username }]);
+  showApp(); loadUserProfile();
 }
 
 async function loadUserProfile() {
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (!user) return;
-
-  const { data, error } = await supabaseClient
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single();
-
+  const { data } = await supabaseClient.from('profiles').select('*').eq('id', user.id).single();
   if (data) {
-    profile = {
-      name: data.username,
-      username: '@' + data.username,
-      email: user.email,
-      avatarUrl: data.avatar_url
-    };
+    profile = { name: data.username, username: '@' + data.username, email: user.email, avatarUrl: data.avatar_url };
   }
-
   renderProfileEverywhere();
 }
+
+function escHtml(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 window.addEventListener('load', function() { checkAuth(); });
 </script>
