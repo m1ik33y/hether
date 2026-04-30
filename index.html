@@ -446,7 +446,7 @@ body {
 .btn-confirm:hover { background: var(--accent-hover); }
 
 /* ══════════════════════════════════════════
-   ADMIN DM — DESKTOP
+   ADMIN DM
    ══════════════════════════════════════════ */
 .dm-overlay {
   display: none; position: fixed; inset: 0;
@@ -477,6 +477,7 @@ body {
   flex-direction: column;
   flex-shrink: 0;
   background: var(--surface);
+  min-width: 0;
 }
 
 .dm-sidebar-header {
@@ -551,15 +552,19 @@ body {
 .dm-conv-preview.unread { color: var(--text); font-weight: 700; }
 .dm-conv-time { font-size: 11px; color: var(--text3); flex-shrink: 0; }
 
-/* Unread dot */
 .dm-unread-dot {
   width: 8px; height: 8px; border-radius: 50%;
   background: var(--accent); flex-shrink: 0;
 }
 
+/* ── CHAT PANEL ── */
 .dm-chat-panel {
-  flex: 1; display: flex; flex-direction: column; overflow: hidden;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   background: var(--bg);
+  min-width: 0;
 }
 
 .dm-empty-state {
@@ -588,8 +593,14 @@ body {
 .dm-chat-topbar-status { font-size: 11.5px; color: #22c55e; }
 
 .dm-chat-messages {
-  flex: 1; overflow-y: auto; padding: 16px 18px;
-  display: flex; flex-direction: column; gap: 2px;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 0;
 }
 .dm-chat-messages::-webkit-scrollbar { width: 3px; }
 .dm-chat-messages::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 2px; }
@@ -598,6 +609,7 @@ body {
 .dm-time-separator {
   text-align: center; font-size: 11px; color: var(--text3);
   padding: 8px 0; margin: 6px 0; font-weight: 500;
+  flex-shrink: 0;
 }
 
 .dm-msg-group {
@@ -606,6 +618,8 @@ body {
   gap: 2px;
   margin-bottom: 8px;
   animation: msgIn 0.15s ease;
+  flex-shrink: 0;
+  width: 100%;
 }
 .dm-msg-group.sent { align-items: flex-end; }
 .dm-msg-group.received { align-items: flex-start; }
@@ -614,8 +628,15 @@ body {
   display: flex;
   align-items: flex-end;
   gap: 8px;
+  max-width: 75%;
 }
-.dm-msg-group.sent .dm-msg-group-row { flex-direction: row-reverse; }
+.dm-msg-group.sent .dm-msg-group-row {
+  flex-direction: row-reverse;
+  margin-left: auto;
+}
+.dm-msg-group.received .dm-msg-group-row {
+  margin-right: auto;
+}
 
 .dm-group-avatar {
   width: 28px; height: 28px; border-radius: 50%;
@@ -626,30 +647,44 @@ body {
 .dm-group-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 .dm-group-avatar.hidden-av { visibility: hidden; }
 
+/* THE FIX: bubbles container */
 .dm-msg-bubbles {
-  display: flex; flex-direction: column; gap: 2px;
-  max-width: 70%;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
 }
 .dm-msg-group.sent .dm-msg-bubbles { align-items: flex-end; }
 .dm-msg-group.received .dm-msg-bubbles { align-items: flex-start; }
 
 .dm-bubble-wrap {
   position: relative;
-  display: inline-flex;
-  flex-direction: column;
+  display: block;
+  max-width: 100%;
 }
 
+/* THE CORE FIX for bubble text */
 .dm-bubble {
-  padding: 9px 13px; border-radius: 18px;
-  font-size: 13.5px; line-height: 1.5; word-break: break-word;
-  display: inline-block; position: relative;
-  cursor: pointer; transition: opacity 0.15s;
+  font-size: 13.5px;
+  border-radius: 18px;
+  padding: 10px 14px;
+  display: inline-block;
+  max-width: 100%;
+  /* Do NOT use white-space: pre-wrap — it narrows the inline formatting context */
+  white-space: normal;
+  /* overflow-wrap: anywhere is factored into min-width, prevents premature wrapping */
+  overflow-wrap: anywhere;
+  word-break: normal;
+  box-sizing: border-box;
+  vertical-align: top;
 }
 .dm-bubble:hover { opacity: 0.92; }
 .dm-msg-group.sent .dm-bubble { background: var(--accent); color: #fff; }
 .dm-msg-group.received .dm-bubble { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
 
-/* Bubble radius shaping per group position */
+/* Bubble radius shaping */
 .dm-msg-group.sent .dm-bubble-wrap:first-child .dm-bubble { border-bottom-right-radius: 6px; }
 .dm-msg-group.sent .dm-bubble-wrap:last-child .dm-bubble { border-top-right-radius: 6px; }
 .dm-msg-group.sent .dm-bubble-wrap:not(:first-child):not(:last-child) .dm-bubble { border-top-right-radius: 6px; border-bottom-right-radius: 6px; }
@@ -669,21 +704,20 @@ body {
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* Reaction */
+/* Reaction — toggle, not counter */
 .dm-reaction {
   position: absolute; bottom: -10px;
   background: var(--surface); border: 1px solid var(--border);
-  border-radius: 12px; padding: 2px 6px; font-size: 13px;
+  border-radius: 12px; padding: 2px 7px; font-size: 14px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   animation: reactionPop 0.2s cubic-bezier(0.34,1.56,0.64,1);
-  z-index: 2; cursor: pointer; display: flex; align-items: center; gap: 3px;
-  white-space: nowrap;
+  z-index: 2; cursor: pointer; user-select: none;
 }
 .dm-msg-group.sent .dm-reaction { right: 4px; }
 .dm-msg-group.received .dm-reaction { left: 4px; }
 @keyframes reactionPop { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-/* Reply/follow-up */
+/* Reply preview */
 .dm-reply-preview {
   background: rgba(0,0,0,0.06); border-radius: 8px; padding: 6px 10px;
   font-size: 11.5px; color: var(--text2); margin-bottom: 4px;
@@ -692,10 +726,8 @@ body {
 }
 .dm-reply-preview .dm-reply-author { font-weight: 600; font-size: 11px; color: var(--accent); margin-bottom: 2px; }
 .dm-reply-preview .dm-reply-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
 .dm-msg-group.sent .dm-reply-preview { background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.8); border-color: rgba(255,255,255,0.5); }
 
-/* Group time */
 .dm-group-time { font-size: 10.5px; color: var(--text3); padding: 2px 4px; margin-top: 2px; text-align: center; }
 
 .dm-bubble img.dm-media { max-width: 220px; max-height: 180px; border-radius: 10px; display: block; margin-top: 4px; cursor: pointer; }
@@ -714,9 +746,11 @@ body {
 .dm-reply-cancel { background: transparent; border: none; cursor: pointer; color: var(--text3); font-size: 18px; line-height: 1; transition: color var(--t); padding: 0 2px; }
 .dm-reply-cancel:hover { color: var(--text); }
 
+/* Input area — locked to bottom */
 .dm-chat-input-area {
-  padding: 6px 12px 8px;
-  background: none;
+  padding: 6px 12px 10px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
   flex-shrink: 0;
 }
 
@@ -725,14 +759,14 @@ body {
   background: var(--input-bg); border: 1px solid rgb(168, 168, 168);
   border-radius: 22px; padding: 6px 8px 6px 6px;
   transition: border-color var(--t);
-  height:40px;
+  height: 40px;
 }
 .dm-input-row:focus-within { border-color: rgb(43, 43, 43); }
 
 #dmInput {
   flex: 1; background: transparent; border: none; outline: none;
   color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13.5px;
-  height:30px; padding: 0 6px;
+  height: 30px; padding: 0 6px; min-width: 0;
 }
 #dmInput::placeholder { color: var(--text3); }
 
@@ -766,7 +800,7 @@ body {
 .emoji-btn:hover { color: var(--accent); background: rgba(91,106,240,0.08); }
 .emoji-btn.hidden { display: none; }
 
-/* FIX #1: Emoji picker above DM popup */
+/* Emoji picker */
 .emoji-picker-overlay { display: none; position: fixed; inset: 0; z-index: 9999; }
 .emoji-picker-overlay.show { display: block; }
 
@@ -807,10 +841,14 @@ body {
 .dm-fs-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; overflow: hidden; flex-shrink: 0; }
 .dm-fs-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 .dm-fs-name { font-size: 14px; font-weight: 600; color: var(--text); }
-.dm-fs-messages { flex: 1; overflow-y: auto; padding: 14px 14px; display: flex; flex-direction: column; gap: 2px; }
+.dm-fs-messages {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  padding: 14px 14px; display: flex; flex-direction: column; gap: 2px;
+  min-height: 0;
+}
 .dm-fs-input-area { padding: 10px 12px 14px; background: var(--surface); border-top: 1px solid var(--border); flex-shrink: 0; }
 .dm-fs-input-row { display: flex; gap: 6px; align-items: center; background: var(--input-bg); border: 1px solid var(--border); border-radius: 22px; padding: 6px 8px 6px 6px; }
-#dmFsInput { flex: 1; background: transparent; border: none; outline: none; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13.5px; padding: 0 6px; }
+#dmFsInput { flex: 1; background: transparent; border: none; outline: none; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13.5px; padding: 0 6px; min-width: 0; }
 #dmFsInput::placeholder { color: var(--text3); }
 
 /* ── MOBILE HAMBURGER ── */
@@ -938,7 +976,7 @@ body {
   .dm-overlay { display: none !important; }
   .dm-fullscreen.show { display: flex; }
   .notes-list-panel { width: 200px; }
-  .dm-msg-bubbles { max-width: 78%; }
+  .dm-msg-group-row { max-width: 85%; }
 }
 
 @media (min-width: 641px) {
@@ -960,9 +998,7 @@ body {
 .lightbox.show { display: flex; }
 .lightbox img { max-width: 92vw; max-height: 92vh; border-radius: 10px; box-shadow: 0 24px 60px rgba(0,0,0,0.4); }
 
-/* ══════════════════════════════
-   AUTH PAGE
-   ══════════════════════════════ */
+/* ══ AUTH PAGE ══ */
 .auth-page {
   display: flex; align-items: center; justify-content: center;
   height: 100vh; width: 100%;
@@ -1095,7 +1131,7 @@ body {
 .auth-panel-view { display: none; }
 .auth-panel-view.active { display: block; }
 
-/* Context menu for reply */
+/* Context menu */
 .dm-ctx-menu {
   position: fixed; background: var(--surface); border: 1px solid var(--border);
   border-radius: 10px; padding: 6px; box-shadow: 0 8px 24px rgba(0,0,0,0.14);
@@ -1111,6 +1147,15 @@ body {
 }
 .dm-ctx-item:hover { background: var(--surface2); color: var(--text); }
 .dm-ctx-item svg { width: 13px; height: 13px; flex-shrink: 0; }
+
+/* Active chat wrap must be flex column filling remaining space */
+#dmActiveChatWrap {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
 </style>
 </head>
 <body>
@@ -1430,7 +1475,7 @@ body {
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         <p>Select a conversation</p>
       </div>
-      <div id="dmActiveChatWrap" style="display:none;flex:1;flex-direction:column;overflow:hidden;">
+      <div id="dmActiveChatWrap" style="display:none;">
         <div class="dm-chat-topbar" id="dmChatTopbar">
           <div class="dm-chat-topbar-avatar" id="dmTopbarAvatar"></div>
           <div class="dm-chat-topbar-info">
@@ -1438,7 +1483,6 @@ body {
             <div class="dm-chat-topbar-status">Active now</div>
           </div>
         </div>
-        <!-- Reply bar -->
         <div class="dm-reply-bar" id="dmReplyBar">
           <div class="dm-reply-bar-content">
             <div class="dm-reply-bar-author" id="dmReplyBarAuthor"></div>
@@ -1486,7 +1530,6 @@ body {
       <div class="dm-fs-avatar" id="dmFsAvatar"></div>
       <div class="dm-fs-name" id="dmFsName"></div>
     </div>
-    <!-- Mobile reply bar -->
     <div class="dm-reply-bar" id="dmFsReplyBar">
       <div class="dm-reply-bar-content">
         <div class="dm-reply-bar-author" id="dmFsReplyBarAuthor"></div>
@@ -1518,7 +1561,7 @@ body {
   <img id="lightboxImg" src="" alt="">
 </div>
 
-<!-- EMOJI PICKER (top z-index) -->
+<!-- EMOJI PICKER -->
 <div class="emoji-picker-overlay" id="emojiPickerOverlay" onclick="closeEmojiPicker()"></div>
 <div class="emoji-picker" id="emojiPicker"></div>
 
@@ -1603,9 +1646,8 @@ const isMobile = () => window.innerWidth <= 640;
 
 const dmContacts = [];
 let activeDmId = null;
-let replyingTo = null; // { text, author, msgId }
+let replyingTo = null;
 
-// Message dedup: track IDs we've already rendered
 const renderedMsgIds = new Set();
 
 let profile = JSON.parse(localStorage.getItem('hether_profile') || 'null') || { name: 'User', username: '@user', email: 'user@example.com', avatarUrl: null };
@@ -1639,7 +1681,6 @@ function renderProfileEverywhere() {
 }
 renderProfileEverywhere();
 
-// ── THEME ──
 function initTheme() {
   const saved = localStorage.getItem('hether_theme') || 'light';
   document.documentElement.setAttribute('data-theme', saved);
@@ -1656,7 +1697,6 @@ function toggleTheme() {
 }
 initTheme();
 
-// ── GREETING ──
 function setWelcomeGreeting() {
   const h = new Date().getHours();
   const pools = {
@@ -1671,7 +1711,6 @@ function setWelcomeGreeting() {
 }
 setWelcomeGreeting();
 
-// ── SIDEBAR ──
 function setupSidebarHover() {
   const sidebar = document.getElementById('sidebar');
   const trigger = document.getElementById('sidebarTrigger');
@@ -1701,7 +1740,6 @@ function toggleSidebarMobile() {
 function hideSidebar() { miniSidebar(); document.getElementById('mobileOverlay').classList.remove('show'); }
 setupSidebarHover();
 
-// ── VIEWS ──
 function showView(view) {
   currentView = view;
   document.getElementById('chatView').style.display = view === 'chat' ? 'flex' : 'none';
@@ -1714,7 +1752,6 @@ function showView(view) {
   if (isMobile()) hideSidebar();
 }
 
-// ── CHAT ──
 function autoResize(el) {
   el.style.height = 'auto';
   el.style.height = Math.min(el.scrollHeight, 160) + 'px';
@@ -1804,9 +1841,8 @@ function formatText(text) {
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
     .replace(/\n/g, '<br>');
 }
-function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escHtml(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-// ── ADMIN ──
 function openAdminPopup() {
   document.getElementById('adminOverlay').classList.add('show');
   document.getElementById('adminInput').value = '';
@@ -1821,7 +1857,6 @@ function verifyAdmin() {
   else { document.getElementById('adminError').style.display = 'block'; document.getElementById('adminInput').value = ''; document.getElementById('adminInput').focus(); }
 }
 
-// ── DM ──
 function openDM() {
   dmOpen = true;
   loadContacts();
@@ -1842,13 +1877,7 @@ function closeDM() {
 function dmOverlayClick(e) { if (e.target === document.getElementById('dmOverlay')) closeDM(); }
 
 function buildDMConvList() {
-  // Sort by lastMessage time desc, then by name
-  const sorted = [...dmContacts].sort((a, b) => {
-    const aTime = a.lastMessageTs || 0;
-    const bTime = b.lastMessageTs || 0;
-    return bTime - aTime;
-  });
-
+  const sorted = [...dmContacts].sort((a, b) => (b.lastMessageTs||0) - (a.lastMessageTs||0));
   ['dmConvList','dmFsConvList'].forEach(listId => {
     const list = document.getElementById(listId);
     const isFsList = listId === 'dmFsConvList';
@@ -1858,14 +1887,12 @@ function buildDMConvList() {
       item.className = 'dm-conv-item' + (c.id === activeDmId ? ' active' : '');
       item.dataset.id = c.id;
       item.onclick = () => { isFsList ? openFsChat(c.id) : openDesktopChat(c.id); };
-
       const lastMsg = c.lastMessage;
       const isUnread = c.unread && c.id !== activeDmId;
       const previewClass = isUnread ? 'dm-conv-preview unread' : 'dm-conv-preview';
       const previewText = lastMsg
         ? (lastMsg.type === 'sent' ? 'You: ' + lastMsg.text : (isUnread ? c.name + ': ' + lastMsg.text : lastMsg.text))
         : 'No messages yet';
-
       item.innerHTML = `
         <div class="dm-conv-avatar" style="background:${c.color};">
           ${c.avatarUrl ? `<img src="${c.avatarUrl}" alt="">` : c.initials}
@@ -1888,10 +1915,8 @@ function buildDMConvList() {
 async function loadContacts() {
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (!user) return;
-
   const { data } = await supabaseClient.from('profiles').select('id, username, avatar_url');
   if (!data) return;
-
   dmContacts.length = 0;
   const colors = [
     'linear-gradient(135deg,#5b6af0,#a855f7)',
@@ -1902,7 +1927,6 @@ async function loadContacts() {
     'linear-gradient(135deg,#14b8a6,#06b6d4)'
   ];
   let colorIdx = 0;
-
   data.forEach(u => {
     if (u.id === user.id) return;
     dmContacts.push({
@@ -1918,7 +1942,6 @@ async function loadContacts() {
     });
     colorIdx++;
   });
-
   buildDMConvList();
 }
 
@@ -1932,10 +1955,7 @@ function openDesktopChat(id) {
   const contact = dmContacts.find(c => c.id === id);
   if (!contact) return;
   contact.unread = false;
-
-  document.querySelectorAll('#dmConvList .dm-conv-item')
-    .forEach(el => el.classList.toggle('active', el.dataset.id === id));
-
+  document.querySelectorAll('#dmConvList .dm-conv-item').forEach(el => el.classList.toggle('active', el.dataset.id === id));
   document.getElementById('dmTopbarName').textContent = contact.name;
   const av = document.getElementById('dmTopbarAvatar');
   if (contact.avatarUrl) {
@@ -1945,20 +1965,13 @@ function openDesktopChat(id) {
     av.style.background = contact.color;
     av.textContent = contact.initials;
   }
-
   loadMessages(id);
   cancelReply();
-
   document.getElementById('dmEmptyState').style.display = 'none';
-  const wrap = document.getElementById('dmActiveChatWrap');
-  wrap.style.display = 'flex';
-  wrap.style.flexDirection = 'column';
-  wrap.style.flex = '1';
-  wrap.style.overflow = 'hidden';
+  document.getElementById('dmActiveChatWrap').style.display = 'flex';
   document.getElementById('dmInput').focus();
 }
 
-// ── TIME GROUPING LOGIC ──
 function formatMsgTime(date) {
   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
@@ -1971,22 +1984,18 @@ function formatTimeSeparator(date) {
   return date.toLocaleDateString([], { weekday:'long', month:'short', day:'numeric' });
 }
 
-// Group messages: same sender + same minute = same group
 function groupMessages(messages) {
   const groups = [];
   let currentGroup = null;
   let lastDayLabel = null;
-
   messages.forEach(msg => {
     const d = new Date(msg.created_at || msg.ts || Date.now());
     const minuteKey = `${msg.sender_id}_${d.getFullYear()}_${d.getMonth()}_${d.getDate()}_${d.getHours()}_${d.getMinutes()}`;
     const dayLabel = formatTimeSeparator(d);
-
     if (dayLabel !== lastDayLabel) {
       groups.push({ type: 'separator', label: dayLabel });
       lastDayLabel = dayLabel;
     }
-
     if (currentGroup && currentGroup.minuteKey === minuteKey) {
       currentGroup.messages.push(msg);
     } else {
@@ -2014,7 +2023,6 @@ function renderGroupedMessages(container, groups, currentUserId, contact) {
     const groupEl = document.createElement('div');
     groupEl.className = `dm-msg-group ${isSent ? 'sent' : 'received'}`;
 
-    // Avatar for received messages (contact's avatar)
     const rowEl = document.createElement('div');
     rowEl.className = 'dm-msg-group-row';
 
@@ -2033,7 +2041,7 @@ function renderGroupedMessages(container, groups, currentUserId, contact) {
     const bubblesWrap = document.createElement('div');
     bubblesWrap.className = 'dm-msg-bubbles';
 
-    item.messages.forEach((msg, idx) => {
+    item.messages.forEach((msg) => {
       if (msg.id) renderedMsgIds.add(msg.id);
       const bWrap = document.createElement('div');
       bWrap.className = 'dm-bubble-wrap';
@@ -2041,7 +2049,6 @@ function renderGroupedMessages(container, groups, currentUserId, contact) {
       bWrap.dataset.text = msg.content || msg.text || '';
       bWrap.dataset.sender = isSent ? 'You' : (contact ? contact.name : 'User');
 
-      // Reply preview inside bubble
       if (msg.reply_to_text) {
         const rp = document.createElement('div');
         rp.className = 'dm-reply-preview';
@@ -2058,16 +2065,14 @@ function renderGroupedMessages(container, groups, currentUserId, contact) {
         const spin = document.createElement('span');
         spin.className = 'dm-sending-icon';
         spin.innerHTML = `<div class="dm-sending-spinner"></div>`;
-        bWrap.appendChild(spin);
+        bubble.appendChild(spin);
       }
 
-      // Double-click for heart reaction
       bubble.addEventListener('dblclick', (e) => {
         e.preventDefault();
         addReaction(bWrap, '❤️');
       });
 
-      // Right-click / long-press for context menu
       bubble.addEventListener('contextmenu', (e) => {
         e.preventDefault();
         showCtxMenu(e.clientX, e.clientY, bWrap);
@@ -2080,7 +2085,6 @@ function renderGroupedMessages(container, groups, currentUserId, contact) {
     rowEl.appendChild(bubblesWrap);
     groupEl.appendChild(rowEl);
 
-    // Group time shown once at bottom
     const timeEl = document.createElement('div');
     timeEl.className = 'dm-group-time';
     timeEl.textContent = item.time;
@@ -2092,81 +2096,57 @@ function renderGroupedMessages(container, groups, currentUserId, contact) {
   container.scrollTop = container.scrollHeight;
 }
 
-// Add reaction to a bubble wrap
+/* REACTION: toggle on/off, one per message */
 function addReaction(bWrap, emoji) {
   let existing = bWrap.querySelector('.dm-reaction');
   if (existing) {
-    const countEl = existing.querySelector('.dm-reaction-count');
-    const count = parseInt(countEl ? countEl.textContent : '1') + 1;
-    existing.innerHTML = `${emoji} <span class="dm-reaction-count">${count}</span>`;
+    if (existing.dataset.emoji === emoji) {
+      existing.remove();
+    } else {
+      existing.dataset.emoji = emoji;
+      existing.textContent = emoji;
+    }
     return;
   }
   const reaction = document.createElement('div');
   reaction.className = 'dm-reaction';
-  reaction.innerHTML = `${emoji} <span class="dm-reaction-count">1</span>`;
+  reaction.dataset.emoji = emoji;
+  reaction.textContent = emoji;
   reaction.onclick = () => addReaction(bWrap, emoji);
   bWrap.appendChild(reaction);
 }
 
-// Context menu
 function showCtxMenu(x, y, bWrap) {
   const menu = document.getElementById('dmCtxMenu');
   menu.innerHTML = '';
   menu.style.display = 'block';
   menu.style.left = x + 'px';
   menu.style.top = y + 'px';
-
   const text = bWrap.dataset.text;
   const sender = bWrap.dataset.sender;
-
   const replyBtn = document.createElement('button');
   replyBtn.className = 'dm-ctx-item';
   replyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg> Reply`;
-  replyBtn.onclick = () => {
-    startReply(text, sender);
-    closeCtxMenu();
-  };
-
+  replyBtn.onclick = () => { startReply(text, sender); closeCtxMenu(); };
   const reactBtn = document.createElement('button');
   reactBtn.className = 'dm-ctx-item';
   reactBtn.innerHTML = `❤️ React`;
-  reactBtn.onclick = () => {
-    addReaction(bWrap, '❤️');
-    closeCtxMenu();
-  };
-
+  reactBtn.onclick = () => { addReaction(bWrap, '❤️'); closeCtxMenu(); };
   menu.appendChild(replyBtn);
   menu.appendChild(reactBtn);
-
-  // Position adjustment
-  const rect = menu.getBoundingClientRect();
   if (x + 140 > window.innerWidth) menu.style.left = (x - 140) + 'px';
-  if (y + rect.height > window.innerHeight) menu.style.top = (y - rect.height) + 'px';
+  if (y + 80 > window.innerHeight) menu.style.top = (y - 80) + 'px';
 }
 
-function closeCtxMenu() {
-  document.getElementById('dmCtxMenu').style.display = 'none';
-}
-
+function closeCtxMenu() { document.getElementById('dmCtxMenu').style.display = 'none'; }
 document.addEventListener('click', () => closeCtxMenu());
 
-// Reply
 function startReply(text, author) {
   replyingTo = { text, author };
-  // Desktop
   const bar = document.getElementById('dmReplyBar');
-  if (bar) {
-    bar.classList.add('show');
-    document.getElementById('dmReplyBarAuthor').textContent = author;
-    document.getElementById('dmReplyBarText').textContent = text;
-  }
-  // Mobile
+  if (bar) { bar.classList.add('show'); document.getElementById('dmReplyBarAuthor').textContent = author; document.getElementById('dmReplyBarText').textContent = text; }
   const fsBar = document.getElementById('dmFsReplyBar');
-  if (fsBar) {
-    fsBar.classList.add('show');
-    document.getElementById('dmFsReplyBarAuthor').textContent = author;
-    document.getElementById('dmFsReplyBarText').textContent = text;
-  }
+  if (fsBar) { fsBar.classList.add('show'); document.getElementById('dmFsReplyBarAuthor').textContent = author; document.getElementById('dmFsReplyBarText').textContent = text; }
 }
 
 function cancelReply(mode) {
@@ -2178,39 +2158,26 @@ function cancelReply(mode) {
 async function loadMessages(userId) {
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (!user) return;
-
   await subscriptionManager.replaceSubscription(null);
   renderedMsgIds.clear();
-
   const msgsEl = document.getElementById('dmChatMessages');
   if (!msgsEl) return;
   msgsEl.innerHTML = '';
-
   const contact = dmContacts.find(c => c.id === userId);
-
   try {
     const { data, error } = await supabaseClient
-      .from('messages')
-      .select('*')
+      .from('messages').select('*')
       .or(`and(sender_id.eq.${user.id},receiver_id.eq.${userId}),and(sender_id.eq.${userId},receiver_id.eq.${user.id})`)
       .order('created_at', { ascending: true });
-
     if (error) return;
-
     if (data && data.length > 0) {
       data.forEach(m => { if (m.id) renderedMsgIds.add(m.id); });
       const groups = groupMessages(data.map(m => ({ ...m, ts: m.created_at })));
       renderGroupedMessages(msgsEl, groups, user.id, contact);
-
-      // Update contact lastMessage
-      if (data.length > 0) {
-        const last = data[data.length - 1];
-        updateContactLastMsg(userId, last, user.id);
-      }
+      const last = data[data.length - 1];
+      updateContactLastMsg(userId, last, user.id);
     }
   } catch(err) {}
-
-  // Real-time
   try {
     const channel = supabaseClient
       .channel(`messages:${user.id}:${userId}`)
@@ -2219,19 +2186,15 @@ async function loadMessages(userId) {
         const isForThis = (newMsg.sender_id === user.id && newMsg.receiver_id === userId) ||
                           (newMsg.sender_id === userId && newMsg.receiver_id === user.id);
         if (!isForThis) return;
-        if (renderedMsgIds.has(newMsg.id)) return; // dedup
+        if (renderedMsgIds.has(newMsg.id)) return;
         renderedMsgIds.add(newMsg.id);
-
         if (activeDmId === userId) {
-          // Remove optimistic (sending) bubble if exists
           removeSendingBubble(msgsEl, newMsg.content);
-          // Re-render all messages for proper grouping
           reloadAndRenderMessages(userId, 'desktop');
           updateContactLastMsg(userId, newMsg, user.id);
           buildDMConvList();
         }
-      })
-      .subscribe();
+      }).subscribe();
     await subscriptionManager.replaceSubscription(channel);
   } catch(err) {}
 }
@@ -2239,32 +2202,24 @@ async function loadMessages(userId) {
 async function loadFsMessages(userId) {
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (!user) return;
-
   await subscriptionManager.replaceSubscription(null);
   renderedMsgIds.clear();
-
   const msgsEl = document.getElementById('dmFsMessages');
   if (!msgsEl) return;
   msgsEl.innerHTML = '';
-
   const contact = dmContacts.find(c => c.id === userId);
-
   try {
     const { data, error } = await supabaseClient
-      .from('messages')
-      .select('*')
+      .from('messages').select('*')
       .or(`and(sender_id.eq.${user.id},receiver_id.eq.${userId}),and(sender_id.eq.${userId},receiver_id.eq.${user.id})`)
       .order('created_at', { ascending: true });
-
     if (error) return;
-
     if (data && data.length > 0) {
       data.forEach(m => { if (m.id) renderedMsgIds.add(m.id); });
       const groups = groupMessages(data.map(m => ({ ...m, ts: m.created_at })));
       renderGroupedMessages(msgsEl, groups, user.id, contact);
     }
   } catch(err) {}
-
   try {
     const channel = supabaseClient
       .channel(`fs-messages:${user.id}:${userId}`)
@@ -2275,30 +2230,24 @@ async function loadFsMessages(userId) {
         if (!isForThis) return;
         if (renderedMsgIds.has(newMsg.id)) return;
         renderedMsgIds.add(newMsg.id);
-
         if (activeDmId === userId) {
           removeSendingBubble(document.getElementById('dmFsMessages'), newMsg.content);
           reloadAndRenderMessages(userId, 'mobile');
           updateContactLastMsg(userId, newMsg, user.id);
           buildDMConvList();
         } else {
-          // mark unread
           const c = dmContacts.find(c => c.id === userId);
           if (c) { c.unread = true; buildDMConvList(); }
         }
-      })
-      .subscribe();
+      }).subscribe();
     await subscriptionManager.replaceSubscription(channel);
   } catch(err) {}
 }
 
-// Remove optimistic sending bubble by matching text
 function removeSendingBubble(container, text) {
   if (!container) return;
-  const sendingBubbles = container.querySelectorAll('.dm-bubble.sending');
-  sendingBubbles.forEach(b => {
+  container.querySelectorAll('.dm-bubble.sending').forEach(b => {
     if (b.textContent === text) {
-      // remove entire group-row if it becomes empty
       const wrap = b.closest('.dm-bubble-wrap');
       if (wrap) wrap.remove();
     }
@@ -2308,18 +2257,13 @@ function removeSendingBubble(container, text) {
 async function reloadAndRenderMessages(userId, mode) {
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (!user) return;
-
   const msgsEl = document.getElementById(mode === 'mobile' ? 'dmFsMessages' : 'dmChatMessages');
   if (!msgsEl) return;
-
   const contact = dmContacts.find(c => c.id === userId);
-
   const { data } = await supabaseClient
-    .from('messages')
-    .select('*')
+    .from('messages').select('*')
     .or(`and(sender_id.eq.${user.id},receiver_id.eq.${userId}),and(sender_id.eq.${userId},receiver_id.eq.${user.id})`)
     .order('created_at', { ascending: true });
-
   if (data) {
     data.forEach(m => { if (m.id) renderedMsgIds.add(m.id); });
     const groups = groupMessages(data.map(m => ({ ...m, ts: m.created_at })));
@@ -2331,11 +2275,7 @@ function updateContactLastMsg(userId, msg, currentUserId) {
   const contact = dmContacts.find(c => c.id === userId);
   if (!contact) return;
   const d = new Date(msg.created_at);
-  contact.lastMessage = {
-    type: msg.sender_id === currentUserId ? 'sent' : 'received',
-    text: msg.content,
-    time: formatMsgTime(d)
-  };
+  contact.lastMessage = { type: msg.sender_id === currentUserId ? 'sent' : 'received', text: msg.content, time: formatMsgTime(d) };
   contact.lastMessageTs = d.getTime();
   buildDMConvList();
 }
@@ -2345,22 +2285,13 @@ function openFsChat(id) {
   const contact = dmContacts.find(c => c.id === id);
   if (!contact) return;
   contact.unread = false;
-
   const av = document.getElementById('dmFsAvatar');
-  if (contact.avatarUrl) {
-    av.innerHTML = `<img src="${contact.avatarUrl}" alt="">`;
-    av.style.background = 'transparent';
-  } else {
-    av.style.background = contact.color;
-    av.textContent = contact.initials;
-  }
+  if (contact.avatarUrl) { av.innerHTML = `<img src="${contact.avatarUrl}" alt="">`; av.style.background = 'transparent'; }
+  else { av.style.background = contact.color; av.textContent = contact.initials; }
   document.getElementById('dmFsName').textContent = contact.name;
-
-  const msgsEl = document.getElementById('dmFsMessages');
-  msgsEl.innerHTML = '';
+  document.getElementById('dmFsMessages').innerHTML = '';
   loadFsMessages(id);
   cancelReply('mobile');
-
   document.getElementById('dmFsListView').style.display = 'none';
   const chatView = document.getElementById('dmFsChatView');
   chatView.style.display = 'flex'; chatView.style.flexDirection = 'column'; chatView.style.height = '100%';
@@ -2382,57 +2313,36 @@ async function dmSend(mode) {
   const sendBtn = document.getElementById(sendBtnId);
   const text = input.value.trim();
   if (!text || !activeDmId) return;
-
   const { data: { user } } = await supabaseClient.auth.getUser();
   const msgReplyTo = replyingTo ? { ...replyingTo } : null;
   cancelReply(mode);
-
   input.value = '';
   if (mode === 'mobile') toggleDmFsSendBtn(); else toggleDmSendBtn();
 
-  // Optimistic: show immediately with sending spinner
   const msgsEl = document.getElementById(mode === 'mobile' ? 'dmFsMessages' : 'dmChatMessages');
   const contact = dmContacts.find(c => c.id === activeDmId);
   const optimisticMsg = {
-    id: null,
-    sender_id: user.id,
-    content: text,
-    created_at: new Date().toISOString(),
-    sending: true,
-    reply_to_text: msgReplyTo?.text,
-    reply_to_author: msgReplyTo?.author
+    id: null, sender_id: user.id, content: text,
+    created_at: new Date().toISOString(), sending: true,
+    reply_to_text: msgReplyTo?.text, reply_to_author: msgReplyTo?.author
   };
 
-  // Get current messages + optimistic
   const { data: existingData } = await supabaseClient
-    .from('messages')
-    .select('*')
+    .from('messages').select('*')
     .or(`and(sender_id.eq.${user.id},receiver_id.eq.${activeDmId}),and(sender_id.eq.${activeDmId},receiver_id.eq.${user.id})`)
     .order('created_at', { ascending: true });
 
   const allMessages = [...(existingData || []), optimisticMsg];
   const groups = groupMessages(allMessages.map(m => ({ ...m, ts: m.created_at })));
   renderGroupedMessages(msgsEl, groups, user.id, contact);
-
   sendBtn.disabled = true;
 
   try {
-    const insertData = {
-      sender_id: user.id,
-      receiver_id: activeDmId,
-      content: text
-    };
-    if (msgReplyTo) {
-      insertData.reply_to_text = msgReplyTo.text;
-      insertData.reply_to_author = msgReplyTo.author;
-    }
-
+    const insertData = { sender_id: user.id, receiver_id: activeDmId, content: text };
+    if (msgReplyTo) { insertData.reply_to_text = msgReplyTo.text; insertData.reply_to_author = msgReplyTo.author; }
     const { error } = await supabaseClient.from('messages').insert(insertData);
     if (error) throw error;
-
-    // The realtime handler will remove optimistic + re-render confirmed
   } catch (err) {
-    // Revert optimistic
     reloadAndRenderMessages(activeDmId, mode);
     input.value = text;
   } finally {
@@ -2447,7 +2357,6 @@ function dmHandleMedia(e, mode) {
   const reader = new FileReader();
   reader.onload = ev => {
     const isVideo = file.type.startsWith('video/');
-    // Just show locally for now
     const msgsEl = document.getElementById(mode === 'mobile' ? 'dmFsMessages' : 'dmChatMessages');
     const group = document.createElement('div');
     group.className = 'dm-msg-group sent';
@@ -2462,12 +2371,8 @@ function dmHandleMedia(e, mode) {
     b.innerHTML = isVideo
       ? `<video class="dm-media" controls src="${ev.target.result}"></video>`
       : `<img class="dm-media" src="${ev.target.result}" alt="media" onclick="openLightbox(this.src)">`;
-    bWrap.appendChild(b);
-    bubblesWrap.appendChild(bWrap);
-    row.appendChild(bubblesWrap);
-    group.appendChild(row);
-    msgsEl.appendChild(group);
-    msgsEl.scrollTop = msgsEl.scrollHeight;
+    bWrap.appendChild(b); bubblesWrap.appendChild(bWrap); row.appendChild(bubblesWrap);
+    group.appendChild(row); msgsEl.appendChild(group); msgsEl.scrollTop = msgsEl.scrollHeight;
   };
   reader.readAsDataURL(file);
   e.target.value = '';
@@ -2476,7 +2381,6 @@ function dmHandleMedia(e, mode) {
 function openLightbox(src) { document.getElementById('lightboxImg').src = src; document.getElementById('lightbox').classList.add('show'); }
 function closeLightbox() { document.getElementById('lightbox').classList.remove('show'); }
 
-// ── PROFILE DROPDOWN ──
 let profileDropdownOpen = false;
 function toggleProfileDropdown() {
   profileDropdownOpen = !profileDropdownOpen;
@@ -2532,7 +2436,6 @@ function handleAvatarUpload(e) {
   reader.readAsDataURL(file);
 }
 function removeAvatar() { profile.avatarUrl = null; renderProfileEverywhere(); document.getElementById('peImageUpload').value = ''; }
-
 function clearHistory() { chatHistory = []; newChat(); }
 
 document.addEventListener('keydown', e => {
@@ -2569,28 +2472,19 @@ let emojiPickerMode = null;
 function toggleEmojiPicker(mode = 'chat') {
   const overlay = document.getElementById('emojiPickerOverlay');
   const picker = document.getElementById('emojiPicker');
-  if (emojiPickerMode === mode && overlay.classList.contains('show')) {
-    closeEmojiPicker();
-    return;
-  }
+  if (emojiPickerMode === mode && overlay.classList.contains('show')) { closeEmojiPicker(); return; }
   emojiPickerMode = mode;
-
-  // Position picker above the triggering button
   let triggerEl;
   if (mode === 'dm') triggerEl = document.getElementById('dmEmojiBtn');
   else if (mode === 'mobile') triggerEl = document.getElementById('dmFsEmojiBtn');
   else triggerEl = document.getElementById('emojiBtn');
-
   if (triggerEl) {
     const rect = triggerEl.getBoundingClientRect();
     picker.style.bottom = (window.innerHeight - rect.top + 8) + 'px';
     picker.style.left = Math.max(8, rect.left - 10) + 'px';
-    picker.style.top = 'auto';
-    picker.style.right = 'auto';
+    picker.style.top = 'auto'; picker.style.right = 'auto';
   }
-
-  overlay.classList.add('show');
-  picker.classList.add('show');
+  overlay.classList.add('show'); picker.classList.add('show');
 }
 
 function closeEmojiPicker() {
@@ -2671,29 +2565,20 @@ let noteSaveTimer = null;
 function createNote() {
   const id = Date.now().toString();
   const note = { id, title: '', body: '', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
-  notes.unshift(note);
-  saveNotesToStorage();
-  renderNotesList();
-  openNote(id);
+  notes.unshift(note); saveNotesToStorage(); renderNotesList(); openNote(id);
 }
 
 function openNote(id) {
   activeNoteId = id;
   const note = notes.find(n => n.id === id);
   if (!note) return;
-
   document.getElementById('notesEditorEmpty').style.display = 'none';
   const activeEl = document.getElementById('notesEditorActive');
-  activeEl.style.display = 'flex';
-  activeEl.style.flexDirection = 'column';
-  activeEl.style.flex = '1';
-  activeEl.style.overflow = 'hidden';
-
+  activeEl.style.display = 'flex'; activeEl.style.flexDirection = 'column'; activeEl.style.flex = '1'; activeEl.style.overflow = 'hidden';
   document.getElementById('noteTitleInput').value = note.title;
   document.getElementById('noteBodyInput').value = note.body;
   document.getElementById('noteSaveStatus').textContent = 'saved';
   document.getElementById('noteSaveStatus').className = 'note-save-status saved';
-
   renderNotesList();
   document.getElementById('noteTitleInput').focus();
 }
@@ -2709,10 +2594,8 @@ function autoSaveNote() {
     note.title = document.getElementById('noteTitleInput').value;
     note.body = document.getElementById('noteBodyInput').value;
     note.updatedAt = new Date().toISOString();
-    // Move to top
     notes = [note, ...notes.filter(n => n.id !== activeNoteId)];
-    saveNotesToStorage();
-    renderNotesList();
+    saveNotesToStorage(); renderNotesList();
     document.getElementById('noteSaveStatus').textContent = 'saved';
     document.getElementById('noteSaveStatus').className = 'note-save-status saved';
   }, 600);
@@ -2722,16 +2605,12 @@ function deleteActiveNote() {
   if (!activeNoteId) return;
   if (!confirm('Delete this note?')) return;
   notes = notes.filter(n => n.id !== activeNoteId);
-  activeNoteId = null;
-  saveNotesToStorage();
-  renderNotesList();
+  activeNoteId = null; saveNotesToStorage(); renderNotesList();
   document.getElementById('notesEditorEmpty').style.display = 'flex';
   document.getElementById('notesEditorActive').style.display = 'none';
 }
 
-function saveNotesToStorage() {
-  localStorage.setItem('hether_notes', JSON.stringify(notes));
-}
+function saveNotesToStorage() { localStorage.setItem('hether_notes', JSON.stringify(notes)); }
 
 function renderNotesList() {
   const list = document.getElementById('notesList');
@@ -2818,13 +2697,9 @@ async function loadUserProfile() {
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (!user) return;
   const { data } = await supabaseClient.from('profiles').select('*').eq('id', user.id).single();
-  if (data) {
-    profile = { name: data.username, username: '@' + data.username, email: user.email, avatarUrl: data.avatar_url };
-  }
+  if (data) { profile = { name: data.username, username: '@' + data.username, email: user.email, avatarUrl: data.avatar_url }; }
   renderProfileEverywhere();
 }
-
-function escHtml(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 window.addEventListener('load', function() { checkAuth(); });
 </script>
