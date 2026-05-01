@@ -786,7 +786,7 @@ body {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   max-width: 100%;
 }
 
@@ -794,7 +794,9 @@ body {
   justify-content: flex-end;
 }
 
-.dm-reply-btn {
+/* ── REPLY & 3-DOT ACTION BUTTONS ── */
+.dm-reply-btn,
+.dm-more-btn {
   opacity: 0;
   pointer-events: none;
   background: var(--surface);
@@ -808,17 +810,21 @@ body {
   color: var(--text3);
   box-shadow: 0 1px 4px rgba(0,0,0,0.08);
 }
-.dm-bubble-wrap:hover .dm-reply-btn {
+.dm-bubble-wrap:hover .dm-reply-btn,
+.dm-bubble-wrap:hover .dm-more-btn {
   opacity: 1;
   pointer-events: auto;
 }
-.dm-reply-btn:hover {
+.dm-reply-btn:hover,
+.dm-more-btn:hover {
   background: var(--surface2);
   color: var(--accent);
   transform: scale(1.1);
 }
 .dm-reply-btn svg { width: 13px; height: 13px; }
+.dm-more-btn svg { width: 13px; height: 13px; }
 
+/* ── DM BUBBLE ── */
 .dm-bubble {
   font-size: 13.5px;
   border-radius: 18px;
@@ -1191,6 +1197,34 @@ body {
 }
 .dm-sk-line.short { width: 55%; }
 .dm-sk-line.long { width: 85%; }
+
+/* ── DM MESSAGE ACTION MENU ── */
+.dm-msg-action-menu {
+  position: fixed;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 5px;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.18);
+  z-index: 10500; /* above DM popup (z-index 400) */
+  min-width: 140px;
+  animation: popIn 0.14s ease;
+  display: none;
+}
+.dm-msg-action-menu.show { display: block; }
+.dm-msg-action-item {
+  display: flex; align-items: center; gap: 9px;
+  padding: 8px 12px; border-radius: 7px; cursor: pointer;
+  font-size: 13px; color: var(--text2);
+  transition: background var(--t), color var(--t);
+  border: none; background: transparent; width: 100%; text-align: left;
+  font-family: 'DM Sans', sans-serif;
+  white-space: nowrap;
+}
+.dm-msg-action-item:hover { background: var(--surface2); color: var(--text); }
+.dm-msg-action-item.danger { color: #ef4444; }
+.dm-msg-action-item.danger:hover { background: rgba(239,68,68,0.08); color: #ef4444; }
+.dm-msg-action-item svg { width: 13px; height: 13px; flex-shrink: 0; }
 
 /* ── MOBILE ── */
 @media (max-width: 640px) {
@@ -1879,8 +1913,11 @@ body {
 <div class="emoji-picker-overlay" id="emojiPickerOverlay" onclick="closeEmojiPicker()"></div>
 <div class="emoji-picker" id="emojiPicker"></div>
 
-<!-- Context menu -->
+<!-- Context menu (right-click) -->
 <div class="dm-ctx-menu" id="dmCtxMenu" style="display:none;"></div>
+
+<!-- Message action menu (3-dot button) — rendered at body level so it's always on top -->
+<div class="dm-msg-action-menu" id="dmMsgActionMenu"></div>
 
 <!-- ADMIN KEY POPUP -->
 <div class="overlay" id="adminOverlay">
@@ -1975,8 +2012,6 @@ const subscriptionManager = {
 };
 
 // ── CLEAR CHAT UI ──
-// Wipes the message containers and removes contact from DM list
-// (they remain searchable but won't appear in list until a new message is sent)
 function clearChatUI() {
   const msgsEl = document.getElementById('dmChatMessages');
   if (msgsEl) msgsEl.innerHTML = '';
@@ -1986,14 +2021,11 @@ function clearChatUI() {
 
   const contact = dmContacts.find(c => c.id === activeDmId);
   if (contact) {
-    // Reset to null so they disappear from the DM list
-    // (they're still in dmContacts array and searchable)
     contact.lastMessage = null;
     contact.lastMessageTs = 0;
     contact.unread = false;
   }
 
-  // Hide the active chat panel and return to empty state (desktop)
   if (!isMobile()) {
     showDmEmptyState();
     activeDmId = null;
@@ -2032,7 +2064,6 @@ async function confirmClearChat() {
   if (error) {
     alert('Failed to clear chat: ' + error.message);
   }
-  // The DELETE realtime event handles UI update for both users
 }
 
 document.getElementById('clearChatOverlay').addEventListener('keydown', function(e) {
@@ -2064,6 +2095,88 @@ let profile = JSON.parse(localStorage.getItem('hether_profile') || 'null') || {
   name: 'User', username: '@user', email: 'user@example.com', avatarUrl: null
 };
 
+// ── MSG ACTION MENU (3-dot) ──
+let _actionMenuOpen = false;
+
+function showMsgActionMenu(e, bWrap, msg, isSent) {
+  e.stopPropagation();
+  const menu = document.getElementById('dmMsgActionMenu');
+  menu.innerHTML = '';
+
+  const text = bWrap.dataset.text || '';
+
+  // Copy button
+  const copyBtn = document.createElement('button');
+  copyBtn.className = 'dm-msg-action-item';
+  copyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy`;
+  copyBtn.onclick = (ev) => {
+    ev.stopPropagation();
+    if (text) { navigator.clipboard.writeText(text).catch(() => {}); }
+    closeMsgActionMenu();
+  };
+  menu.appendChild(copyBtn);
+
+  // Unsend button (only for messages YOU sent)
+  if (isSent && msg && msg.id) {
+    const unsendBtn = document.createElement('button');
+    unsendBtn.className = 'dm-msg-action-item danger';
+    unsendBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg> Unsend`;
+    unsendBtn.onclick = async (ev) => {
+      ev.stopPropagation();
+      closeMsgActionMenu();
+      await unsendMessage(msg.id);
+    };
+    menu.appendChild(unsendBtn);
+  }
+
+  // Position menu: appear above the button, always on top of dm popup
+  const btn = e.currentTarget || e.target;
+  const rect = btn.getBoundingClientRect ? btn.getBoundingClientRect() : { left: e.clientX, top: e.clientY, width: 0, height: 0 };
+  let left = rect.left;
+  let top = rect.top - 8;
+
+  menu.style.display = 'block';
+  menu.classList.add('show');
+  _actionMenuOpen = true;
+
+  // After render, adjust to stay on screen
+  requestAnimationFrame(() => {
+    const mw = menu.offsetWidth;
+    const mh = menu.offsetHeight;
+    if (left + mw > window.innerWidth - 8) left = window.innerWidth - mw - 8;
+    if (left < 8) left = 8;
+    top = rect.top - mh - 4;
+    if (top < 8) top = rect.bottom + 4;
+    menu.style.left = left + 'px';
+    menu.style.top = top + 'px';
+  });
+}
+
+function closeMsgActionMenu() {
+  const menu = document.getElementById('dmMsgActionMenu');
+  menu.classList.remove('show');
+  menu.style.display = 'none';
+  _actionMenuOpen = false;
+}
+
+// Unsend: delete from backend — realtime handles both users' UI
+async function unsendMessage(msgId) {
+  const { error } = await supabaseClient
+    .from('messages')
+    .delete()
+    .eq('id', msgId);
+  if (error) {
+    alert('Failed to unsend message: ' + error.message);
+  }
+  // Realtime DELETE event will update both users' UIs
+}
+
+document.addEventListener('click', (e) => {
+  if (_actionMenuOpen && !document.getElementById('dmMsgActionMenu').contains(e.target)) {
+    closeMsgActionMenu();
+  }
+});
+
 // ── CONFIRM DIALOG ──
 let _confirmCallback = null;
 function showConfirm(title, msg, okLabel, callback) {
@@ -2082,12 +2195,11 @@ function confirmAction() {
   if (_confirmCallback) _confirmCallback();
 }
 
-// ── SEARCH — searches ALL contacts (including those with no message history) ──
+// ── SEARCH ──
 function onDmSearch(val) {
   const dropdown = document.getElementById('dmSearchDropdown');
   val = val.trim().toLowerCase();
   if (!val) { dropdown.classList.remove('show'); return; }
-  // Search ALL dmContacts, not just those with messages
   const matches = dmContacts.filter(c => c.name.toLowerCase().includes(val));
   renderSearchDropdown(dropdown, matches, 'desktop');
 }
@@ -2096,7 +2208,6 @@ function onDmFsSearch(val) {
   const dropdown = document.getElementById('dmFsSearchDropdown');
   val = val.trim().toLowerCase();
   if (!val) { dropdown.classList.remove('show'); return; }
-  // Search ALL dmContacts
   const matches = dmContacts.filter(c => c.name.toLowerCase().includes(val));
   renderSearchDropdown(dropdown, matches, 'mobile');
 }
@@ -2499,31 +2610,11 @@ function verifyAdmin() {
 }
 
 // ── DM ──
-
-// Shows the skeleton loading state in the DM conversation list
 function showDmListSkeleton() {
   const skeleton = `
-    <div class="dm-conv-skeleton">
-      <div class="dm-sk-avatar"></div>
-      <div class="dm-sk-lines">
-        <div class="dm-sk-line long"></div>
-        <div class="dm-sk-line short"></div>
-      </div>
-    </div>
-    <div class="dm-conv-skeleton">
-      <div class="dm-sk-avatar"></div>
-      <div class="dm-sk-lines">
-        <div class="dm-sk-line long"></div>
-        <div class="dm-sk-line short"></div>
-      </div>
-    </div>
-    <div class="dm-conv-skeleton">
-      <div class="dm-sk-avatar"></div>
-      <div class="dm-sk-lines">
-        <div class="dm-sk-line long"></div>
-        <div class="dm-sk-line short"></div>
-      </div>
-    </div>
+    <div class="dm-conv-skeleton"><div class="dm-sk-avatar"></div><div class="dm-sk-lines"><div class="dm-sk-line long"></div><div class="dm-sk-line short"></div></div></div>
+    <div class="dm-conv-skeleton"><div class="dm-sk-avatar"></div><div class="dm-sk-lines"><div class="dm-sk-line long"></div><div class="dm-sk-line short"></div></div></div>
+    <div class="dm-conv-skeleton"><div class="dm-sk-avatar"></div><div class="dm-sk-lines"><div class="dm-sk-line long"></div><div class="dm-sk-line short"></div></div></div>
   `;
   const desktopList = document.getElementById('dmConvList');
   const mobileList = document.getElementById('dmFsConvList');
@@ -2534,7 +2625,6 @@ function showDmListSkeleton() {
 async function openDM() {
   dmOpen = true;
 
-  // ── Show the popup IMMEDIATELY — don't wait for any data ──
   if (isMobile()) {
     document.getElementById('dmFullscreen').classList.add('show');
     document.getElementById('dmFsListView').style.display = 'flex';
@@ -2544,16 +2634,12 @@ async function openDM() {
     showDmEmptyState();
   }
 
-  // Show skeleton while loading
   showDmListSkeleton();
 
-  // Load contacts and chat history in the background
-  // The list will update automatically once data arrives
   try {
     await loadContacts();
     await preloadAllChats();
   } catch (e) {
-    // Even if loading fails, the popup is already open
     buildDMConvList();
   }
 }
@@ -2563,19 +2649,20 @@ async function closeDM() {
   activeDmId = null;
   document.getElementById('dmOverlay').classList.remove('show');
   document.getElementById('dmFullscreen').classList.remove('show');
+  closeMsgActionMenu();
   await subscriptionManager.replaceSubscription(null);
 }
 
 function dmOverlayClick(e) { if (e.target === document.getElementById('dmOverlay')) closeDM(); }
 
 // ── BUILD DM CONV LIST ──
-// ONLY shows contacts who have at least one message exchanged.
-// Contacts with no messages are available only via search.
+// CHANGE 1: Only show conversations where YOU (current user) have sent at least one message.
+// We track this via contact.sentByMe flag set during preloadAllChats.
 function buildDMConvList() {
-  // Filter: only contacts with at least one message
-  const withMessages = dmContacts.filter(c => c.lastMessage !== null);
+  // Filter: only contacts where YOU sent at least one message
+  const withSentMessages = dmContacts.filter(c => c.sentByMe === true);
 
-  const sorted = [...withMessages].sort((a, b) => {
+  const sorted = [...withSentMessages].sort((a, b) => {
     const aUnread = a.unread && a.id !== activeDmId ? 1 : 0;
     const bUnread = b.unread && b.id !== activeDmId ? 1 : 0;
     if (bUnread !== aUnread) return bUnread - aUnread;
@@ -2588,7 +2675,6 @@ function buildDMConvList() {
     const isFsList = listId === 'dmFsConvList';
     list.innerHTML = '';
 
-    // Empty state: no conversations yet
     if (sorted.length === 0) {
       list.innerHTML = `<div style="padding:28px 16px;text-align:center;font-size:12.5px;color:var(--text3);line-height:1.7;">
         No conversations yet.<br>
@@ -2635,7 +2721,6 @@ async function loadContacts() {
   const { data } = await supabaseClient.from('profiles').select('id, username, avatar_url');
   if (!data) return;
 
-  // Clear existing contacts but preserve any lastMessage data already set
   const existingMap = new Map(dmContacts.map(c => [c.id, c]));
   dmContacts.length = 0;
 
@@ -2658,15 +2743,13 @@ async function loadContacts() {
       avatarUrl: u.avatar_url || null,
       color: colors[colorIdx % colors.length],
       online: true,
-      // Preserve existing message data if contact was already loaded
       lastMessage: existing ? existing.lastMessage : null,
       lastMessageTs: existing ? existing.lastMessageTs : 0,
       unread: existing ? existing.unread : false,
+      sentByMe: existing ? existing.sentByMe : false,  // CHANGE 1 flag
     });
     colorIdx++;
   });
-  // Don't call buildDMConvList here — preloadAllChats will do it
-  // with accurate lastMessage data. This prevents empty contacts briefly appearing.
 }
 
 function showDmEmptyState() {
@@ -2758,6 +2841,8 @@ function groupMessages(messages) {
   return groups;
 }
 
+// ── RENDER GROUPED MESSAGES ──
+// CHANGE 2: Added 3-dot "more" button beside the reply button on each bubble
 function renderGroupedMessages(container, groups, currentUserId, contact) {
   container.innerHTML = '';
   renderedMsgIds.clear();
@@ -2801,13 +2886,25 @@ function renderGroupedMessages(container, groups, currentUserId, contact) {
       bWrap.dataset.text = msg.content || msg.text || '';
       bWrap.dataset.sender = isSent ? 'You' : (contact ? contact.name : 'User');
 
+      const msgText = msg.content || msg.text || '';
+      const msgSender = isSent ? 'You' : (contact ? contact.name : 'User');
+
+      // Reply button
       const replyBtn = document.createElement('button');
       replyBtn.className = 'dm-reply-btn';
       replyBtn.title = 'Reply';
       replyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>`;
-      const msgText = msg.content || msg.text || '';
-      const msgSender = isSent ? 'You' : (contact ? contact.name : 'User');
       replyBtn.onclick = (e) => { e.stopPropagation(); startReply(msgText, msgSender); };
+
+      // 3-dot more button
+      const moreBtn = document.createElement('button');
+      moreBtn.className = 'dm-more-btn';
+      moreBtn.title = 'More options';
+      moreBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>`;
+      moreBtn.onclick = (e) => {
+        e.stopPropagation();
+        showMsgActionMenu(e, bWrap, msg, isSent);
+      };
 
       const bubble = document.createElement('div');
       bubble.className = 'dm-bubble' + (msg.sending ? ' sending' : '');
@@ -2847,12 +2944,16 @@ function renderGroupedMessages(container, groups, currentUserId, contact) {
         showCtxMenu(e.clientX, e.clientY, bWrap, msg, isSent, contact);
       });
 
+      // Layout: for sent messages — [moreBtn][replyBtn][bubble]
+      //         for received — [bubble][replyBtn][moreBtn]
       if (isSent) {
+        bWrap.appendChild(moreBtn);
         bWrap.appendChild(replyBtn);
         bWrap.appendChild(bubble);
       } else {
         bWrap.appendChild(bubble);
         bWrap.appendChild(replyBtn);
+        bWrap.appendChild(moreBtn);
       }
 
       bubblesWrap.appendChild(bWrap);
@@ -2906,6 +3007,11 @@ function showCtxMenu(x, y, bWrap, msg, isSent, contact) {
   reactBtn.innerHTML = `❤️ React`;
   reactBtn.onclick = () => { addReaction(bWrap, '❤️'); closeCtxMenu(); };
 
+  const copyBtn = document.createElement('button');
+  copyBtn.className = 'dm-ctx-item';
+  copyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy`;
+  copyBtn.onclick = () => { if (text) navigator.clipboard.writeText(text).catch(() => {}); closeCtxMenu(); };
+
   const deleteBtn = document.createElement('button');
   deleteBtn.className = 'dm-ctx-item danger';
   deleteBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg> Delete message`;
@@ -2918,6 +3024,7 @@ function showCtxMenu(x, y, bWrap, msg, isSent, contact) {
 
   menu.appendChild(replyBtn);
   menu.appendChild(reactBtn);
+  menu.appendChild(copyBtn);
   menu.appendChild(deleteBtn);
 
   if (x + 160 > window.innerWidth) menu.style.left = (x - 160) + 'px';
@@ -3010,7 +3117,6 @@ async function loadMessages(userId) {
           buildDMConvList();
         }
       })
-      // DELETE: fires for both users — handles single delete and clear-all
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' }, async (payload) => {
         if (activeDmId !== userId) return;
         const { data: remaining } = await supabaseClient
@@ -3020,10 +3126,8 @@ async function loadMessages(userId) {
           .order('created_at', { ascending: true });
 
         if (!remaining || remaining.length === 0) {
-          // Chat fully cleared — wipe UI and remove from DM list
           clearChatUI();
         } else {
-          // Some messages remain — re-render
           remaining.forEach(m => { if (m.id) renderedMsgIds.add(m.id); });
           const groups = groupMessages(remaining.map(m => ({ ...m, ts: m.created_at })));
           renderGroupedMessages(msgsEl, groups, user.id, contact);
@@ -3087,7 +3191,6 @@ async function loadFsMessages(userId) {
           }
         }
       })
-      // DELETE: mobile
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' }, async (payload) => {
         if (activeDmId !== userId) return;
         const { data: remaining } = await supabaseClient
@@ -3150,6 +3253,9 @@ function updateContactLastMsg(userId, msg, currentUserId) {
     time: formatMsgTime(d)
   };
   contact.lastMessageTs = d.getTime();
+  if (msg.sender_id === currentUserId) {
+    contact.sentByMe = true; // CHANGE 1: mark that I've sent in this convo
+  }
   if (msg.sender_id !== currentUserId && activeDmId !== userId) {
     contact.unread = true;
   }
@@ -3237,6 +3343,13 @@ async function dmSend(mode) {
   replyBtnOpt.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>`;
   replyBtnOpt.onclick = (e) => { e.stopPropagation(); startReply(text, 'You'); };
 
+  const moreBtnOpt = document.createElement('button');
+  moreBtnOpt.className = 'dm-more-btn';
+  moreBtnOpt.title = 'More options';
+  moreBtnOpt.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>`;
+  // Optimistic messages don't have msg.id yet — disable unsend
+  moreBtnOpt.onclick = (e) => { e.stopPropagation(); showMsgActionMenu(e, bWrap, null, true); };
+
   const bubble = document.createElement('div');
   bubble.className = 'dm-bubble sending';
 
@@ -3256,6 +3369,7 @@ async function dmSend(mode) {
   spin.innerHTML = `<div class="dm-sending-spinner"></div>`;
   bubble.appendChild(spin);
 
+  bWrap.appendChild(moreBtnOpt);
   bWrap.appendChild(replyBtnOpt);
   bWrap.appendChild(bubble);
   bubblesWrap.appendChild(bWrap);
@@ -3287,8 +3401,6 @@ async function dmSend(mode) {
 
     optimisticGroup.remove();
     reloadAndRenderMessages(activeDmId, mode);
-    // Update last message — this also calls buildDMConvList,
-    // which will immediately show this contact in the DM list if they weren't there
     updateContactLastMsg(activeDmId, inserted, user.id);
     buildDMConvList();
   } catch (err) {
@@ -3451,6 +3563,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     if (document.getElementById('clearChatOverlay').classList.contains('show')) { closeClearChatConfirm(); return; }
     if (document.getElementById('confirmOverlay').classList.contains('show')) { closeConfirm(); return; }
+    closeMsgActionMenu();
     closeAdminPopup(); closeProfileEdit(); closeLogout(); closeProfileDropdown(); closeLightbox(); closeCtxMenu();
   }
 });
@@ -3678,8 +3791,7 @@ async function handleSignupSubmit() {
 }
 
 // ── PRELOAD ALL CHATS ──
-// Fetches the latest message for each conversation and sets lastMessage on contacts.
-// Only contacts with at least one message will appear in the DM list.
+// CHANGE 1: Sets sentByMe=true only for contacts where sender_id === current user
 async function preloadAllChats() {
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (!user) return;
@@ -3692,15 +3804,25 @@ async function preloadAllChats() {
     buildDMConvList();
     return;
   }
-  // Build a map of the latest message per contact
-  const latestMap = new Map();
+
+  // For each contact, track the latest message AND whether I (current user) sent any
+  const latestMap = new Map();     // contactId -> latest message
+  const sentByMeSet = new Set();   // contactIds where I sent ≥1 message
+
   data.forEach(msg => {
     const otherId = msg.sender_id === user.id ? msg.receiver_id : msg.sender_id;
     if (!latestMap.has(otherId)) { latestMap.set(otherId, msg); }
+    if (msg.sender_id === user.id) {
+      sentByMeSet.add(otherId); // I sent this — mark the contact
+    }
   });
-  // Set lastMessage on each contact that has messages
+
+  // Apply sentByMe to each contact
+  dmContacts.forEach(c => {
+    if (sentByMeSet.has(c.id)) c.sentByMe = true;
+  });
+
   latestMap.forEach((msg, userId) => { updateContactLastMsg(userId, msg, user.id); });
-  // buildDMConvList is called by updateContactLastMsg, but call again to be safe
   buildDMConvList();
 }
 
