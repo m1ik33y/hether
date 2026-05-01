@@ -439,14 +439,14 @@ body {
 }
 .media-staging-send:hover { background: var(--accent-hover); }
 
-/* typing */
+/* typing — only in chat messages, not in sidebar */
 .typing-dots { display: flex; gap: 4px; padding: 4px 0; }
 .typing-dots span { width: 6px; height: 6px; border-radius: 50%; background: var(--text3); animation: bounce 1.2s infinite; }
 .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
 .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
 @keyframes bounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-5px); } }
 
-/* ── DM TYPING INDICATOR ── */
+/* ── DM TYPING INDICATOR (chat only) ── */
 .dm-typing-indicator {
   display: flex; align-items: center; gap: 8px;
   padding: 6px 0 4px;
@@ -470,8 +470,20 @@ body {
 }
 .dm-typing-bubble span:nth-child(2) { animation-delay: 0.2s; }
 .dm-typing-bubble span:nth-child(3) { animation-delay: 0.4s; }
-.dm-typing-name {
-  font-size: 11px; color: var(--text3); margin-left: 2px;
+
+/* ── DM TOPBAR PRESENCE DOT ── */
+.dm-presence-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  flex-shrink: 0; display: inline-block;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+.dm-presence-dot.online {
+  background: #22c55e;
+  box-shadow: 0 0 0 2px rgba(34,197,94,0.25);
+}
+.dm-presence-dot.offline {
+  background: var(--text3);
+  box-shadow: none;
 }
 
 /* ── SETTINGS ── */
@@ -685,8 +697,6 @@ body {
 }
 .dm-conv-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 
-/* CHANGE 3: green online dot REMOVED — .dm-online-dot class kept but never used */
-
 .dm-conv-info { flex: 1; min-width: 0; }
 .dm-conv-name { font-size: 13.5px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .dm-conv-preview { font-size: 12px; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
@@ -731,7 +741,12 @@ body {
 .dm-chat-topbar-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 .dm-chat-topbar-info { flex: 1; min-width: 0; }
 .dm-chat-topbar-name { font-size: 14px; font-weight: 600; color: var(--text); }
-.dm-chat-topbar-status { font-size: 11.5px; color: #22c55e; }
+/* status line now holds just the presence dot, no text */
+.dm-chat-topbar-status {
+  display: flex; align-items: center; gap: 5px;
+  margin-top: 2px;
+  min-height: 14px;
+}
 
 .dm-delete-chat-btn {
   background: transparent; border: none; cursor: pointer;
@@ -1055,6 +1070,12 @@ body {
 .dm-fs-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; overflow: hidden; flex-shrink: 0; }
 .dm-fs-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 .dm-fs-name { font-size: 14px; font-weight: 600; color: var(--text); flex: 1; }
+
+/* Mobile DM header status dot */
+.dm-fs-status-wrap {
+  display: flex; align-items: center; gap: 5px;
+  margin-left: 4px;
+}
 
 .dm-fs-messages {
   flex: 1; overflow-y: auto; overflow-x: hidden;
@@ -1651,17 +1672,17 @@ body {
         <div class="status-dot"></div>
         hetherGPT
       </div>
-      <span style="font-size:12px;color:var(--text3);">AI · Calculations & Knowledge</span>
+      <span style="font-size:12px;color:var(--text3);">AI · Calculations &amp; Knowledge</span>
     </div>
     <div class="messages" id="messages">
       <div class="welcome" id="welcomeScreen">
         <div class="welcome-greeting" id="welcomeGreeting">Good morning.</div>
         <p class="welcome-sub">Ask me anything — calculations, facts, explanations, code.</p>
         <div class="suggestions">
-          <div class="sug-card" onclick="fillSuggestion('Solve: integrate x² from 0 to 3')"><div class="sug-title">Math & Calculus</div><div class="sug-sub">Solve integrals, equations</div></div>
-          <div class="sug-card" onclick="fillSuggestion('Explain how black holes form')"><div class="sug-title">Science & Facts</div><div class="sug-sub">Concepts, explanations</div></div>
+          <div class="sug-card" onclick="fillSuggestion('Solve: integrate x² from 0 to 3')"><div class="sug-title">Math &amp; Calculus</div><div class="sug-sub">Solve integrals, equations</div></div>
+          <div class="sug-card" onclick="fillSuggestion('Explain how black holes form')"><div class="sug-title">Science &amp; Facts</div><div class="sug-sub">Concepts, explanations</div></div>
           <div class="sug-card" onclick="fillSuggestion('Convert 5000 INR to USD at current rate')"><div class="sug-title">Conversions</div><div class="sug-sub">Units, currencies, data</div></div>
-          <div class="sug-card" onclick="fillSuggestion('Write a Python function to find prime numbers')"><div class="sug-title">Code</div><div class="sug-sub">Write & explain snippets</div></div>
+          <div class="sug-card" onclick="fillSuggestion('Write a Python function to find prime numbers')"><div class="sug-title">Code</div><div class="sug-sub">Write &amp; explain snippets</div></div>
         </div>
       </div>
     </div>
@@ -1809,7 +1830,10 @@ body {
           <div class="dm-chat-topbar-avatar" id="dmTopbarAvatar"></div>
           <div class="dm-chat-topbar-info">
             <div class="dm-chat-topbar-name" id="dmTopbarName"></div>
-            <div class="dm-chat-topbar-status" id="dmTopbarStatus">Active now</div>
+            <!-- Presence dot replaces "Active now" text — only shown here in header -->
+            <div class="dm-chat-topbar-status" id="dmTopbarStatus">
+              <span class="dm-presence-dot offline" id="dmPresenceDot"></span>
+            </div>
           </div>
           <button class="dm-delete-chat-btn" id="dmDeleteChatBtn" onclick="openClearChatConfirm()" title="Clear chat (Alt+Backspace)">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><line x1="15" x2="9" y1="9" y2="15"/><line x1="9" x2="15" y1="9" y2="15"/></svg>
@@ -1882,7 +1906,11 @@ body {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
       </button>
       <div class="dm-fs-avatar" id="dmFsAvatar"></div>
-      <div class="dm-fs-name" id="dmFsName"></div>
+      <!-- Mobile: name + presence dot side by side -->
+      <div style="flex:1;min-width:0;display:flex;align-items:center;gap:7px;">
+        <div class="dm-fs-name" id="dmFsName"></div>
+        <span class="dm-presence-dot offline" id="dmFsPresenceDot"></span>
+      </div>
       <button class="dm-delete-chat-btn" onclick="openClearChatConfirm()" title="Clear chat" style="margin-left:auto;">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><line x1="15" x2="9" y1="9" y2="15"/><line x1="9" x2="15" y1="9" y2="15"/></svg>
       </button>
@@ -1940,7 +1968,7 @@ body {
 <!-- Context menu (right-click) -->
 <div class="dm-ctx-menu" id="dmCtxMenu" style="display:none;"></div>
 
-<!-- Message action menu (3-dot button) — rendered at body level so it's always on top -->
+<!-- Message action menu -->
 <div class="dm-msg-action-menu" id="dmMsgActionMenu"></div>
 
 <!-- ADMIN KEY POPUP -->
@@ -2020,7 +2048,7 @@ body {
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 
-  let currentUser = null;
+let currentUser = null;
 
 async function initUser() {
   const { data: { user } } = await supabaseClient.auth.getUser();
@@ -2043,6 +2071,84 @@ const subscriptionManager = {
   }
 };
 
+// ── PRESENCE SYSTEM ──
+// Only active when admin DM is open. Tracks who is online in the admin chat.
+let presenceChannel = null;
+let onlineUsers = new Set(); // set of user IDs currently online in admin DM
+
+async function joinPresence() {
+  if (!currentUser) return;
+  if (presenceChannel) {
+    await supabaseClient.removeChannel(presenceChannel);
+    presenceChannel = null;
+  }
+
+  presenceChannel = supabaseClient.channel('admin-dm-presence', {
+    config: { presence: { key: currentUser.id } }
+  });
+
+  presenceChannel
+    .on('presence', { event: 'sync' }, () => {
+      const state = presenceChannel.presenceState();
+      onlineUsers.clear();
+      Object.keys(state).forEach(key => {
+        // key is the presence key (user id)
+        onlineUsers.add(key);
+      });
+      updatePresenceDots();
+    })
+    .on('presence', { event: 'join' }, ({ key }) => {
+      onlineUsers.add(key);
+      updatePresenceDots();
+    })
+    .on('presence', { event: 'leave' }, ({ key }) => {
+      onlineUsers.delete(key);
+      updatePresenceDots();
+    })
+    .subscribe(async (status) => {
+      if (status === 'SUBSCRIBED') {
+        await presenceChannel.track({ user_id: currentUser.id, online_at: new Date().toISOString() });
+      }
+    });
+}
+
+async function leavePresence() {
+  if (presenceChannel) {
+    try { await presenceChannel.untrack(); } catch(e) {}
+    await supabaseClient.removeChannel(presenceChannel);
+    presenceChannel = null;
+  }
+  onlineUsers.clear();
+  updatePresenceDots();
+}
+
+function updatePresenceDots() {
+  // Only update for the currently active chat contact
+  if (!activeDmId) return;
+  const isOnline = onlineUsers.has(activeDmId);
+
+  // Desktop dot
+  const dot = document.getElementById('dmPresenceDot');
+  if (dot) {
+    dot.classList.toggle('online', isOnline);
+    dot.classList.toggle('offline', !isOnline);
+  }
+  // Mobile dot
+  const fsDot = document.getElementById('dmFsPresenceDot');
+  if (fsDot) {
+    fsDot.classList.toggle('online', isOnline);
+    fsDot.classList.toggle('offline', !isOnline);
+  }
+}
+
+// Reset dots to offline when chat changes
+function resetPresenceDots() {
+  ['dmPresenceDot', 'dmFsPresenceDot'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.classList.remove('online'); el.classList.add('offline'); }
+  });
+}
+
 // ── TYPING INDICATOR (realtime via Supabase Broadcast) ──
 let typingChannel = null;
 let typingTimer = null;
@@ -2050,7 +2156,6 @@ let isCurrentlyTyping = false;
 let remoteTypingTimer = null;
 
 async function setupTypingChannel(myUserId, otherUserId) {
-  // Clean up old channel
   if (typingChannel) {
     await supabaseClient.removeChannel(typingChannel);
     typingChannel = null;
@@ -2064,7 +2169,7 @@ async function setupTypingChannel(myUserId, otherUserId) {
 
   typingChannel
     .on('broadcast', { event: 'typing' }, ({ payload }) => {
-      if (payload.userId === myUserId) return; // ignore own
+      if (payload.userId === myUserId) return;
       if (payload.isTyping) {
         showRemoteTyping(otherUserId);
         clearTimeout(remoteTypingTimer);
@@ -2081,13 +2186,6 @@ function showRemoteTyping(userId) {
   const contact = dmContacts.find(c => c.id === userId);
   const msgsEl = document.getElementById('dmChatMessages');
   const fsMsgsEl = document.getElementById('dmFsMessages');
-
-  // Update topbar status
-  const statusEl = document.getElementById('dmTopbarStatus');
-  if (statusEl) {
-    statusEl.textContent = 'typing...';
-    statusEl.style.color = 'var(--accent)';
-  }
 
   [{ el: msgsEl, id: 'dmTypingDots' }, { el: fsMsgsEl, id: 'dmFsTypingDots' }].forEach(({ el, id }) => {
     if (!el) return;
@@ -2115,24 +2213,16 @@ function hideRemoteTyping() {
     const el = document.getElementById(id);
     if (el) el.remove();
   });
-  const statusEl = document.getElementById('dmTopbarStatus');
-  if (statusEl) {
-    statusEl.textContent = 'Active now';
-    statusEl.style.color = '#22c55e';
-  }
 }
 
 function broadcastTyping(isTyping) {
   if (!typingChannel || !activeDmId || !currentUser) return;
-  if (typingChannel.state !== 'joined') return; // ✅ ensure ready
+  if (typingChannel.state !== 'joined') return;
 
   typingChannel.send({
     type: 'broadcast',
     event: 'typing',
-    payload: {
-      userId: currentUser.id,
-      isTyping
-    }
+    payload: { userId: currentUser.id, isTyping }
   });
 }
 
@@ -2142,19 +2232,15 @@ function onDmInputChange(mode) {
   const val = document.getElementById('dmInput').value.trim();
 
   if (val.length > 0) {
-    // Only send "typing = true" ONCE
     if (!isCurrentlyTyping) {
       isCurrentlyTyping = true;
       broadcastTyping(true);
     }
-
-    // Reset timer (debounce)
     clearTimeout(typingTimer);
-
     typingTimer = setTimeout(() => {
       isCurrentlyTyping = false;
       broadcastTyping(false);
-    }, 4000); // 🔥 increased from 1200 → 4000ms
+    }, 4000);
   } else {
     if (isCurrentlyTyping) {
       isCurrentlyTyping = false;
@@ -2232,7 +2318,6 @@ document.getElementById('clearChatOverlay').addEventListener('keydown', function
 
 // ── CONSTANTS & STATE ──
 const ADMIN_KEY = 'adminm1ik33yshamwaviii';
-// CHANGE 4: Track admin auth state — resets when DM is closed via ESC or X
 let adminAuthenticated = false;
 
 let currentView = 'chat';
@@ -2468,12 +2553,11 @@ function setWelcomeGreeting() {
 }
 setWelcomeGreeting();
 
-// ── SIDEBAR — CHANGE 2: No delay, instant collapse on mouseleave ──
+// ── SIDEBAR ──
 function setupSidebarHover() {
   const sidebar = document.getElementById('sidebar');
   const trigger = document.getElementById('sidebarTrigger');
 
-  // CHANGE 2: removed the 1000ms setTimeout — collapse is instant
   sidebar.addEventListener('mouseleave', () => {
     if (isMobile()) return;
     miniSidebar();
@@ -2757,7 +2841,6 @@ function sendStagedMedia() {
 }
 
 // ── ADMIN ──
-// CHANGE 4: openAdminPopup always shows key prompt (adminAuthenticated is reset on DM close)
 function openAdminPopup() {
   document.getElementById('adminOverlay').classList.add('show');
   document.getElementById('adminInput').value = '';
@@ -2811,6 +2894,9 @@ async function openDM() {
 
   showDmListSkeleton();
 
+  // Join presence channel — user is now "online" in admin DM
+  await joinPresence();
+
   try {
     await loadContacts();
     await preloadAllChats();
@@ -2819,16 +2905,21 @@ async function openDM() {
   }
 }
 
-// CHANGE 4: closeDM resets adminAuthenticated so re-opening always requires the key
 async function closeDM() {
   dmOpen = false;
-  adminAuthenticated = false; // reset auth — must re-enter key to open again
+  adminAuthenticated = false;
+
+  // Leave presence — user goes offline
+  await leavePresence();
+
   activeDmId = null;
   document.getElementById('dmOverlay').classList.remove('show');
   document.getElementById('dmFullscreen').classList.remove('show');
   closeMsgActionMenu();
   hideRemoteTyping();
   stopTypingBroadcast();
+  resetPresenceDots();
+
   if (typingChannel) {
     await supabaseClient.removeChannel(typingChannel);
     typingChannel = null;
@@ -2876,7 +2967,7 @@ function buildDMConvList() {
         ? (lastMsg.type === 'sent' ? 'You: ' + lastMsg.text : lastMsg.text)
         : '';
 
-      // CHANGE 3: No online dot rendered in conversation list
+      // No online dot in conv list — presence only in chat header
       item.innerHTML = `
         <div class="dm-conv-avatar" style="background:${c.color};">
           ${c.avatarUrl ? `<img src="${c.avatarUrl}" alt="">` : c.initials}
@@ -2976,9 +3067,9 @@ async function openDesktopChat(id) {
     av.textContent = contact.initials;
   }
 
-  // Reset topbar status
-  const statusEl = document.getElementById('dmTopbarStatus');
-  if (statusEl) { statusEl.textContent = 'Active now'; statusEl.style.color = '#22c55e'; }
+  // Update presence dot for this contact
+  resetPresenceDots();
+  updatePresenceDots();
 
   document.getElementById('dmEmptyState').style.display = 'none';
   document.getElementById('dmActiveChatWrap').style.display = 'flex';
@@ -3455,10 +3546,13 @@ async function openFsChat(id) {
   else { av.style.background = contact.color; av.textContent = contact.initials; }
   document.getElementById('dmFsName').textContent = contact.name;
 
+  // Update presence dot for mobile
+  resetPresenceDots();
+  updatePresenceDots();
+
   const msgsEl = document.getElementById('dmFsMessages');
   showSkeletonMessages(msgsEl);
 
-  // Setup typing for mobile
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (user) { await setupTypingChannel(user.id, id); }
 
@@ -3476,6 +3570,7 @@ function dmFsBack() {
   document.getElementById('dmFsListView').style.display = 'flex';
   activeDmId = null;
   hideRemoteTyping();
+  resetPresenceDots();
   buildDMConvList();
 }
 
@@ -3504,7 +3599,6 @@ async function dmSend(mode) {
   const msgReplyTo = replyingTo ? { ...replyingTo } : null;
   cancelReply(mode);
 
-  // Stop typing broadcast on send
   stopTypingBroadcast();
 
   input.value = '';
@@ -3815,18 +3909,15 @@ async function removeAvatar() {
 function clearHistory() { chatHistory = []; newChat(); }
 
 // ── KEYBOARD SHORTCUTS ──
-// CHANGE 4: ESC closes DM and resets admin auth. Alt+K also resets so re-open requires key.
 document.addEventListener('keydown', e => {
   if (e.altKey && e.key === 'k') {
     e.preventDefault();
     const adminOpen = document.getElementById('adminOverlay').classList.contains('show');
     if (adminOpen) { closeAdminPopup(); return; }
     if (dmOpen) {
-      // Close DM (which resets adminAuthenticated inside closeDM)
       closeDM();
       return;
     }
-    // Open — always requires key since adminAuthenticated is false
     openAdminPopup();
   }
   if (e.altKey && e.key === 'Backspace') {
@@ -3834,7 +3925,6 @@ document.addEventListener('keydown', e => {
     if (dmOpen && activeDmId) { openClearChatConfirm(); }
   }
   if (e.key === 'Escape') {
-    // CHANGE 4: ESC closes admin DM and resets auth — must re-enter key to reopen
     if (dmOpen) {
       closeDM();
       return;
@@ -4114,7 +4204,7 @@ async function loadUserProfile() {
 }
 
 window.addEventListener('load', async function() {
-  await initUser();   // ✅ ADD THIS
+  await initUser();
   checkAuth();
 });
 
