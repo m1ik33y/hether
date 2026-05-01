@@ -3538,13 +3538,110 @@ function openProfileEdit() {
   setTimeout(() => document.getElementById('peDisplayName').focus(), 50);
 }
 function closeProfileEdit() { document.getElementById('profileEditOverlay').classList.remove('show'); }
-function handleAvatarUpload(e) {
-  const file = e.target.files[0]; if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => { profile.avatarUrl = ev.target.result; renderProfileEverywhere(); };
-  reader.readAsDataURL(file);
+async function handleAvatarUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (!user) return;
+
+  // 1. Get current avatar from DB
+  const { data: existingProfile } = await supabaseClient
+    .from('profiles')
+    .select('avatar_url')
+    .eq('id', user.id)
+    .single();
+
+  // 2. Delete old file if exists
+  if (existingProfile?.avatar_url) {
+    try {
+      const url = existingProfile.avatar_url;
+
+      // Extract path AFTER /avatars/
+      const path = url.split('/avatars/')[1];
+
+      if (path) {
+        await supabaseClient
+          .storage
+          .from('avatars')
+          .remove([path]);
+      }
+    } catch (err) {
+      console.warn('Old avatar delete failed:', err);
+    }
+  }
+
+  // 3. Upload new file
+  const fileExt = file.name.split('.').pop();
+  const filePath = `${user.id}/avatar.${fileExt}`;
+
+  const { error: uploadError } = await supabaseClient
+    .storage
+    .from('avatars')
+    .upload(filePath, file, { upsert: true });
+
+  if (uploadError) {
+    alert('Upload failed: ' + uploadError.message);
+    return;
+  }
+
+  // 4. Get new public URL
+  const { data } = supabaseClient
+    .storage
+    .from('avatars')
+    .getPublicUrl(filePath);
+
+  const publicUrl = data.publicUrl + `?t=${Date.now()}`; // cache bust
+
+  // 5. Update DB
+  const { error: dbError } = await supabaseClient
+    .from('profiles')
+    .update({ avatar_url: publicUrl })
+    .eq('id', user.id);
+
+  if (dbError) {
+    alert('DB update failed: ' + dbError.message);
+    return;
+  }
+
+  // 6. Update UI
+  profile.avatarUrl = publicUrl;
+  renderProfileEverywhere();
 }
-function removeAvatar() { profile.avatarUrl = null; renderProfileEverywhere(); document.getElementById('peImageUpload').value = ''; }
+async function removeAvatar() {
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (!user) return;
+
+  // Get existing avatar
+  const { data } = await supabaseClient
+    .from('profiles')
+    .select('avatar_url')
+    .eq('id', user.id)
+    .single();
+
+  if (data?.avatar_url) {
+    try {
+      const path = data.avatar_url.split('/avatars/')[1];
+      if (path) {
+        await supabaseClient.storage.from('avatars').remove([path]);
+      }
+    } catch (err) {
+      console.warn('Delete failed:', err);
+    }
+  }
+
+  // Remove from DB
+  await supabaseClient
+    .from('profiles')
+    .update({ avatar_url: null })
+    .eq('id', user.id);
+
+  // Update UI
+  profile.avatarUrl = null;
+  renderProfileEverywhere();
+  document.getElementById('peImageUpload').value = '';
+}
+
 function clearHistory() { chatHistory = []; newChat(); }
 
 // ── KEYBOARD SHORTCUTS ──
