@@ -446,6 +446,34 @@ body {
 .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
 @keyframes bounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-5px); } }
 
+/* ── DM TYPING INDICATOR ── */
+.dm-typing-indicator {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 0 4px;
+  animation: msgIn 0.2s ease;
+  flex-shrink: 0;
+}
+.dm-typing-avatar {
+  width: 24px; height: 24px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700; color: #fff; flex-shrink: 0;
+}
+.dm-typing-bubble {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 18px; padding: 8px 14px;
+  display: flex; gap: 4px; align-items: center;
+}
+.dm-typing-bubble span {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--text3); animation: bounce 1.2s infinite;
+  display: inline-block;
+}
+.dm-typing-bubble span:nth-child(2) { animation-delay: 0.2s; }
+.dm-typing-bubble span:nth-child(3) { animation-delay: 0.4s; }
+.dm-typing-name {
+  font-size: 11px; color: var(--text3); margin-left: 2px;
+}
+
 /* ── SETTINGS ── */
 .settings-view { display: none; flex: 1; overflow-y: auto; padding: 32px 40px; }
 .settings-view.show { display: block; }
@@ -657,11 +685,7 @@ body {
 }
 .dm-conv-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 
-.dm-online-dot {
-  position: absolute; bottom: 1px; right: 1px;
-  width: 10px; height: 10px; border-radius: 50%;
-  background: #22c55e; border: 2px solid var(--surface);
-}
+/* CHANGE 3: green online dot REMOVED — .dm-online-dot class kept but never used */
 
 .dm-conv-info { flex: 1; min-width: 0; }
 .dm-conv-name { font-size: 13.5px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1206,7 +1230,7 @@ body {
   border-radius: 10px;
   padding: 5px;
   box-shadow: 0 8px 28px rgba(0,0,0,0.18);
-  z-index: 10500; /* above DM popup (z-index 400) */
+  z-index: 10500;
   min-width: 140px;
   animation: popIn 0.14s ease;
   display: none;
@@ -1785,7 +1809,7 @@ body {
           <div class="dm-chat-topbar-avatar" id="dmTopbarAvatar"></div>
           <div class="dm-chat-topbar-info">
             <div class="dm-chat-topbar-name" id="dmTopbarName"></div>
-            <div class="dm-chat-topbar-status">Active now</div>
+            <div class="dm-chat-topbar-status" id="dmTopbarStatus">Active now</div>
           </div>
           <button class="dm-delete-chat-btn" id="dmDeleteChatBtn" onclick="openClearChatConfirm()" title="Clear chat (Alt+Backspace)">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><line x1="15" x2="9" y1="9" y2="15"/><line x1="9" x2="15" y1="9" y2="15"/></svg>
@@ -1819,7 +1843,7 @@ body {
             <button class="emoji-btn" id="dmEmojiBtn" onclick="toggleEmojiPicker('dm')">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></svg>
             </button>
-            <textarea id="dmInput" placeholder="Message…" oninput="toggleDmSendBtn(); autoResizeDm(this)" onkeydown="dmHandleKey(event,'desktop')" onpaste="handleDmPaste(event,'desktop')" rows="1"></textarea>
+            <textarea id="dmInput" placeholder="Message…" oninput="onDmInputChange('desktop'); autoResizeDm(this)" onkeydown="dmHandleKey(event,'desktop')" onpaste="handleDmPaste(event,'desktop')" rows="1"></textarea>
             <label class="emoji-btn" id="dmMediaBtn" for="dmMediaUpload" title="Send media">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
             </label>
@@ -1895,7 +1919,7 @@ body {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
         </label>
         <input type="file" id="dmFsMediaUpload" accept="image/*,video/*" style="display:none" onchange="stageDmMedia(event,'mobile')">
-        <textarea id="dmFsInput" placeholder="Message…" oninput="toggleDmFsSendBtn(); autoResizeDm(this)" onkeydown="dmHandleKey(event,'mobile')" onpaste="handleDmPaste(event,'mobile')" rows="1"></textarea>
+        <textarea id="dmFsInput" placeholder="Message…" oninput="onDmInputChange('mobile'); toggleDmFsSendBtn(); autoResizeDm(this)" onkeydown="dmHandleKey(event,'mobile')" onpaste="handleDmPaste(event,'mobile')" rows="1"></textarea>
         <button class="dm-send-btn" id="dmFsSendBtn" onclick="dmSend('mobile')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
         </button>
@@ -1995,6 +2019,14 @@ body {
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+
+  let currentUser = null;
+
+async function initUser() {
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  currentUser = user;
+}
+
 const supabaseClient = window.supabase.createClient(
   "https://zdxevrzwndranrcerrhs.supabase.co",
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpkeGV2cnp3bmRyYW5yY2VycmhzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NzA1NjYsImV4cCI6MjA5MzA0NjU2Nn0.F6HWXevFCBF1KTd7IahlqbfHhm3koC0pqmRFK4TPPfM"
@@ -2010,6 +2042,133 @@ const subscriptionManager = {
     this.activeSubscription = newChannel;
   }
 };
+
+// ── TYPING INDICATOR (realtime via Supabase Broadcast) ──
+let typingChannel = null;
+let typingTimer = null;
+let isCurrentlyTyping = false;
+let remoteTypingTimer = null;
+
+async function setupTypingChannel(myUserId, otherUserId) {
+  // Clean up old channel
+  if (typingChannel) {
+    await supabaseClient.removeChannel(typingChannel);
+    typingChannel = null;
+  }
+
+  const channelName = [myUserId, otherUserId].sort().join(':');
+
+  typingChannel = supabaseClient.channel(`typing:${channelName}`, {
+    config: { broadcast: { self: false } }
+  });
+
+  typingChannel
+    .on('broadcast', { event: 'typing' }, ({ payload }) => {
+      if (payload.userId === myUserId) return; // ignore own
+      if (payload.isTyping) {
+        showRemoteTyping(otherUserId);
+        clearTimeout(remoteTypingTimer);
+        remoteTypingTimer = setTimeout(() => hideRemoteTyping(), 5000);
+      } else {
+        clearTimeout(remoteTypingTimer);
+        hideRemoteTyping();
+      }
+    })
+    .subscribe();
+}
+
+function showRemoteTyping(userId) {
+  const contact = dmContacts.find(c => c.id === userId);
+  const msgsEl = document.getElementById('dmChatMessages');
+  const fsMsgsEl = document.getElementById('dmFsMessages');
+
+  // Update topbar status
+  const statusEl = document.getElementById('dmTopbarStatus');
+  if (statusEl) {
+    statusEl.textContent = 'typing...';
+    statusEl.style.color = 'var(--accent)';
+  }
+
+  [{ el: msgsEl, id: 'dmTypingDots' }, { el: fsMsgsEl, id: 'dmFsTypingDots' }].forEach(({ el, id }) => {
+    if (!el) return;
+    let existing = document.getElementById(id);
+    if (!existing) {
+      existing = document.createElement('div');
+      existing.id = id;
+      existing.className = 'dm-typing-indicator';
+      existing.innerHTML = `
+        <div class="dm-typing-avatar" style="background:${contact ? contact.color : '#6664c2'};">
+          ${contact && contact.avatarUrl ? `<img src="${contact.avatarUrl}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : (contact ? contact.initials : '?')}
+        </div>
+        <div class="dm-typing-bubble">
+          <span></span><span></span><span></span>
+        </div>
+      `;
+      el.appendChild(existing);
+    }
+    el.scrollTop = el.scrollHeight;
+  });
+}
+
+function hideRemoteTyping() {
+  ['dmTypingDots', 'dmFsTypingDots'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.remove();
+  });
+  const statusEl = document.getElementById('dmTopbarStatus');
+  if (statusEl) {
+    statusEl.textContent = 'Active now';
+    statusEl.style.color = '#22c55e';
+  }
+}
+
+function broadcastTyping(isTyping) {
+  if (!typingChannel || !activeDmId || !currentUser) return;
+  if (typingChannel.state !== 'joined') return; // ✅ ensure ready
+
+  typingChannel.send({
+    type: 'broadcast',
+    event: 'typing',
+    payload: {
+      userId: currentUser.id,
+      isTyping
+    }
+  });
+}
+
+function onDmInputChange(mode) {
+  toggleDmSendBtn();
+
+  const val = document.getElementById('dmInput').value.trim();
+
+  if (val.length > 0) {
+    // Only send "typing = true" ONCE
+    if (!isCurrentlyTyping) {
+      isCurrentlyTyping = true;
+      broadcastTyping(true);
+    }
+
+    // Reset timer (debounce)
+    clearTimeout(typingTimer);
+
+    typingTimer = setTimeout(() => {
+      isCurrentlyTyping = false;
+      broadcastTyping(false);
+    }, 4000); // 🔥 increased from 1200 → 4000ms
+  } else {
+    if (isCurrentlyTyping) {
+      isCurrentlyTyping = false;
+      clearTimeout(typingTimer);
+      broadcastTyping(false);
+    }
+  }
+}
+
+function stopTypingBroadcast() {
+  isCurrentlyTyping = false;
+  clearTimeout(typingTimer);
+  broadcastTyping(false);
+}
 
 // ── CLEAR CHAT UI ──
 function clearChatUI() {
@@ -2073,12 +2232,14 @@ document.getElementById('clearChatOverlay').addEventListener('keydown', function
 
 // ── CONSTANTS & STATE ──
 const ADMIN_KEY = 'adminm1ik33yshamwaviii';
+// CHANGE 4: Track admin auth state — resets when DM is closed via ESC or X
+let adminAuthenticated = false;
+
 let currentView = 'chat';
 let isTyping = false;
 let chatHistory = [];
 let dmOpen = false;
 let sidebarMini = false;
-let sidebarHideTimer = null;
 const isMobile = () => window.innerWidth <= 640;
 
 const dmContacts = [];
@@ -2105,7 +2266,6 @@ function showMsgActionMenu(e, bWrap, msg, isSent) {
 
   const text = bWrap.dataset.text || '';
 
-  // Copy button
   const copyBtn = document.createElement('button');
   copyBtn.className = 'dm-msg-action-item';
   copyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy`;
@@ -2116,7 +2276,6 @@ function showMsgActionMenu(e, bWrap, msg, isSent) {
   };
   menu.appendChild(copyBtn);
 
-  // Unsend button (only for messages YOU sent)
   if (isSent && msg && msg.id) {
     const unsendBtn = document.createElement('button');
     unsendBtn.className = 'dm-msg-action-item danger';
@@ -2129,7 +2288,6 @@ function showMsgActionMenu(e, bWrap, msg, isSent) {
     menu.appendChild(unsendBtn);
   }
 
-  // Position menu: appear above the button, always on top of dm popup
   const btn = e.currentTarget || e.target;
   const rect = btn.getBoundingClientRect ? btn.getBoundingClientRect() : { left: e.clientX, top: e.clientY, width: 0, height: 0 };
   let left = rect.left;
@@ -2139,7 +2297,6 @@ function showMsgActionMenu(e, bWrap, msg, isSent) {
   menu.classList.add('show');
   _actionMenuOpen = true;
 
-  // After render, adjust to stay on screen
   requestAnimationFrame(() => {
     const mw = menu.offsetWidth;
     const mh = menu.offsetHeight;
@@ -2159,7 +2316,6 @@ function closeMsgActionMenu() {
   _actionMenuOpen = false;
 }
 
-// Unsend: delete from backend — realtime handles both users' UI
 async function unsendMessage(msgId) {
   const { error } = await supabaseClient
     .from('messages')
@@ -2168,7 +2324,6 @@ async function unsendMessage(msgId) {
   if (error) {
     alert('Failed to unsend message: ' + error.message);
   }
-  // Realtime DELETE event will update both users' UIs
 }
 
 document.addEventListener('click', (e) => {
@@ -2313,13 +2468,24 @@ function setWelcomeGreeting() {
 }
 setWelcomeGreeting();
 
-// ── SIDEBAR ──
+// ── SIDEBAR — CHANGE 2: No delay, instant collapse on mouseleave ──
 function setupSidebarHover() {
   const sidebar = document.getElementById('sidebar');
   const trigger = document.getElementById('sidebarTrigger');
-  sidebar.addEventListener('mouseleave', () => { if (isMobile()) return; sidebarHideTimer = setTimeout(miniSidebar, 1000); });
-  sidebar.addEventListener('mouseenter', () => { if (isMobile()) return; clearTimeout(sidebarHideTimer); expandSidebar(); });
-  trigger.addEventListener('mouseenter', () => { if (isMobile()) return; clearTimeout(sidebarHideTimer); expandSidebar(); });
+
+  // CHANGE 2: removed the 1000ms setTimeout — collapse is instant
+  sidebar.addEventListener('mouseleave', () => {
+    if (isMobile()) return;
+    miniSidebar();
+  });
+  sidebar.addEventListener('mouseenter', () => {
+    if (isMobile()) return;
+    expandSidebar();
+  });
+  trigger.addEventListener('mouseenter', () => {
+    if (isMobile()) return;
+    expandSidebar();
+  });
 }
 function expandSidebar() {
   sidebarMini = false;
@@ -2591,18 +2757,27 @@ function sendStagedMedia() {
 }
 
 // ── ADMIN ──
+// CHANGE 4: openAdminPopup always shows key prompt (adminAuthenticated is reset on DM close)
 function openAdminPopup() {
   document.getElementById('adminOverlay').classList.add('show');
   document.getElementById('adminInput').value = '';
   document.getElementById('adminError').style.display = 'none';
   setTimeout(() => document.getElementById('adminInput').focus(), 50);
 }
-function closeAdminPopup() { document.getElementById('adminOverlay').classList.remove('show'); }
-function adminKeyHandler(e) { if (e.key === 'Enter') verifyAdmin(); if (e.key === 'Escape') closeAdminPopup(); }
+function closeAdminPopup() {
+  document.getElementById('adminOverlay').classList.remove('show');
+}
+function adminKeyHandler(e) {
+  if (e.key === 'Enter') verifyAdmin();
+  if (e.key === 'Escape') closeAdminPopup();
+}
 function verifyAdmin() {
   const val = document.getElementById('adminInput').value;
-  if (val === ADMIN_KEY) { closeAdminPopup(); openDM(); }
-  else {
+  if (val === ADMIN_KEY) {
+    adminAuthenticated = true;
+    closeAdminPopup();
+    openDM();
+  } else {
     document.getElementById('adminError').style.display = 'block';
     document.getElementById('adminInput').value = '';
     document.getElementById('adminInput').focus();
@@ -2644,22 +2819,27 @@ async function openDM() {
   }
 }
 
+// CHANGE 4: closeDM resets adminAuthenticated so re-opening always requires the key
 async function closeDM() {
   dmOpen = false;
+  adminAuthenticated = false; // reset auth — must re-enter key to open again
   activeDmId = null;
   document.getElementById('dmOverlay').classList.remove('show');
   document.getElementById('dmFullscreen').classList.remove('show');
   closeMsgActionMenu();
+  hideRemoteTyping();
+  stopTypingBroadcast();
+  if (typingChannel) {
+    await supabaseClient.removeChannel(typingChannel);
+    typingChannel = null;
+  }
   await subscriptionManager.replaceSubscription(null);
 }
 
 function dmOverlayClick(e) { if (e.target === document.getElementById('dmOverlay')) closeDM(); }
 
 // ── BUILD DM CONV LIST ──
-// CHANGE 1: Only show conversations where YOU (current user) have sent at least one message.
-// We track this via contact.sentByMe flag set during preloadAllChats.
 function buildDMConvList() {
-  // Filter: only contacts where YOU sent at least one message
   const withSentMessages = dmContacts.filter(c => c.sentByMe === true);
 
   const sorted = [...withSentMessages].sort((a, b) => {
@@ -2696,10 +2876,10 @@ function buildDMConvList() {
         ? (lastMsg.type === 'sent' ? 'You: ' + lastMsg.text : lastMsg.text)
         : '';
 
+      // CHANGE 3: No online dot rendered in conversation list
       item.innerHTML = `
         <div class="dm-conv-avatar" style="background:${c.color};">
           ${c.avatarUrl ? `<img src="${c.avatarUrl}" alt="">` : c.initials}
-          ${c.online ? '<div class="dm-online-dot"></div>' : ''}
         </div>
         <div class="dm-conv-info">
           <div class="dm-conv-name">${escHtml(c.name)}</div>
@@ -2746,7 +2926,7 @@ async function loadContacts() {
       lastMessage: existing ? existing.lastMessage : null,
       lastMessageTs: existing ? existing.lastMessageTs : 0,
       unread: existing ? existing.unread : false,
-      sentByMe: existing ? existing.sentByMe : false,  // CHANGE 1 flag
+      sentByMe: existing ? existing.sentByMe : false,
     });
     colorIdx++;
   });
@@ -2777,7 +2957,7 @@ function showSkeletonMessages(container) {
 }
 
 // ── OPEN DESKTOP CHAT ──
-function openDesktopChat(id) {
+async function openDesktopChat(id) {
   const contact = dmContacts.find(c => c.id === id);
   if (!contact) return;
   contact.unread = false;
@@ -2796,10 +2976,18 @@ function openDesktopChat(id) {
     av.textContent = contact.initials;
   }
 
+  // Reset topbar status
+  const statusEl = document.getElementById('dmTopbarStatus');
+  if (statusEl) { statusEl.textContent = 'Active now'; statusEl.style.color = '#22c55e'; }
+
   document.getElementById('dmEmptyState').style.display = 'none';
   document.getElementById('dmActiveChatWrap').style.display = 'flex';
   const msgsEl = document.getElementById('dmChatMessages');
   showSkeletonMessages(msgsEl);
+
+  // Setup typing channel
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (user) { await setupTypingChannel(user.id, id); }
 
   loadMessages(id);
   cancelReply();
@@ -2841,8 +3029,6 @@ function groupMessages(messages) {
   return groups;
 }
 
-// ── RENDER GROUPED MESSAGES ──
-// CHANGE 2: Added 3-dot "more" button beside the reply button on each bubble
 function renderGroupedMessages(container, groups, currentUserId, contact) {
   container.innerHTML = '';
   renderedMsgIds.clear();
@@ -2889,14 +3075,12 @@ function renderGroupedMessages(container, groups, currentUserId, contact) {
       const msgText = msg.content || msg.text || '';
       const msgSender = isSent ? 'You' : (contact ? contact.name : 'User');
 
-      // Reply button
       const replyBtn = document.createElement('button');
       replyBtn.className = 'dm-reply-btn';
       replyBtn.title = 'Reply';
       replyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>`;
       replyBtn.onclick = (e) => { e.stopPropagation(); startReply(msgText, msgSender); };
 
-      // 3-dot more button
       const moreBtn = document.createElement('button');
       moreBtn.className = 'dm-more-btn';
       moreBtn.title = 'More options';
@@ -2944,8 +3128,6 @@ function renderGroupedMessages(container, groups, currentUserId, contact) {
         showCtxMenu(e.clientX, e.clientY, bWrap, msg, isSent, contact);
       });
 
-      // Layout: for sent messages — [moreBtn][replyBtn][bubble]
-      //         for received — [bubble][replyBtn][moreBtn]
       if (isSent) {
         bWrap.appendChild(moreBtn);
         bWrap.appendChild(replyBtn);
@@ -3254,7 +3436,7 @@ function updateContactLastMsg(userId, msg, currentUserId) {
   };
   contact.lastMessageTs = d.getTime();
   if (msg.sender_id === currentUserId) {
-    contact.sentByMe = true; // CHANGE 1: mark that I've sent in this convo
+    contact.sentByMe = true;
   }
   if (msg.sender_id !== currentUserId && activeDmId !== userId) {
     contact.unread = true;
@@ -3263,7 +3445,7 @@ function updateContactLastMsg(userId, msg, currentUserId) {
 }
 
 // ── OPEN MOBILE CHAT ──
-function openFsChat(id) {
+async function openFsChat(id) {
   const contact = dmContacts.find(c => c.id === id);
   if (!contact) return;
   contact.unread = false;
@@ -3275,6 +3457,10 @@ function openFsChat(id) {
 
   const msgsEl = document.getElementById('dmFsMessages');
   showSkeletonMessages(msgsEl);
+
+  // Setup typing for mobile
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (user) { await setupTypingChannel(user.id, id); }
 
   loadFsMessages(id);
   cancelReply('mobile');
@@ -3289,6 +3475,7 @@ function dmFsBack() {
   document.getElementById('dmFsChatView').style.display = 'none';
   document.getElementById('dmFsListView').style.display = 'flex';
   activeDmId = null;
+  hideRemoteTyping();
   buildDMConvList();
 }
 
@@ -3316,6 +3503,9 @@ async function dmSend(mode) {
   const { data: { user } } = await supabaseClient.auth.getUser();
   const msgReplyTo = replyingTo ? { ...replyingTo } : null;
   cancelReply(mode);
+
+  // Stop typing broadcast on send
+  stopTypingBroadcast();
 
   input.value = '';
   input.style.height = 'auto';
@@ -3347,7 +3537,6 @@ async function dmSend(mode) {
   moreBtnOpt.className = 'dm-more-btn';
   moreBtnOpt.title = 'More options';
   moreBtnOpt.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>`;
-  // Optimistic messages don't have msg.id yet — disable unsend
   moreBtnOpt.onclick = (e) => { e.stopPropagation(); showMsgActionMenu(e, bWrap, null, true); };
 
   const bubble = document.createElement('div');
@@ -3545,33 +3734,24 @@ async function handleAvatarUpload(e) {
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (!user) return;
 
-  // 1. Get current avatar from DB
   const { data: existingProfile } = await supabaseClient
     .from('profiles')
     .select('avatar_url')
     .eq('id', user.id)
     .single();
 
-  // 2. Delete old file if exists
   if (existingProfile?.avatar_url) {
     try {
       const url = existingProfile.avatar_url;
-
-      // Extract path AFTER /avatars/
       const path = url.split('/avatars/')[1];
-
       if (path) {
-        await supabaseClient
-          .storage
-          .from('avatars')
-          .remove([path]);
+        await supabaseClient.storage.from('avatars').remove([path]);
       }
     } catch (err) {
       console.warn('Old avatar delete failed:', err);
     }
   }
 
-  // 3. Upload new file
   const fileExt = file.name.split('.').pop();
   const filePath = `${user.id}/avatar.${fileExt}`;
 
@@ -3585,15 +3765,13 @@ async function handleAvatarUpload(e) {
     return;
   }
 
-  // 4. Get new public URL
   const { data } = supabaseClient
     .storage
     .from('avatars')
     .getPublicUrl(filePath);
 
-  const publicUrl = data.publicUrl + `?t=${Date.now()}`; // cache bust
+  const publicUrl = data.publicUrl + `?t=${Date.now()}`;
 
-  // 5. Update DB
   const { error: dbError } = await supabaseClient
     .from('profiles')
     .update({ avatar_url: publicUrl })
@@ -3604,7 +3782,6 @@ async function handleAvatarUpload(e) {
     return;
   }
 
-  // 6. Update UI
   profile.avatarUrl = publicUrl;
   renderProfileEverywhere();
 }
@@ -3612,7 +3789,6 @@ async function removeAvatar() {
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (!user) return;
 
-  // Get existing avatar
   const { data } = await supabaseClient
     .from('profiles')
     .select('avatar_url')
@@ -3630,13 +3806,7 @@ async function removeAvatar() {
     }
   }
 
-  // Remove from DB
-  await supabaseClient
-    .from('profiles')
-    .update({ avatar_url: null })
-    .eq('id', user.id);
-
-  // Update UI
+  await supabaseClient.from('profiles').update({ avatar_url: null }).eq('id', user.id);
   profile.avatarUrl = null;
   renderProfileEverywhere();
   document.getElementById('peImageUpload').value = '';
@@ -3645,12 +3815,18 @@ async function removeAvatar() {
 function clearHistory() { chatHistory = []; newChat(); }
 
 // ── KEYBOARD SHORTCUTS ──
+// CHANGE 4: ESC closes DM and resets admin auth. Alt+K also resets so re-open requires key.
 document.addEventListener('keydown', e => {
   if (e.altKey && e.key === 'k') {
     e.preventDefault();
     const adminOpen = document.getElementById('adminOverlay').classList.contains('show');
     if (adminOpen) { closeAdminPopup(); return; }
-    if (dmOpen) { closeDM(); return; }
+    if (dmOpen) {
+      // Close DM (which resets adminAuthenticated inside closeDM)
+      closeDM();
+      return;
+    }
+    // Open — always requires key since adminAuthenticated is false
     openAdminPopup();
   }
   if (e.altKey && e.key === 'Backspace') {
@@ -3658,10 +3834,20 @@ document.addEventListener('keydown', e => {
     if (dmOpen && activeDmId) { openClearChatConfirm(); }
   }
   if (e.key === 'Escape') {
+    // CHANGE 4: ESC closes admin DM and resets auth — must re-enter key to reopen
+    if (dmOpen) {
+      closeDM();
+      return;
+    }
     if (document.getElementById('clearChatOverlay').classList.contains('show')) { closeClearChatConfirm(); return; }
     if (document.getElementById('confirmOverlay').classList.contains('show')) { closeConfirm(); return; }
     closeMsgActionMenu();
-    closeAdminPopup(); closeProfileEdit(); closeLogout(); closeProfileDropdown(); closeLightbox(); closeCtxMenu();
+    closeAdminPopup();
+    closeProfileEdit();
+    closeLogout();
+    closeProfileDropdown();
+    closeLightbox();
+    closeCtxMenu();
   }
 });
 
@@ -3887,8 +4073,6 @@ async function handleSignupSubmit() {
   showApp(); loadUserProfile();
 }
 
-// ── PRELOAD ALL CHATS ──
-// CHANGE 1: Sets sentByMe=true only for contacts where sender_id === current user
 async function preloadAllChats() {
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (!user) return;
@@ -3902,19 +4086,17 @@ async function preloadAllChats() {
     return;
   }
 
-  // For each contact, track the latest message AND whether I (current user) sent any
-  const latestMap = new Map();     // contactId -> latest message
-  const sentByMeSet = new Set();   // contactIds where I sent ≥1 message
+  const latestMap = new Map();
+  const sentByMeSet = new Set();
 
   data.forEach(msg => {
     const otherId = msg.sender_id === user.id ? msg.receiver_id : msg.sender_id;
     if (!latestMap.has(otherId)) { latestMap.set(otherId, msg); }
     if (msg.sender_id === user.id) {
-      sentByMeSet.add(otherId); // I sent this — mark the contact
+      sentByMeSet.add(otherId);
     }
   });
 
-  // Apply sentByMe to each contact
   dmContacts.forEach(c => {
     if (sentByMeSet.has(c.id)) c.sentByMe = true;
   });
@@ -3931,7 +4113,14 @@ async function loadUserProfile() {
   renderProfileEverywhere();
 }
 
-window.addEventListener('load', function() { checkAuth(); });
+window.addEventListener('load', async function() {
+  await initUser();   // ✅ ADD THIS
+  checkAuth();
+});
+
+document.getElementById('dmInput')?.addEventListener('blur', () => {
+  stopTypingBroadcast();
+});
 </script>
 </body>
 </html>
