@@ -2558,15 +2558,26 @@ setWelcomeGreeting();
 function setupSidebarHover() {
   const sidebar = document.getElementById('sidebar');
   const trigger = document.getElementById('sidebarTrigger');
+  const dropdown = document.getElementById('profileDropdown');
 
-  sidebar.addEventListener('mouseleave', () => {
+  sidebar.addEventListener('mouseleave', (e) => {
     if (isMobile()) return;
+    // Don't collapse if cursor is moving to the profile dropdown
+    if (dropdown.matches(':hover') || dropdown.contains(e.relatedTarget)) return;
     miniSidebar();
   });
+
+  dropdown.addEventListener('mouseleave', (e) => {
+    if (isMobile()) return;
+    // Collapse when leaving dropdown (unless going back to sidebar)
+    if (!sidebar.contains(e.relatedTarget)) miniSidebar();
+  });
+
   sidebar.addEventListener('mouseenter', () => {
     if (isMobile()) return;
     expandSidebar();
   });
+
   trigger.addEventListener('mouseenter', () => {
     if (isMobile()) return;
     expandSidebar();
@@ -2579,6 +2590,10 @@ function expandSidebar() {
   document.getElementById('profileDropdown').classList.remove('show');
 }
 function miniSidebar() {
+  const dropdown = document.getElementById('profileDropdown');
+  // Don't collapse if the dropdown is open and being hovered
+  if (dropdown.classList.contains('show') && dropdown.matches(':hover')) return;
+  
   sidebarMini = true;
   document.getElementById('sidebar').classList.add('mini');
   if (!isMobile()) document.getElementById('mainArea').classList.add('sidebar-mini');
