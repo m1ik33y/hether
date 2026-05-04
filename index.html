@@ -3683,8 +3683,25 @@ async function dmSend(mode) {
     const { data: inserted, error } = await supabaseClient.from('messages').insert(insertData).select().single();
     if (error) throw error;
 
-    optimisticGroup.remove();
-    reloadAndRenderMessages(activeDmId, mode);
+    // Remove spinner and mark as sent in-place — no re-render, no flicker
+    const spinner = optimisticGroup.querySelector('.dm-sending-icon');
+    if (spinner) spinner.remove();
+    const sendingBubble = optimisticGroup.querySelector('.dm-bubble.sending');
+    if (sendingBubble) {
+      sendingBubble.classList.remove('sending');
+      sendingBubble.style.opacity = '';
+    }
+    if (inserted?.id) {
+      optimisticGroup.dataset.msgId = inserted.id;
+      bWrap.dataset.msgId = inserted.id;
+      const bubbleEl = optimisticGroup.querySelector('.dm-bubble');
+      if (bubbleEl) bubbleEl.dataset.msgId = inserted.id;
+      renderedMsgIds.add(inserted.id);
+      moreBtnOpt.onclick = (e) => {
+        e.stopPropagation();
+        showMsgActionMenu(e, bWrap, inserted, true);
+      };
+    }
     updateContactLastMsg(activeDmId, inserted, user.id);
     buildDMConvList();
   } catch (err) {
@@ -3750,18 +3767,22 @@ function appendDmMediaBubble(container, dataUrl, isVideo, currentUserId, contact
   bubblesWrap.className = 'dm-msg-bubbles';
   const bWrap = document.createElement('div');
   bWrap.className = 'dm-bubble-wrap';
-  const bubble = document.createElement('div');
-  bubble.className = 'dm-bubble dm-bubble-media-only';
+  const mediaWrap = document.createElement('div');
+  mediaWrap.className = 'dm-bubble-media-only';
   if (isVideo) {
-    bubble.innerHTML = `<video controls src="${dataUrl}" style="max-width:220px;max-height:180px;border-radius:12px;display:block;box-shadow:0 2px 10px rgba(0,0,0,0.12);"></video>`;
+    const vid = document.createElement('video');
+    vid.controls = true;
+    vid.src = dataUrl;
+    vid.style.cssText = 'max-width:220px;max-height:180px;border-radius:12px;display:block;box-shadow:0 2px 10px rgba(0,0,0,0.12);';
+    mediaWrap.appendChild(vid);
   } else {
     const img = document.createElement('img');
     img.src = dataUrl;
     img.style.cssText = 'max-width:220px;max-height:180px;border-radius:12px;display:block;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,0.12);';
     img.onclick = () => openLightbox(dataUrl);
-    bubble.appendChild(img);
+    mediaWrap.appendChild(img);
   }
-  bWrap.appendChild(bubble);
+  bWrap.appendChild(mediaWrap);
   bubblesWrap.appendChild(bWrap);
   rowEl.appendChild(bubblesWrap);
   groupEl.appendChild(rowEl);
