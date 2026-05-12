@@ -2414,7 +2414,7 @@ body {
   <div class="popup">
     <h3>Admin Key</h3>
     <p>Enter your administrator key to continue.</p>
-    <input type="password" id="adminInput" name="new password" autocomplete="new-password" placeholder="Enter admin key" onkeydown="adminKeyHandler(event)">
+    <input type="text" id="adminInput" name="admin-key-field" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Enter admin key" onkeydown="adminKeyHandler(event)">
     <div class="popup-error" id="adminError">Incorrect key. Try again.</div>
     <div class="popup-btns">
       <button class="btn-cancel" onclick="closeAdminPopup()">Cancel</button>
@@ -3289,18 +3289,13 @@ function closeAdminPopup() {
 }
 
 function openAdminPopup() {
-  // Always reset before showing — even if somehow called while authenticated
   _adminSessionValid = false;
   adminAuthenticated = false;
   const input = document.getElementById('adminInput');
   document.getElementById('adminOverlay').classList.add('show');
   input.value = '';
-  input.setAttribute('type', 'text');
-  setTimeout(() => {
-    input.setAttribute('type', 'password');
-    document.getElementById('adminError').style.display = 'none';
-    input.focus();
-  }, 10);
+  document.getElementById('adminError').style.display = 'none';
+  input.focus();
 }
 
 function adminKeyHandler(e) {
