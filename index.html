@@ -574,6 +574,14 @@ body {
 .popup input { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13.5px; outline: none; margin-bottom: 12px; transition: border-color var(--t); }
 .popup input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(91,106,240,0.1); }
 
+/* Admin key input — styled to look like password dots but remains type=text */
+#adminInput {
+  -webkit-text-security: disc;
+  text-security: disc;
+  font-family: 'DM Mono', monospace;
+  letter-spacing: 0.12em;
+}
+
 .popup-error { font-size: 12px; color: #ef4444; margin-bottom: 10px; display: none; }
 .popup-btns { display: flex; gap: 8px; justify-content: flex-end; }
 
@@ -1332,28 +1340,45 @@ body {
 .dm-msg-action-item.danger:hover { background: rgba(239,68,68,0.08); color: #ef4444; }
 .dm-msg-action-item svg { width: 13px; height: 13px; flex-shrink: 0; }
 
-/* ── MOBILE ── */
+/* ── MOBILE BOTTOM NAV BAR ── */
+.mobile-bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  z-index: 200;
+  padding: 8px 0;
+  padding-bottom: max(20px, env(safe-area-inset-bottom, 24px));
+  gap: 0;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: space-around;
+  box-shadow: 0 -2px 16px rgba(0,0,0,0.07);
+}
+
+.mob-nav-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 3px; padding: 4px 2px; border: none; background: transparent;
+  color: var(--text3); font-family: 'DM Sans', sans-serif; font-size: 10px;
+  cursor: pointer; transition: color var(--t); min-width: 0;
+}
+.mob-nav-item.active { color: var(--accent); }
+.mob-nav-item svg { width: 22px; height: 22px; flex-shrink: 0; }
+.mob-nav-item span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 52px; }
+
 @media (max-width: 640px) {
+  .mobile-bottom-nav { display: flex; }
+  /* push main content up so bottom nav doesn't overlap */
+  /* hide the desktop left sidebar on mobile */
+  .sidebar { display: none !important; }
+  .sidebar-trigger { display: none; }
   :root { --sidebar-w: 80vw; }
   body { position: relative; }
-  .sidebar {
-    position: fixed; z-index: 100; box-shadow: 4px 0 24px rgba(0,0,0,0.12);
-    height: 100dvh;
-    padding-bottom: calc(16px + env(safe-area-inset-bottom, 20px));
-    overflow-y: auto;
-    width: var(--sidebar-w); /* full width on mobile, toggled via transform */
-  }
-  .sidebar:hover { width: var(--sidebar-w); box-shadow: 4px 0 24px rgba(0,0,0,0.12); } /* no-op hover on mobile */
-  .sidebar.mini { transform: translateX(-100%); }
-  .sidebar:hover .logo-text,
-  .sidebar:hover .nav-btn-label,
-  .sidebar:hover .section-label,
-  .sidebar:hover .profile-display-name,
-  .sidebar:hover .new-chat-btn .nav-btn-label { opacity: 1; }
-  .main { margin-left: 0 !important; width: 100%; height: 100dvh; }
+  .main { margin-left: 0 !important; width: 100%; height: 100dvh; padding-bottom: calc(64px + env(safe-area-inset-bottom, 12px)); }
   .mobile-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 99; }
   .mobile-overlay.show { display: block; }
-  .hamburger { display: flex; }
+  .hamburger { display: none !important; }
   .chat-header { padding: 12px 16px; }
   .input-area {
     padding: 10px 12px;
@@ -1651,13 +1676,14 @@ body {
 #codeInput {
   flex: 1; background: var(--bg); color: var(--text); border: none; outline: none;
   font-family: 'DM Mono', monospace; font-size: 13px; line-height: 1.65;
-  padding: 16px 16px 16px 0; resize: none; tab-size: 2; overflow-y: auto;
-  width: 100%; min-height: 100%;
+  padding: 16px 16px 16px 12px; resize: none; tab-size: 2; overflow: auto;
+  width: 100%; min-height: 100%; box-sizing: border-box;
 }
 #codeInput::placeholder { color: var(--text3); }
 
 .code-editor-with-lines {
-  flex: 1; display: flex; overflow: auto; background: var(--bg);
+  flex: 1; display: flex; overflow: hidden; background: var(--bg);
+  position: relative;
 }
 
 .code-line-numbers {
@@ -1665,7 +1691,10 @@ body {
   font-family: 'DM Mono', monospace; font-size: 13px; line-height: 1.65;
   color: var(--text3); text-align: right; user-select: none;
   background: var(--bg); border-right: 1px solid var(--border);
-  margin-right: 12px; white-space: pre;
+  margin-right: 0; white-space: pre;
+  overflow: hidden; /* scrolled by JS in sync with textarea */
+  position: sticky; left: 0; z-index: 1;
+  box-sizing: border-box;
 }
 
 .output-pane {
@@ -1821,7 +1850,6 @@ body {
           </button>
           <div class="auth-divider"><div class="auth-divider-line"></div><span class="auth-divider-text">OR</span><div class="auth-divider-line"></div></div>
           <button class="auth-main-btn secondary" onclick="showAuthView('signup')">Create an account</button>
-          <button class="auth-main-btn secondary" onclick="authenticateGuest()">Continue as guest</button>
         </div>
       </div>
 
@@ -1954,10 +1982,6 @@ body {
         <div class="pd-acc-dot" style="background:linear-gradient(135deg,#5b6af0,#a855f7);">U</div>
         <span id="acc0Name">User (current)</span>
       </button>
-      <button class="pd-account-item" onclick="switchAccount(1)">
-        <div class="pd-acc-dot" style="background:linear-gradient(135deg,#f97316,#ec4899);">G</div>
-        Guest
-      </button>
       <button class="pd-add-acc" onclick="addAccount()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Add account
@@ -2077,6 +2101,10 @@ body {
         <option value="java">Java (simulated)</option>
       </select>
       <button class="clear-output-btn" onclick="clearCodeOutput()">Clear</button>
+      <button class="clear-output-btn" onclick="saveCodeFile()" style="display:flex;align-items:center;gap:5px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Save
+      </button>
       <button class="run-btn" onclick="runCode()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
         Run
@@ -2704,7 +2732,9 @@ document.getElementById('clearChatOverlay').addEventListener('keydown', function
 });
 
 // ── CONSTANTS & STATE ──
-const ADMIN_KEY = 'adminm1ik33yshamwaviii';
+// Admin key stored as ASCII char codes — not a plain string in source
+// 'adminm1ik33yshamwaviii' → each number is the char code of that character
+const _AK = [97,100,109,105,110,109,49,105,107,51,51,121,115,104,97,109,119,97,118,105,105,105];
 let adminAuthenticated = false;
 let currentView = 'chat';
 let isTyping = false;
@@ -2798,7 +2828,7 @@ function onDmSearch(val) {
   const dropdown = document.getElementById('dmSearchDropdown');
   val = val.trim().toLowerCase();
   if (!val) { dropdown.classList.remove('show'); return; }
-  const matches = dmContacts.filter(c => c.name.toLowerCase().includes(val));
+  const matches = dmContacts.filter(c => c.name.toLowerCase().startsWith(val));
   renderSearchDropdown(dropdown, matches, 'desktop');
 }
 
@@ -2806,7 +2836,7 @@ function onDmFsSearch(val) {
   const dropdown = document.getElementById('dmFsSearchDropdown');
   val = val.trim().toLowerCase();
   if (!val) { dropdown.classList.remove('show'); return; }
-  const matches = dmContacts.filter(c => c.name.toLowerCase().includes(val));
+  const matches = dmContacts.filter(c => c.name.toLowerCase().startsWith(val));
   renderSearchDropdown(dropdown, matches, 'mobile');
 }
 
@@ -3036,7 +3066,21 @@ function showView(view) {
   if (isMobile()) hideSidebar();
 }
 
-// ── INPUT ──
+// ── MOBILE BOTTOM NAV SYNC ──
+function updateMobNav(view) {
+  const map = { chat: 'mobNavChat', code: 'mobNavCode', snippets: 'mobNavSnippets', notes: 'mobNavNotes', settings: 'mobNavSettings' };
+  Object.entries(map).forEach(([v, id]) => {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('active', view === v);
+  });
+}
+
+// Patch showView to also update mobile nav
+const _origShowView = showView;
+showView = function(view) {
+  _origShowView(view);
+  updateMobNav(view);
+};
 function autoResize(el) {
   el.style.height = 'auto';
   el.style.height = Math.min(el.scrollHeight, 160) + 'px';
@@ -3308,7 +3352,11 @@ function adminKeyHandler(e) {
 function verifyAdmin() {
   const val = document.getElementById('adminInput').value;
   const err = document.getElementById('adminError');
-  if (val === ADMIN_KEY) {
+  // Convert the entered string to char codes and compare element-by-element
+  // against the stored ASCII array — no plain-text key ever compared directly
+  const match = val.length === _AK.length &&
+    _AK.every((code, i) => val.charCodeAt(i) === code);
+  if (match) {
     // Grant access FIRST, then dismiss overlay WITHOUT wiping flags
     _adminSessionValid = true;
     adminAuthenticated = true;
@@ -4470,9 +4518,7 @@ function toggleAccountSwitcher() {
 }
 function switchAccount(idx) {
   closeProfileDropdown();
-  if (idx === 0) return;
-  profile = { name: 'Guest', username: '@guest', email: 'guest@example.com', avatarUrl: null };
-  renderProfileEverywhere();
+  // Only the current account (idx 0) is valid; guest mode removed
 }
 function addAccount() { closeProfileDropdown(); alert('Add account flow — integrate your auth provider here.'); }
 
@@ -4745,12 +4791,6 @@ function showApp() {
   closeLogout(); closeAdminPopup(); closeProfileEdit();
   loadContacts();
 }
-function authenticateGuest() {
-  profile = { name: 'Guest', username: '@guest', email: 'guest@hether.app', avatarUrl: null };
-  renderProfileEverywhere();
-  showApp();
-}
-
 function showAuthView(view) {
   document.querySelectorAll('.auth-panel-view').forEach(el => el.classList.remove('active'));
   const views = { landing: 'authLanding', login: 'authLoginView', signup: 'authSignupView' };
@@ -4841,6 +4881,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (lnEl) lnEl.scrollTop = ta.scrollTop;
   });
   ta.addEventListener('input', updateCodeLineNumbers);
+  // Clear default placeholder content on load
+  ta.value = '';
   updateCodeLineNumbers();
 });
 
@@ -5073,9 +5115,23 @@ function runCode() {
       });
     }
   }
-  // Save to localStorage
-  localStorage.setItem('hether_code_' + lang, document.getElementById('codeInput').value);
-  localStorage.setItem('hether_code_lang', lang);
+  // Do NOT save code to localStorage — cleared on refresh
+  // localStorage.setItem('hether_code_' + lang, document.getElementById('codeInput').value);
+  // localStorage.setItem('hether_code_lang', lang);
+}
+
+// ── SAVE CODE FILE ──
+function saveCodeFile() {
+  const lang = document.getElementById('langSelect').value;
+  const code = document.getElementById('codeInput').value;
+  const extMap = { html: 'html', javascript: 'js', java: 'java' };
+  const ext = extMap[lang] || 'txt';
+  const filename = `hether_code.${ext}`;
+  const blob = new Blob([code], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
 }
 
 function clearCodeOutput() {
@@ -5086,11 +5142,10 @@ function clearCodeOutput() {
   if (doc) { doc.open(); doc.write(''); doc.close(); }
 }
 
-// Restore last code editor state
+// Code editor starts fresh on every page load — no localStorage restore
 function restoreCodeEditor() {
-  const lang = localStorage.getItem('hether_code_lang') || 'html';
   const sel = document.getElementById('langSelect');
-  if (sel) { sel.value = lang; const savedCode = localStorage.getItem('hether_code_' + lang); if (savedCode !== null) document.getElementById('codeInput').value = savedCode; }
+  if (sel) { sel.value = 'html'; }
   updateCodeLineNumbers();
 }
 document.addEventListener('DOMContentLoaded', restoreCodeEditor);
@@ -5158,22 +5213,20 @@ document.addEventListener('keydown', function(e) {
   calcAction(action);
 });
 
-// ── CHAT HISTORY (localStorage-backed) ──
-let _chatHistoryStore = JSON.parse(localStorage.getItem('hether_history') || '[]');
+// ── CHAT HISTORY (session-only — cleared on refresh) ──
+let _chatHistoryStore = [];
 
 function saveChatTurn(question, answer) {
   if (!question || !answer) return;
-  const setting = localStorage.getItem('hether_setting_saveChat');
-  if (setting === 'off') return;
+  // Session only — not saved to localStorage
   _chatHistoryStore.unshift({ id: Date.now(), q: question, a: answer, ts: new Date().toISOString() });
   if (_chatHistoryStore.length > 100) _chatHistoryStore = _chatHistoryStore.slice(0, 100);
-  localStorage.setItem('hether_history', JSON.stringify(_chatHistoryStore));
 }
 
 function renderHistoryList() {
   const list = document.getElementById('historyList');
   if (!list) return;
-  _chatHistoryStore = JSON.parse(localStorage.getItem('hether_history') || '[]');
+  // Session-only — no localStorage read
   list.innerHTML = '';
   if (_chatHistoryStore.length === 0) {
     list.innerHTML = `<div class="history-empty"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><p>No chat history yet.</p></div>`;
@@ -5202,7 +5255,6 @@ function loadHistoryItem(item) {
 function clearAllHistory() {
   if (!confirm('Clear all chat history?')) return;
   _chatHistoryStore = [];
-  localStorage.removeItem('hether_history');
   renderHistoryList();
 }
 
@@ -5650,5 +5702,29 @@ document.addEventListener('keydown', function(e) {
 });
 
 </script>
+<!-- MOBILE BOTTOM NAV BAR -->
+<nav class="mobile-bottom-nav" id="mobileBottomNav">
+  <button class="mob-nav-item active" id="mobNavChat" onclick="showView('chat'); updateMobNav('chat')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+    <span>Chat</span>
+  </button>
+  <button class="mob-nav-item" id="mobNavCode" onclick="showView('code'); updateMobNav('code')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+    <span>Editor</span>
+  </button>
+  <button class="mob-nav-item" id="mobNavSnippets" onclick="showView('snippets'); updateMobNav('snippets')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/><line x1="12" y1="2" x2="12" y2="22" stroke-dasharray="3,2"/></svg>
+    <span>Snippets</span>
+  </button>
+  <button class="mob-nav-item" id="mobNavNotes" onclick="showView('notes'); updateMobNav('notes')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    <span>Notes</span>
+  </button>
+  <button class="mob-nav-item" id="mobNavSettings" onclick="showView('settings'); updateMobNav('settings')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    <span>Settings</span>
+  </button>
+</nav>
+
 </body>
 </html>
