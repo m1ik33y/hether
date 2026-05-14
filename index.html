@@ -6008,6 +6008,277 @@ System.out.println("Hello, " + name + "!");
 sc.close();`,
     desc: ['Scanner reads from System.in (keyboard)', 'nextLine() reads a full line including spaces', 'Always close Scanner when done to free resources']
   },
+  {
+    title: 'Selection Sort',
+    code: `public static void selectionSort(int[] arr) {
+    int n = arr.length;
+    for (int i = 0; i < n - 1; i++) {
+        int minIdx = i;
+        for (int j = i + 1; j < n; j++) {
+            if (arr[j] < arr[minIdx]) minIdx = j;
+        }
+        int tmp = arr[minIdx];
+        arr[minIdx] = arr[i];
+        arr[i] = tmp;
+    }
+}`,
+    desc: ['Finds the minimum element and places it at the front each pass', 'O(n²) time but fewer swaps than bubble sort', 'In-place, no extra memory required']
+  },
+  {
+    title: 'Merge Sort',
+    code: `public static void mergeSort(int[] arr, int l, int r) {
+    if (l >= r) return;
+    int mid = (l + r) / 2;
+    mergeSort(arr, l, mid);
+    mergeSort(arr, mid + 1, r);
+    merge(arr, l, mid, r);
+}
+private static void merge(int[] arr, int l, int mid, int r) {
+    int[] tmp = Arrays.copyOfRange(arr, l, r + 1);
+    int i = 0, j = mid - l + 1, k = l;
+    while (i <= mid - l && j <= r - l)
+        arr[k++] = tmp[i] <= tmp[j] ? tmp[i++] : tmp[j++];
+    while (i <= mid - l) arr[k++] = tmp[i++];
+    while (j <= r - l)   arr[k++] = tmp[j++];
+}`,
+    desc: ['Divide-and-conquer O(n log n) sorting algorithm', 'Stable sort — equal elements keep their original order', 'Requires O(n) extra space for the temp array']
+  },
+  {
+    title: 'Linked List Node',
+    code: `class Node {
+    int data;
+    Node next;
+    Node(int data) { this.data = data; }
+}
+
+class LinkedList {
+    Node head;
+    void add(int val) {
+        Node n = new Node(val);
+        if (head == null) { head = n; return; }
+        Node cur = head;
+        while (cur.next != null) cur = cur.next;
+        cur.next = n;
+    }
+}`,
+    desc: ['Each node holds data and a reference to the next node', 'add() traverses to the tail before inserting', 'head is null for an empty list']
+  },
+  {
+    title: 'Stack with Deque',
+    code: `import java.util.Deque;
+import java.util.ArrayDeque;
+Deque<Integer> stack = new ArrayDeque<>();
+stack.push(1);
+stack.push(2);
+stack.push(3);
+System.out.println(stack.pop());  // 3 (LIFO)
+System.out.println(stack.peek()); // 2`,
+    desc: ['ArrayDeque is the preferred stack in modern Java', 'push() adds to top; pop() removes and returns top', 'peek() reads the top without removing it']
+  },
+  {
+    title: 'Queue with LinkedList',
+    code: `import java.util.Queue;
+import java.util.LinkedList;
+Queue<String> q = new LinkedList<>();
+q.offer("first");
+q.offer("second");
+System.out.println(q.poll()); // first (FIFO)
+System.out.println(q.peek()); // second`,
+    desc: ['offer() enqueues; poll() dequeues (FIFO)', 'peek() reads the front without removing', 'Returns null on empty queue — no exception like remove()']
+  },
+  {
+    title: 'String Formatting',
+    code: `String name = "Alice";
+int age = 30;
+double gpa = 3.85;
+String s1 = String.format("Name: %s, Age: %d", name, age);
+String s2 = String.format("GPA: %.2f", gpa);
+System.out.println(s1); // Name: Alice, Age: 30
+System.out.println(s2); // GPA: 3.85`,
+    desc: ['%s for strings, %d for integers, %f for floats', '%.2f limits to 2 decimal places', 'Preferred over string concatenation for readability']
+  },
+  {
+    title: 'Try-With-Resources',
+    code: `import java.io.*;
+try (BufferedReader br = new BufferedReader(
+        new FileReader("data.txt"))) {
+    String line;
+    while ((line = br.readLine()) != null) {
+        System.out.println(line);
+    }
+} catch (IOException e) {
+    e.printStackTrace();
+}`,
+    desc: ['Automatically closes resources when the block exits', 'Works with any class implementing AutoCloseable', 'Eliminates the need for a finally block to close streams']
+  },
+  {
+    title: 'Lambda & Stream Filter',
+    code: `import java.util.*;
+import java.util.stream.*;
+List<Integer> nums = Arrays.asList(1, 2, 3, 4, 5, 6);
+List<Integer> evens = nums.stream()
+    .filter(n -> n % 2 == 0)
+    .collect(Collectors.toList());
+System.out.println(evens); // [2, 4, 6]`,
+    desc: ['stream() creates a pipeline over the collection', 'filter() keeps only elements matching the predicate', 'collect(Collectors.toList()) materialises the result']
+  },
+  {
+    title: 'Optional to Avoid NullPointerException',
+    code: `import java.util.Optional;
+Optional<String> name = Optional.ofNullable(getUserName());
+String result = name
+    .map(String::toUpperCase)
+    .orElse("GUEST");
+System.out.println(result);`,
+    desc: ['Optional wraps a value that might be null', 'map() transforms the value only if present', 'orElse() provides a safe default when empty']
+  },
+  {
+    title: 'Comparable & Sorting Objects',
+    code: `class Student implements Comparable<Student> {
+    String name; int grade;
+    Student(String n, int g) { name = n; grade = g; }
+    @Override
+    public int compareTo(Student o) {
+        return Integer.compare(this.grade, o.grade);
+    }
+}
+// Usage:
+List<Student> students = new ArrayList<>();
+Collections.sort(students); // sorts by grade`,
+    desc: ['Implement Comparable to define natural ordering', 'compareTo returns negative, 0, or positive', 'Collections.sort() then works without extra comparator']
+  },
+  {
+    title: 'Generic Method',
+    code: `public static <T extends Comparable<T>> T max(T a, T b) {
+    return a.compareTo(b) >= 0 ? a : b;
+}
+// Works with any Comparable type:
+System.out.println(max(10, 20));       // 20
+System.out.println(max("apple","fig")); // fig`,
+    desc: ['<T extends Comparable<T>> bounds T to comparable types', 'One method works for int, String, Double, etc.', 'Type safety is checked at compile time, not runtime']
+  },
+  {
+    title: 'Iterator Pattern',
+    code: `import java.util.*;
+List<String> items = new ArrayList<>(Arrays.asList("a","b","c"));
+Iterator<String> it = items.iterator();
+while (it.hasNext()) {
+    String s = it.next();
+    if (s.equals("b")) it.remove(); // safe removal
+}
+System.out.println(items); // [a, c]`,
+    desc: ['Iterator allows safe removal while iterating', 'Avoids ConcurrentModificationException unlike for-each', 'hasNext() + next() is the standard traversal pattern']
+  },
+  {
+    title: 'Enum with Methods',
+    code: `enum Direction {
+    NORTH, SOUTH, EAST, WEST;
+    public Direction opposite() {
+        return switch (this) {
+            case NORTH -> SOUTH;
+            case SOUTH -> NORTH;
+            case EAST  -> WEST;
+            case WEST  -> EAST;
+        };
+    }
+}
+System.out.println(Direction.NORTH.opposite()); // SOUTH`,
+    desc: ['Enums can hold methods, fields, and constructors', 'Switch expressions with arrows are concise and exhaustive', 'Enum values are singleton instances — safe to compare with ==']
+  },
+  {
+    title: 'Interface with Default Method',
+    code: `interface Greeter {
+    String greet(String name);
+    default String greetLoud(String name) {
+        return greet(name).toUpperCase();
+    }
+}
+class HelloGreeter implements Greeter {
+    public String greet(String name) {
+        return "Hello, " + name + "!";
+    }
+}
+// greetLoud() inherited for free`,
+    desc: ['default methods add behaviour without breaking existing implementations', 'Implementing classes inherit the default automatically', 'Override default if custom logic is needed']
+  },
+  {
+    title: 'Thread with Runnable',
+    code: `Runnable task = () -> {
+    for (int i = 0; i < 5; i++) {
+        System.out.println(Thread.currentThread().getName() + ": " + i);
+    }
+};
+Thread t1 = new Thread(task, "Worker-1");
+Thread t2 = new Thread(task, "Worker-2");
+t1.start();
+t2.start();`,
+    desc: ['Runnable (lambda) separates the task from the thread', 'start() spawns a new OS thread; run() just calls it on the current thread', 'Output order is non-deterministic — threads race']
+  },
+  {
+    title: 'Read / Write File',
+    code: `import java.nio.file.*;
+// Write
+Path p = Path.of("notes.txt");
+Files.writeString(p, "Hello file!\\n", StandardOpenOption.CREATE);
+// Read all lines
+List<String> lines = Files.readAllLines(p);
+lines.forEach(System.out::println);`,
+    desc: ['Files.writeString() is the simplest way to write text in Java 11+', 'StandardOpenOption.CREATE creates or truncates the file', 'readAllLines() loads everything into memory — fine for small files']
+  },
+  {
+    title: 'Record Class (Java 16+)',
+    code: `record Point(double x, double y) {
+    double distanceTo(Point other) {
+        double dx = this.x - other.x;
+        double dy = this.y - other.y;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+}
+Point a = new Point(0, 0), b = new Point(3, 4);
+System.out.println(a.distanceTo(b)); // 5.0`,
+    desc: ['Records auto-generate constructor, getters, equals, hashCode, toString', 'Immutable by default — fields are final', 'Great for plain data carriers without boilerplate']
+  },
+  {
+    title: 'Sealed Classes (Java 17+)',
+    code: `sealed interface Shape permits Circle, Rectangle {}
+record Circle(double radius) implements Shape {}
+record Rectangle(double w, double h) implements Shape {}
+
+double area(Shape s) {
+    return switch (s) {
+        case Circle c    -> Math.PI * c.radius() * c.radius();
+        case Rectangle r -> r.w() * r.h();
+    };
+}`,
+    desc: ['sealed restricts which classes can implement/extend', 'Pattern matching switch is exhaustive — no default needed', 'Combines well with records for algebraic data types']
+  },
+  {
+    title: 'Collections.frequency & groupingBy',
+    code: `import java.util.*;
+import java.util.stream.*;
+List<String> words = Arrays.asList("cat","dog","cat","bird","dog","cat");
+Map<String, Long> freq = words.stream()
+    .collect(Collectors.groupingBy(w -> w, Collectors.counting()));
+System.out.println(freq); // {cat=3, dog=2, bird=1}`,
+    desc: ['groupingBy partitions elements by a classifier function', 'Collectors.counting() counts elements per group', 'Result is a Map — iterate with entrySet() to process each group']
+  },
+  {
+    title: 'Pattern Matching instanceof (Java 16+)',
+    code: `Object obj = "Hello, Java!";
+if (obj instanceof String s && s.length() > 5) {
+    System.out.println(s.toUpperCase());
+}`,
+    desc: ['instanceof with a pattern variable casts and binds in one step', 'The variable s is only in scope when the check passes', 'Eliminates the manual cast that was needed before Java 16']
+  },
+  {
+    title: 'CompletableFuture',
+    code: `import java.util.concurrent.CompletableFuture;
+CompletableFuture.supplyAsync(() -> fetchData())
+    .thenApply(data -> process(data))
+    .thenAccept(result -> System.out.println("Done: " + result))
+    .exceptionally(ex -> { System.err.println(ex); return null; });`,
+    desc: ['supplyAsync() runs the supplier on the common ForkJoin pool', 'thenApply() transforms the result (like map)', 'exceptionally() handles errors without breaking the chain']
+  },
 ];
 
 const webSnippets = [
@@ -6155,6 +6426,225 @@ const user = store.get('user');`,
 // Usage:
 window.addEventListener('scroll', throttle(onScroll, 100));`,
     desc: ['throttle ensures a function fires at most once per interval', 'Unlike debounce, it runs immediately then waits', 'Ideal for scroll, resize, and mousemove events']
+  },
+  {
+    title: 'CSS Grid Layout',
+    code: `.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+}`,
+    desc: ['auto-fill creates as many columns as fit without overflow', 'minmax(220px, 1fr) sets a minimum width and lets columns grow', 'Responsive with zero media queries']
+  },
+  {
+    title: 'Intersection Observer',
+    code: `const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+        }
+    });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));`,
+    desc: ['Triggers when an element enters the viewport — no scroll listener needed', 'threshold: 0.1 fires when 10% of the element is visible', 'unobserve() stops watching once the animation has played']
+  },
+  {
+    title: 'Promise.all for Parallel Requests',
+    code: `async function loadAll() {
+    const [users, posts, comments] = await Promise.all([
+        fetch('/api/users').then(r => r.json()),
+        fetch('/api/posts').then(r => r.json()),
+        fetch('/api/comments').then(r => r.json()),
+    ]);
+    return { users, posts, comments };
+}`,
+    desc: ['Promise.all runs all fetches in parallel, not sequentially', 'Total time equals the slowest request, not the sum', 'Rejects immediately if any promise fails']
+  },
+  {
+    title: 'CSS Sticky Header',
+    code: `header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}`,
+    desc: ['sticky keeps the element in flow but pins it when scrolled past', 'top: 0 sets where it sticks relative to the scroll container', 'z-index ensures it sits above scrolled content']
+  },
+  {
+    title: 'Array Grouping (Object.groupBy)',
+    code: `const products = [
+    { name: 'Apple', type: 'fruit' },
+    { name: 'Carrot', type: 'veg' },
+    { name: 'Banana', type: 'fruit' },
+];
+const grouped = Object.groupBy(products, p => p.type);
+// { fruit: [{...},{...}], veg: [{...}] }`,
+    desc: ['Object.groupBy is a modern JS method (ES2024)', 'Groups array items by the return value of the callback', 'Falls back to reduce() for older environments']
+  },
+  {
+    title: 'Drag and Drop (HTML5)',
+    code: `// Make element draggable
+el.setAttribute('draggable', true);
+el.addEventListener('dragstart', e => {
+    e.dataTransfer.setData('text/plain', el.id);
+});
+// Drop zone
+zone.addEventListener('dragover', e => e.preventDefault());
+zone.addEventListener('drop', e => {
+    const id = e.dataTransfer.getData('text/plain');
+    zone.appendChild(document.getElementById(id));
+});`,
+    desc: ['draggable="true" opts the element into the drag API', 'dragover must call preventDefault() to allow dropping', 'dataTransfer passes data between drag source and drop target']
+  },
+  {
+    title: 'Web Worker Offload',
+    code: `// main.js
+const worker = new Worker('worker.js');
+worker.postMessage({ data: heavyArray });
+worker.onmessage = e => console.log('Result:', e.data);
+
+// worker.js
+self.onmessage = e => {
+    const result = e.data.data.reduce((a, b) => a + b, 0);
+    self.postMessage(result);
+};`,
+    desc: ['Workers run JS on a separate thread — UI stays responsive', 'postMessage / onmessage is the only communication channel', 'Workers have no access to the DOM']
+  },
+  {
+    title: 'CSS :has() Selector',
+    code: `/* Card that contains an image gets extra padding */
+.card:has(img) {
+    padding: 0;
+}
+/* Form row with an invalid input turns red label */
+.form-row:has(input:invalid) label {
+    color: crimson;
+}`,
+    desc: [':has() selects a parent based on its children — the "parent selector"', 'Supported in all modern browsers since 2023', 'Eliminates JS that previously had to walk up the DOM']
+  },
+  {
+    title: 'Custom HTML Element',
+    code: `class ToastAlert extends HTMLElement {
+    connectedCallback() {
+        this.innerHTML = \`<div class="toast">\${this.getAttribute('message')}</div>\`;
+        setTimeout(() => this.remove(), 3000);
+    }
+}
+customElements.define('toast-alert', ToastAlert);
+// Usage in HTML:
+// <toast-alert message="Saved!"></toast-alert>`,
+    desc: ['Web Components let you create reusable HTML tags', 'connectedCallback fires when the element is inserted into the DOM', 'Attributes are read with getAttribute()']
+  },
+  {
+    title: 'AbortController for Cancellable Fetch',
+    code: `const controller = new AbortController();
+const timeout = setTimeout(() => controller.abort(), 5000);
+
+fetch('/api/data', { signal: controller.signal })
+    .then(r => r.json())
+    .then(data => { clearTimeout(timeout); use(data); })
+    .catch(err => {
+        if (err.name === 'AbortError') console.log('Request cancelled');
+    });`,
+    desc: ['AbortController lets you cancel in-flight fetch requests', 'Pass signal to fetch; call abort() to cancel', 'AbortError distinguishes cancellation from real network errors']
+  },
+  {
+    title: 'CSS Scroll Snap',
+    code: `.slider {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+}
+.slide {
+    flex: 0 0 100%;
+    scroll-snap-align: start;
+}`,
+    desc: ['scroll-snap-type enables snapping on the container', 'mandatory snaps to the nearest point; proximity is more relaxed', 'scroll-snap-align: start aligns each slide to the left edge']
+  },
+  {
+    title: 'Reactive State with Proxy',
+    code: `function reactive(data, onChange) {
+    return new Proxy(data, {
+        set(target, key, value) {
+            target[key] = value;
+            onChange(key, value);
+            return true;
+        }
+    });
+}
+const state = reactive({ count: 0 }, (k, v) => console.log(\`\${k} = \${v}\`));
+state.count++; // logs: count = 1`,
+    desc: ['Proxy intercepts property assignments transparently', 'set trap fires every time a property changes', 'Foundation of reactivity systems in Vue 3 and similar frameworks']
+  },
+  {
+    title: 'CSS Container Queries',
+    code: `.card-wrapper {
+    container-type: inline-size;
+}
+@container (min-width: 400px) {
+    .card {
+        display: flex;
+        flex-direction: row;
+    }
+}`,
+    desc: ['Container queries respond to the parent element size, not the viewport', 'container-type: inline-size enables width-based queries', 'Makes components truly self-contained and reusable']
+  },
+  {
+    title: 'Generate UUID (browser)',
+    code: `function uuid() {
+    return crypto.randomUUID();
+}
+// Fallback for older environments:
+function uuidFallback() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        const r = Math.random() * 16 | 0;
+        return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+    });
+}`,
+    desc: ['crypto.randomUUID() is available in all modern browsers and Node 15+', 'The fallback produces a v4-style UUID using Math.random()', 'UUIDs are useful as unique keys for lists, database rows, etc.']
+  },
+  {
+    title: 'IndexedDB Wrapper',
+    code: `async function openDB(name, version, upgrade) {
+    return new Promise((res, rej) => {
+        const req = indexedDB.open(name, version);
+        req.onupgradeneeded = e => upgrade(e.target.result);
+        req.onsuccess = e => res(e.target.result);
+        req.onerror = e => rej(e.target.error);
+    });
+}
+// Usage:
+const db = await openDB('myApp', 1, db => {
+    db.createObjectStore('notes', { keyPath: 'id' });
+});`,
+    desc: ['IndexedDB is a full key-value database built into the browser', 'onupgradeneeded only runs on version bump — safe place to create stores', 'Wrapping in a Promise makes it compatible with async/await']
+  },
+  {
+    title: 'CSS Clamp for Fluid Typography',
+    code: `h1 {
+    font-size: clamp(1.5rem, 4vw, 3rem);
+}
+p {
+    font-size: clamp(0.9rem, 2vw, 1.125rem);
+}`,
+    desc: ['clamp(min, preferred, max) keeps size within bounds', 'The middle value scales with the viewport width', 'No media queries needed for fluid type scaling']
+  },
+  {
+    title: 'Broadcast Channel (cross-tab comms)',
+    code: `const channel = new BroadcastChannel('app-events');
+
+// Send from any tab:
+channel.postMessage({ type: 'LOGOUT' });
+
+// Listen in all other tabs:
+channel.onmessage = e => {
+    if (e.data.type === 'LOGOUT') redirectToLogin();
+};`,
+    desc: ['BroadcastChannel lets same-origin tabs talk to each other', 'No server needed — pure browser API', 'Useful for syncing logout, theme changes, or cart updates across tabs']
   },
 ];
 
