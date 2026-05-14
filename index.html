@@ -345,6 +345,140 @@ body {
 }
 .pe-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(91,106,240,0.1); }
 
+/* ── AVATAR CROP MODAL ── */
+.avatar-crop-modal {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; width: min(440px, 96vw);
+  box-shadow: 0 28px 70px rgba(0,0,0,0.28);
+  animation: popIn 0.2s ease; overflow: hidden;
+  display: flex; flex-direction: column;
+}
+.acm-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px 12px; border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.acm-title { font-size: 15px; font-weight: 600; color: var(--text); }
+.acm-close {
+  width: 30px; height: 30px; border-radius: 50%; border: none;
+  background: var(--surface2); color: var(--text2); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background var(--t);
+}
+.acm-close:hover { background: var(--border); }
+
+/* Main crop area – dark stage the image is panned across */
+.acm-canvas-wrap {
+  position: relative; width: 100%; aspect-ratio: 1/1;
+  background: #1a1a1a; overflow: hidden; cursor: grab;
+  user-select: none; touch-action: none; flex-shrink: 0;
+}
+
+/* The actual pixel canvas – drawn by JS, fills the wrap */
+#acmCanvas {
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none; display: block;
+}
+
+/* ── Google-style dashed crop box ── */
+/* Dark dim overlay outside crop box – 4 panels */
+.acm-dim {
+  position: absolute; background: rgba(0,0,0,0.52); pointer-events: none;
+}
+/* The crop box border (dashed rect) */
+.acm-crop-box {
+  position: absolute; pointer-events: none;
+  border: 2px dashed rgba(255,255,255,0.90);
+  box-sizing: border-box;
+}
+/* Inner circle highlight ring (shows what will be the pfp) */
+.acm-circle-ring {
+  position: absolute; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.75);
+  pointer-events: none; box-sizing: border-box;
+}
+/* Rule-of-thirds grid lines inside crop box */
+.acm-grid-h, .acm-grid-v {
+  position: absolute; pointer-events: none;
+  background: rgba(255,255,255,0.18);
+}
+/* Corner handles – L-shaped white brackets */
+.acm-corner {
+  position: absolute; width: 18px; height: 18px;
+  pointer-events: none;
+}
+.acm-corner::before, .acm-corner::after {
+  content: ''; position: absolute;
+  background: #fff; border-radius: 1px;
+}
+/* TL */
+.acm-corner.tl::before { top:0; left:0; width:100%; height:3px; }
+.acm-corner.tl::after  { top:0; left:0; width:3px; height:100%; }
+/* TR */
+.acm-corner.tr::before { top:0; right:0; width:100%; height:3px; }
+.acm-corner.tr::after  { top:0; right:0; width:3px; height:100%; }
+/* BL */
+.acm-corner.bl::before { bottom:0; left:0; width:100%; height:3px; }
+.acm-corner.bl::after  { bottom:0; left:0; width:3px; height:100%; }
+/* BR */
+.acm-corner.br::before { bottom:0; right:0; width:100%; height:3px; }
+.acm-corner.br::after  { bottom:0; right:0; width:3px; height:100%; }
+
+/* Mid-edge handles (thin bar) */
+.acm-edge {
+  position: absolute; background: rgba(255,255,255,0.85);
+  border-radius: 2px; pointer-events: none;
+}
+
+/* Draggable crop handles */
+.acm-handle {
+  position: absolute; z-index: 10;
+}
+.acm-corner-handle {
+  width: 22px; height: 22px; background: transparent;
+}
+/* L-shaped white bracket for each corner */
+.acm-corner-handle::before,
+.acm-corner-handle::after {
+  content: ''; position: absolute;
+  background: #fff; border-radius: 1.5px;
+}
+#acmHtl::before { top:0;left:0;width:100%;height:3px; }
+#acmHtl::after  { top:0;left:0;width:3px;height:100%; }
+#acmHtr::before { top:0;right:0;width:100%;height:3px; }
+#acmHtr::after  { top:0;right:0;width:3px;height:100%; }
+#acmHbl::before { bottom:0;left:0;width:100%;height:3px; }
+#acmHbl::after  { bottom:0;left:0;width:3px;height:100%; }
+#acmHbr::before { bottom:0;right:0;width:100%;height:3px; }
+#acmHbr::after  { bottom:0;right:0;width:3px;height:100%; }
+
+.acm-edge-handle {
+  background: rgba(255,255,255,0.85);
+  border-radius: 2px;
+}
+/* Top/bottom edges: wide and thin */
+#acmHt, #acmHb { width: 36px; height: 4px; }
+/* Left/right edges: thin and tall */
+#acmHl, #acmHr { width: 4px; height: 36px; }
+
+/* Bottom bar: preview + actions */
+.acm-bottom-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 20px 16px; border-top: 1px solid var(--border); flex-shrink: 0; gap: 12px;
+}
+.acm-preview-wrap {
+  display: flex; align-items: center; gap: 10px;
+}
+.acm-preview-label { font-size: 11.5px; color: var(--text3); }
+.acm-preview-canvas {
+  width: 52px; height: 52px; border-radius: 50%;
+  border: 2px solid var(--border); display: block;
+}
+.acm-actions {
+  display: flex; gap: 8px; align-items: center;
+}
+
 /* ── MAIN ── */
 .main {
   flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative;
@@ -2438,6 +2572,64 @@ body {
 <!-- Message action menu -->
 <div class="dm-msg-action-menu" id="dmMsgActionMenu"></div>
 
+<!-- AVATAR CROP MODAL -->
+<div class="overlay" id="avatarCropOverlay" style="z-index:500;">
+  <div class="avatar-crop-modal" id="avatarCropModal">
+    <div class="acm-header">
+      <span class="acm-title">Crop photo</span>
+      <button class="acm-close" onclick="closeCropModal()" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- Crop stage -->
+    <div class="acm-canvas-wrap" id="acmCanvasWrap">
+      <canvas id="acmCanvas"></canvas>
+
+      <!-- Dim panels outside crop box -->
+      <div class="acm-dim" id="acmDimTop"></div>
+      <div class="acm-dim" id="acmDimBottom"></div>
+      <div class="acm-dim" id="acmDimLeft"></div>
+      <div class="acm-dim" id="acmDimRight"></div>
+
+      <!-- Dashed crop box -->
+      <div id="acmCropBox" style="position:absolute;border:2px dashed rgba(255,255,255,0.90);box-sizing:border-box;pointer-events:none;">
+        <!-- Rule-of-thirds grid -->
+        <div style="position:absolute;top:33.33%;left:0;width:100%;height:1px;background:rgba(255,255,255,0.18);pointer-events:none;"></div>
+        <div style="position:absolute;top:66.66%;left:0;width:100%;height:1px;background:rgba(255,255,255,0.18);pointer-events:none;"></div>
+        <div style="position:absolute;left:33.33%;top:0;height:100%;width:1px;background:rgba(255,255,255,0.18);pointer-events:none;"></div>
+        <div style="position:absolute;left:66.66%;top:0;height:100%;width:1px;background:rgba(255,255,255,0.18);pointer-events:none;"></div>
+        <!-- Circle ring inside crop box -->
+        <div id="acmCropCircle" style="position:absolute;border-radius:50%;border:2px solid rgba(255,255,255,0.75);box-sizing:border-box;pointer-events:none;"></div>
+      </div>
+
+      <!-- Corner handles (draggable) -->
+      <div class="acm-handle acm-corner-handle" id="acmHtl" data-handle="tl" style="top:0;left:0;cursor:nw-resize;"></div>
+      <div class="acm-handle acm-corner-handle" id="acmHtr" data-handle="tr" style="top:0;right:0;cursor:ne-resize;"></div>
+      <div class="acm-handle acm-corner-handle" id="acmHbl" data-handle="bl" style="bottom:0;left:0;cursor:sw-resize;"></div>
+      <div class="acm-handle acm-corner-handle" id="acmHbr" data-handle="br" style="bottom:0;right:0;cursor:se-resize;"></div>
+
+      <!-- Edge handles (draggable) -->
+      <div class="acm-handle acm-edge-handle" id="acmHt"  data-handle="t"  style="top:0;left:50%;transform:translateX(-50%);cursor:n-resize;"></div>
+      <div class="acm-handle acm-edge-handle" id="acmHb"  data-handle="b"  style="bottom:0;left:50%;transform:translateX(-50%);cursor:s-resize;"></div>
+      <div class="acm-handle acm-edge-handle" id="acmHl"  data-handle="l"  style="left:0;top:50%;transform:translateY(-50%);cursor:w-resize;"></div>
+      <div class="acm-handle acm-edge-handle" id="acmHr"  data-handle="r"  style="right:0;top:50%;transform:translateY(-50%);cursor:e-resize;"></div>
+    </div>
+
+    <!-- Preview + action buttons -->
+    <div class="acm-bottom-bar">
+      <div class="acm-preview-wrap">
+        <canvas id="acmPreviewCanvas" width="52" height="52" class="acm-preview-canvas"></canvas>
+        <span class="acm-preview-label">Preview</span>
+      </div>
+      <div class="acm-actions">
+        <button class="btn-cancel" onclick="closeCropModal()">Cancel</button>
+        <button class="btn-confirm" id="acmApplyBtn">Apply</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ADMIN KEY POPUP -->
 <div class="overlay" id="adminOverlay">
   <div class="popup">
@@ -2462,7 +2654,7 @@ body {
       </div>
       <div class="pe-avatar-actions">
         <label class="pe-img-label" for="peImageUpload">Upload photo</label>
-        <input type="file" id="peImageUpload" accept="image/*" style="display:none" onchange="handleAvatarUpload(event)">
+        <input type="file" id="peImageUpload" accept="image/*" style="display:none" onchange="openCropModal(event)">
         <button class="pe-img-remove" onclick="removeAvatar()">Remove photo</button>
       </div>
     </div>
@@ -4540,6 +4732,331 @@ function openProfileEdit() {
   setTimeout(() => document.getElementById('peDisplayName').focus(), 50);
 }
 function closeProfileEdit() { document.getElementById('profileEditOverlay').classList.remove('show'); }
+
+// ── AVATAR CROP MODAL ──
+let _cropImg = null;
+let _cropFile = null;
+let _cropOffX = 0, _cropOffY = 0;
+let _cropScale = 1;
+let _cropBaseScale = 1;
+let _cropCircleR = 0, _cropCircleCX = 0, _cropCircleCY = 0;
+let _cropCanvasSize = 0;
+let _cropDragging = false;
+let _cropDragSX = 0, _cropDragSY = 0, _cropDragOX = 0, _cropDragOY = 0;
+
+// Open: read file → show modal → THEN init (double rAF ensures layout paint)
+// ── CROP STATE ──
+// _cropBox: { x, y, w, h } in canvas (display) pixels
+// _cropImg, _cropOffX/Y, _cropScale: image position/scale
+// _cropActiveHandle: null | 'tl'|'tr'|'bl'|'br'|'t'|'b'|'l'|'r'|'move'
+
+let _cropBox = { x: 0, y: 0, w: 0, h: 0 };
+let _cropActiveHandle = null;
+let _cropHandleSX = 0, _cropHandleSY = 0;
+let _cropHandleStartBox = null;
+let _cropHandleStartOff = null;
+
+const MIN_CROP = 60; // minimum crop box side length in px
+
+function openCropModal(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  _cropFile = file;
+  e.target.value = '';
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const img = new Image();
+    img.onload = () => {
+      _cropImg = img;
+      document.getElementById('avatarCropOverlay').classList.add('show');
+      requestAnimationFrame(() => requestAnimationFrame(() => initCropCanvas()));
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function initCropCanvas() {
+  const wrap = document.getElementById('acmCanvasWrap');
+  const canvas = document.getElementById('acmCanvas');
+  const wSize = wrap.offsetWidth || 380;
+  _cropCanvasSize = wSize;
+  canvas.width = wSize;
+  canvas.height = wSize;
+
+  // Default: fit image at 100% (natural size capped to canvas)
+  const fitScale = Math.min(wSize / _cropImg.width, wSize / _cropImg.height, 1);
+  _cropScale = fitScale;
+  _cropOffX = (wSize - _cropImg.width * _cropScale) / 2;
+  _cropOffY = (wSize - _cropImg.height * _cropScale) / 2;
+
+  // Initial crop box: 80% of canvas, centered and square
+  const boxSize = Math.round(wSize * 0.80);
+  _cropBox = {
+    x: Math.round((wSize - boxSize) / 2),
+    y: Math.round((wSize - boxSize) / 2),
+    w: boxSize,
+    h: boxSize
+  };
+
+  document.getElementById('acmApplyBtn').onclick = applyCrop;
+
+  renderCropFrame();
+  positionCropUI();
+  renderPreview();
+  setupCropPointerEvents();
+}
+
+function renderCropFrame() {
+  if (!_cropImg) return;
+  const canvas = document.getElementById('acmCanvas');
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(_cropImg, _cropOffX, _cropOffY,
+    _cropImg.width * _cropScale, _cropImg.height * _cropScale);
+}
+
+function positionCropUI() {
+  const { x, y, w, h } = _cropBox;
+  const S = _cropCanvasSize;
+
+  // Dim panels
+  const dimT = document.getElementById('acmDimTop');
+  const dimB = document.getElementById('acmDimBottom');
+  const dimL = document.getElementById('acmDimLeft');
+  const dimR = document.getElementById('acmDimRight');
+  if (dimT) { dimT.style.cssText = `position:absolute;background:rgba(0,0,0,0.52);pointer-events:none;top:0;left:0;width:${S}px;height:${y}px;`; }
+  if (dimB) { dimB.style.cssText = `position:absolute;background:rgba(0,0,0,0.52);pointer-events:none;top:${y+h}px;left:0;width:${S}px;height:${S-(y+h)}px;`; }
+  if (dimL) { dimL.style.cssText = `position:absolute;background:rgba(0,0,0,0.52);pointer-events:none;top:${y}px;left:0;width:${x}px;height:${h}px;`; }
+  if (dimR) { dimR.style.cssText = `position:absolute;background:rgba(0,0,0,0.52);pointer-events:none;top:${y}px;left:${x+w}px;width:${S-(x+w)}px;height:${h}px;`; }
+
+  // Crop box
+  const box = document.getElementById('acmCropBox');
+  if (box) {
+    box.style.left = x + 'px';
+    box.style.top = y + 'px';
+    box.style.width = w + 'px';
+    box.style.height = h + 'px';
+  }
+
+  // Circle inside crop box
+  const circ = document.getElementById('acmCropCircle');
+  if (circ) {
+    const cs = Math.min(w, h);
+    const cx = (w - cs) / 2, cy = (h - cs) / 2;
+    circ.style.left = cx + 'px';
+    circ.style.top = cy + 'px';
+    circ.style.width = cs + 'px';
+    circ.style.height = cs + 'px';
+  }
+
+  // Corner handles (positioned relative to wrap)
+  const hl = 22, he = 22;
+  const setHandle = (id, left, top) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.left = left + 'px';
+    el.style.top  = top  + 'px';
+  };
+  setHandle('acmHtl', x - hl/2, y - hl/2);
+  setHandle('acmHtr', x + w - hl/2, y - hl/2);
+  setHandle('acmHbl', x - hl/2, y + h - hl/2);
+  setHandle('acmHbr', x + w - hl/2, y + h - hl/2);
+
+  // Edge handles
+  const edgeEl = (id, left, top) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.left = left + 'px';
+    el.style.top  = top  + 'px';
+    el.style.transform = '';
+  };
+  edgeEl('acmHt',  x + w/2 - 18, y - 2);
+  edgeEl('acmHb',  x + w/2 - 18, y + h - 2);
+  edgeEl('acmHl',  x - 2,        y + h/2 - 18);
+  edgeEl('acmHr',  x + w - 2,    y + h/2 - 18);
+}
+
+function renderPreview() {
+  if (!_cropImg) return;
+  const prev = document.getElementById('acmPreviewCanvas');
+  const ctx = prev.getContext('2d');
+  const size = 52;
+  prev.width = size; prev.height = size;
+  ctx.clearRect(0, 0, size, size);
+  ctx.beginPath();
+  ctx.arc(size/2, size/2, size/2, 0, Math.PI * 2);
+  ctx.clip();
+  const { x, y, w, h } = _cropBox;
+  const scaleX = size / w, scaleY = size / h;
+  ctx.drawImage(_cropImg,
+    (_cropOffX - x) * scaleX,
+    (_cropOffY - y) * scaleY,
+    _cropImg.width  * _cropScale * scaleX,
+    _cropImg.height * _cropScale * scaleY
+  );
+}
+
+function clampImageOffset() {
+  const iw = _cropImg.width  * _cropScale;
+  const ih = _cropImg.height * _cropScale;
+  const { x, y, w, h } = _cropBox;
+  if (_cropOffX > x)        _cropOffX = x;
+  if (_cropOffY > y)        _cropOffY = y;
+  if (_cropOffX + iw < x+w) _cropOffX = x + w - iw;
+  if (_cropOffY + ih < y+h) _cropOffY = y + h - ih;
+}
+
+function clampCropBox() {
+  const S = _cropCanvasSize;
+  _cropBox.w = Math.max(MIN_CROP, _cropBox.w);
+  _cropBox.h = Math.max(MIN_CROP, _cropBox.h);
+  _cropBox.x = Math.max(0, Math.min(S - _cropBox.w, _cropBox.x));
+  _cropBox.y = Math.max(0, Math.min(S - _cropBox.h, _cropBox.y));
+  _cropBox.w = Math.min(_cropBox.w, S - _cropBox.x);
+  _cropBox.h = Math.min(_cropBox.h, S - _cropBox.y);
+}
+
+function setupCropPointerEvents() {
+  const wrap = document.getElementById('acmCanvasWrap');
+  if (wrap._cropCleanup) wrap._cropCleanup();
+
+  const handles = wrap.querySelectorAll('.acm-handle');
+
+  const onHandleDown = e => {
+    e.preventDefault();
+    e.stopPropagation();
+    _cropActiveHandle = e.currentTarget.dataset.handle;
+    _cropHandleSX = e.clientX;
+    _cropHandleSY = e.clientY;
+    _cropHandleStartBox = { ..._cropBox };
+    document.addEventListener('pointermove', onHandleMove);
+    document.addEventListener('pointerup', onHandleUp);
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const onHandleMove = e => {
+    if (!_cropActiveHandle) return;
+    const dx = e.clientX - _cropHandleSX;
+    const dy = e.clientY - _cropHandleSY;
+    const { x: sx, y: sy, w: sw, h: sh } = _cropHandleStartBox;
+    const S = _cropCanvasSize;
+    let { x, y, w, h } = { x: sx, y: sy, w: sw, h: sh };
+
+    const handle = _cropActiveHandle;
+    if (handle === 'tl' || handle === 'l' || handle === 'bl') {
+      const newX = Math.max(0, Math.min(sx + sw - MIN_CROP, sx + dx));
+      w = sw - (newX - sx); x = newX;
+    }
+    if (handle === 'tr' || handle === 'r' || handle === 'br') {
+      w = Math.max(MIN_CROP, Math.min(S - sx, sw + dx));
+    }
+    if (handle === 'tl' || handle === 't' || handle === 'tr') {
+      const newY = Math.max(0, Math.min(sy + sh - MIN_CROP, sy + dy));
+      h = sh - (newY - sy); y = newY;
+    }
+    if (handle === 'bl' || handle === 'b' || handle === 'br') {
+      h = Math.max(MIN_CROP, Math.min(S - sy, sh + dy));
+    }
+
+    _cropBox = { x: Math.round(x), y: Math.round(y), w: Math.round(w), h: Math.round(h) };
+    clampCropBox();
+    renderCropFrame();
+    positionCropUI();
+    renderPreview();
+  };
+
+  const onHandleUp = e => {
+    _cropActiveHandle = null;
+    document.removeEventListener('pointermove', onHandleMove);
+    document.removeEventListener('pointerup', onHandleUp);
+  };
+
+  handles.forEach(h => h.addEventListener('pointerdown', onHandleDown));
+
+  // Image pan (on wrap, not on handles)
+  const onDown = e => {
+    if (e.target.classList.contains('acm-handle')) return;
+    e.preventDefault();
+    _cropDragging = true;
+    wrap.style.cursor = 'grabbing';
+    wrap.setPointerCapture(e.pointerId);
+    _cropDragSX = e.clientX; _cropDragSY = e.clientY;
+    _cropDragOX = _cropOffX; _cropDragOY = _cropOffY;
+  };
+  const onMove = e => {
+    if (!_cropDragging) return;
+    _cropOffX = _cropDragOX + (e.clientX - _cropDragSX);
+    _cropOffY = _cropDragOY + (e.clientY - _cropDragSY);
+    clampImageOffset();
+    renderCropFrame();
+    renderPreview();
+  };
+  const onUp = () => {
+    _cropDragging = false;
+    wrap.style.cursor = 'grab';
+  };
+
+  wrap.addEventListener('pointerdown', onDown);
+  wrap.addEventListener('pointermove', onMove);
+  wrap.addEventListener('pointerup', onUp);
+  wrap.addEventListener('pointercancel', onUp);
+
+  wrap._cropCleanup = () => {
+    handles.forEach(h => h.removeEventListener('pointerdown', onHandleDown));
+    wrap.removeEventListener('pointerdown', onDown);
+    wrap.removeEventListener('pointermove', onMove);
+    wrap.removeEventListener('pointerup', onUp);
+    wrap.removeEventListener('pointercancel', onUp);
+    document.removeEventListener('pointermove', onHandleMove);
+    document.removeEventListener('pointerup', onHandleUp);
+  };
+}
+
+function closeCropModal() {
+  document.getElementById('avatarCropOverlay').classList.remove('show');
+  _cropImg = null; _cropFile = null; _cropDragging = false; _cropActiveHandle = null;
+}
+
+async function applyCrop() {
+  if (!_cropImg) return;
+  const btn = document.getElementById('acmApplyBtn');
+  btn.disabled = true; btn.textContent = 'Uploading…';
+  const OUT = 400;
+  const off = document.createElement('canvas');
+  off.width = OUT; off.height = OUT;
+  const ctx = off.getContext('2d');
+  ctx.beginPath(); ctx.arc(OUT/2, OUT/2, OUT/2, 0, Math.PI * 2); ctx.clip();
+  const { x, y, w, h } = _cropBox;
+  const pxPer = OUT / Math.min(w, h);
+  const srcX = x, srcY = y;
+  ctx.drawImage(_cropImg,
+    (_cropOffX - srcX) * pxPer, (_cropOffY - srcY) * pxPer,
+    _cropImg.width * _cropScale * pxPer, _cropImg.height * _cropScale * pxPer);
+  off.toBlob(async blob => {
+    closeCropModal();
+    await uploadCroppedAvatar(new File([blob], 'avatar.png', { type: 'image/png' }));
+    btn.disabled = false; btn.textContent = 'Apply';
+  }, 'image/png', 0.92);
+}
+
+async function uploadCroppedAvatar(file) {
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (!user) return;
+  const { data: existingProfile } = await supabaseClient.from('profiles').select('avatar_url').eq('id', user.id).single();
+  if (existingProfile?.avatar_url) {
+    try { const path = existingProfile.avatar_url.split('/avatars/')[1]; if (path) await supabaseClient.storage.from('avatars').remove([path]); } catch (err) {}
+  }
+  const filePath = `${user.id}/avatar.png`;
+  const { error: uploadError } = await supabaseClient.storage.from('avatars').upload(filePath, file, { upsert: true });
+  if (uploadError) { alert('Upload failed: ' + uploadError.message); return; }
+  const { data } = supabaseClient.storage.from('avatars').getPublicUrl(filePath);
+  const publicUrl = data.publicUrl + `?t=${Date.now()}`;
+  const { error: dbError } = await supabaseClient.from('profiles').update({ avatar_url: publicUrl }).eq('id', user.id);
+  if (dbError) { alert('DB update failed: ' + dbError.message); return; }
+  profile.avatarUrl = publicUrl;
+  renderProfileEverywhere();
+}
 
 async function handleAvatarUpload(e) {
   const file = e.target.files[0];
