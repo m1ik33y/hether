@@ -922,10 +922,21 @@ body {
   padding: 0 5px; flex-shrink: 0; letter-spacing: 0;
 }
 
+.dm-bubble-outer {
+  display: flex;
+  flex-direction: column;
+  max-width: 100%;
+}
+.dm-msg-group.sent .dm-bubble-outer {
+  align-items: flex-end;
+}
+.dm-msg-group.received .dm-bubble-outer {
+  align-items: flex-start;
+}
+
 .dm-seen-label {
   font-size: 10px; color: var(--text3); text-align: right;
-  padding: 1px 4px 0; display: none; letter-spacing: 0.1px;
-  width: 100%;
+  padding: 2px 6px 0; display: none; letter-spacing: 0.1px;
 }
 
 /* ── CHAT PANEL ── */
@@ -4049,7 +4060,7 @@ function renderGroupedMessages(container, groups, currentUserId, contact) {
 }
 /* Ensure only the last seen sent bubble shows "Seen" */
 function fixSeenLabels(container) {
-  const allSentWraps = [...container.querySelectorAll('.dm-msg-group.sent .dm-bubble-wrap[data-seen]')];
+  const allSentWraps = [...container.querySelectorAll('.dm-msg-group.sent .dm-bubble-outer[data-seen]')];
   allSentWraps.forEach(w => {
     const lbl = w.querySelector('.dm-seen-label');
     if (lbl) lbl.style.display = 'none';
@@ -4173,18 +4184,25 @@ function makeBubbleWrap(msg, isSent, contact, currentUserId) {
   if (isSent) { bWrap.appendChild(moreBtn); bWrap.appendChild(replyBtn); bWrap.appendChild(bubble); }
   else { bWrap.appendChild(bubble); bWrap.appendChild(replyBtn); bWrap.appendChild(moreBtn); }
 
+  // Wrap bWrap in a column container so seen label sits BELOW the bubble row
+  const bOuter = document.createElement('div');
+  bOuter.className = 'dm-bubble-outer';
+  bOuter.appendChild(bWrap);
+
   // Store seen state for post-render seen label updates
   if (isSent) {
     bWrap.dataset.seen = msg.seen ? 'true' : 'false';
+    bOuter.dataset.seen = msg.seen ? 'true' : 'false';
+    bOuter.dataset.msgId = msg.id || '';
     if (msg.seen) {
       const seenEl = document.createElement('div');
       seenEl.className = 'dm-seen-label';
       seenEl.textContent = 'Seen';
-      bWrap.appendChild(seenEl);
+      bOuter.appendChild(seenEl);
     }
   }
 
-  return bWrap;
+  return bOuter;
 }
 
 function addReaction(bWrap, emoji) {
@@ -4376,7 +4394,11 @@ async function loadMessages(userId) {
         if (updated.seen) {
           // Mark the bubble wrap as seen
           const wrap = msgsEl.querySelector(`.dm-bubble-wrap[data-msg-id="${updated.id}"]`);
-          if (wrap) { wrap.dataset.seen = 'true'; }
+          if (wrap) {
+            const outer = wrap.closest('.dm-bubble-outer');
+            if (outer) outer.dataset.seen = 'true';
+            else wrap.dataset.seen = 'true';
+          }
           fixSeenLabels(msgsEl);
         }
       })
@@ -4546,7 +4568,11 @@ async function loadFsMessages(userId) {
         const updated = payload.new;
         if (updated.seen) {
           const wrap = msgsEl.querySelector(`.dm-bubble-wrap[data-msg-id="${updated.id}"]`);
-          if (wrap) { wrap.dataset.seen = 'true'; }
+          if (wrap) {
+            const outer = wrap.closest('.dm-bubble-outer');
+            if (outer) outer.dataset.seen = 'true';
+            else wrap.dataset.seen = 'true';
+          }
           fixSeenLabels(msgsEl);
         }
       })
@@ -4642,6 +4668,8 @@ function appendIncomingMessage(container, msg, currentUserId, contact) {
           if (spinner) spinner.remove();
           b.dataset.msgId = msg.id;
           wrap.dataset.msgId = msg.id;
+          const outer = wrap.closest('.dm-bubble-outer');
+          if (outer) outer.dataset.msgId = msg.id;
           const moreBtn = wrap.querySelector('.dm-more-btn');
           if (moreBtn) {
             moreBtn.onclick = (e) => { e.stopPropagation(); showMsgActionMenu(e, wrap, msg, true); };
@@ -4901,6 +4929,8 @@ async function dmSend(mode) {
     if (inserted?.id) {
       bWrap.dataset.msgId = inserted.id;
       bubble.dataset.msgId = inserted.id;
+      const bOuter = bWrap.closest('.dm-bubble-outer');
+      if (bOuter) bOuter.dataset.msgId = inserted.id;
       renderedMsgIds.add(inserted.id);
       // Attach real msg to more button
       moreBtnOpt.onclick = (e) => { e.stopPropagation(); showMsgActionMenu(e, bWrap, inserted, true); };
