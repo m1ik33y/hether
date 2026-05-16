@@ -3708,6 +3708,70 @@ function _isDmAuthValid() { return adminAuthenticated === true && _adminSessionV
 })();
 
 // ── DM ──
+let _seenChannel = null; // Persistent channel for seen updates — lives for the whole DM session
+
+// Called once when DM opens. Listens for any UPDATE on messages sent by me
+// and reflects the seen=true change in whichever chat container is currently active.
+async function startSeenChannel(myUserId) {
+  if (_seenChannel) {
+    try { await supabaseClient.removeChannel(_seenChannel); } catch(e) {}
+    _seenChannel = null;
+  }
+  _seenChannel = supabaseClient
+    .channel(`seen-updates:${myUserId}`)
+    .on('postgres_changes', {
+      event: 'UPDATE',
+      schema: 'public',
+      table: 'messages'
+      // No server-side filter — filter client-side to avoid REPLICA IDENTITY requirement
+    }, (payload) => {
+      const updated = payload.new;
+      // Only care about our own sent messages being marked seen
+      if (updated.sender_id !== myUserId) return;
+      if (!updated.seen) return;
+
+      // Update whichever container is active right now
+      const containers = ['dmChatMessages', 'dmFsMessages']
+        .map(id => document.getElementById(id))
+        .filter(Boolean);
+
+      containers.forEach(msgsEl => {
+        // Find the specific bubble outer for this message ID
+        let outer = msgsEl.querySelector(`.dm-bubble-outer[data-msg-id="${updated.id}"]`);
+        if (!outer) {
+          const wrap = msgsEl.querySelector(`.dm-bubble-wrap[data-msg-id="${updated.id}"]`);
+          if (wrap) outer = wrap.closest('.dm-bubble-outer') || wrap.parentElement;
+        }
+
+        if (outer) {
+          // Mark this outer and all prior sent outers as seen
+          // (receiver may have seen multiple messages at once)
+          const allSentOuters = [...msgsEl.querySelectorAll('.dm-msg-group.sent .dm-bubble-outer')];
+          let found = false;
+          for (let i = allSentOuters.length - 1; i >= 0; i--) {
+            if (allSentOuters[i] === outer) found = true;
+            if (found) allSentOuters[i].dataset.seen = 'true';
+          }
+        } else {
+          // Message not visible (older, not rendered) — mark all rendered sent bubbles seen
+          // since receiver has clearly seen up through this point
+          msgsEl.querySelectorAll('.dm-msg-group.sent .dm-bubble-outer').forEach(o => {
+            o.dataset.seen = 'true';
+          });
+        }
+        fixSeenLabels(msgsEl);
+      });
+    })
+    .subscribe();
+}
+
+async function stopSeenChannel() {
+  if (_seenChannel) {
+    try { await supabaseClient.removeChannel(_seenChannel); } catch(e) {}
+    _seenChannel = null;
+  }
+}
+
 function showDmListSkeleton() {
   const skeleton = `
     <div class="dm-conv-skeleton"><div class="dm-sk-avatar"></div><div class="dm-sk-lines"><div class="dm-sk-line long"></div><div class="dm-sk-line short"></div></div></div>
@@ -3778,6 +3842,8 @@ async function openDM() {
         .subscribe();
       // Store so we can remove on close
       window._dmGlobalChannel = globalCh;
+      // Start the persistent seen-updates channel for this user
+      await startSeenChannel(user.id);
     }
   } catch(e) {}
 }
@@ -3793,6 +3859,7 @@ async function closeDM() {
   closeMsgActionMenu(); hideRemoteTyping(); stopTypingBroadcast(); resetPresenceDots();
   if (typingChannel) { await supabaseClient.removeChannel(typingChannel); typingChannel = null; }
   if (window._dmGlobalChannel) { await supabaseClient.removeChannel(window._dmGlobalChannel); window._dmGlobalChannel = null; }
+  await stopSeenChannel();
   await subscriptionManager.replaceSubscription(null);
 }
 
@@ -4391,30 +4458,6 @@ async function loadMessages(userId) {
           buildDMConvList();
         }
       })
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages',
-        filter: `sender_id=eq.${user.id}` }, (payload) => {
-        // Someone saw our message — update seen label
-        const updated = payload.new;
-        if (updated.seen) {
-          // Mark the bubble outer as seen — search by data-msg-id on outer or wrap
-          let outer = msgsEl.querySelector(`.dm-bubble-outer[data-msg-id="${updated.id}"]`);
-          if (!outer) {
-            const wrap = msgsEl.querySelector(`.dm-bubble-wrap[data-msg-id="${updated.id}"]`);
-            if (wrap) outer = wrap.closest('.dm-bubble-outer') || wrap.parentElement;
-          }
-          if (outer) {
-            outer.dataset.seen = 'true';
-            // Also mark all previous sent bubble outers as seen (bulk seen scenario)
-            const allSentOuters = [...msgsEl.querySelectorAll('.dm-msg-group.sent .dm-bubble-outer')];
-            let found = false;
-            for (let i = allSentOuters.length - 1; i >= 0; i--) {
-              if (allSentOuters[i] === outer) { found = true; }
-              if (found) allSentOuters[i].dataset.seen = 'true';
-            }
-          }
-          fixSeenLabels(msgsEl);
-        }
-      })
       .subscribe();
     await subscriptionManager.replaceSubscription(channel);
   } catch (err) {}
@@ -4575,27 +4618,6 @@ async function loadFsMessages(userId) {
           const last = remaining[remaining.length - 1];
           updateContactLastMsg(userId, last, user.id);
           buildDMConvList();
-        }
-      })
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages',
-        filter: `sender_id=eq.${user.id}` }, (payload) => {
-        const updated = payload.new;
-        if (updated.seen) {
-          let outer = msgsEl.querySelector(`.dm-bubble-outer[data-msg-id="${updated.id}"]`);
-          if (!outer) {
-            const wrap = msgsEl.querySelector(`.dm-bubble-wrap[data-msg-id="${updated.id}"]`);
-            if (wrap) outer = wrap.closest('.dm-bubble-outer') || wrap.parentElement;
-          }
-          if (outer) {
-            outer.dataset.seen = 'true';
-            const allSentOuters = [...msgsEl.querySelectorAll('.dm-msg-group.sent .dm-bubble-outer')];
-            let found = false;
-            for (let i = allSentOuters.length - 1; i >= 0; i--) {
-              if (allSentOuters[i] === outer) { found = true; }
-              if (found) allSentOuters[i].dataset.seen = 'true';
-            }
-          }
-          fixSeenLabels(msgsEl);
         }
       })
       .subscribe();
