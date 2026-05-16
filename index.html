@@ -4060,11 +4060,14 @@ function renderGroupedMessages(container, groups, currentUserId, contact) {
 }
 /* Ensure only the last seen sent bubble shows "Seen" */
 function fixSeenLabels(container) {
-  const allSentWraps = [...container.querySelectorAll('.dm-msg-group.sent .dm-bubble-outer[data-seen]')];
+  // Select ALL sent bubble outers (with or without data-seen attribute)
+  const allSentWraps = [...container.querySelectorAll('.dm-msg-group.sent .dm-bubble-outer')];
+  // Hide all existing seen labels first
   allSentWraps.forEach(w => {
     const lbl = w.querySelector('.dm-seen-label');
     if (lbl) lbl.style.display = 'none';
   });
+  // Find the last one explicitly marked seen
   const lastSeen = [...allSentWraps].reverse().find(w => w.dataset.seen === 'true');
   if (lastSeen) {
     let lbl = lastSeen.querySelector('.dm-seen-label');
@@ -4370,6 +4373,7 @@ async function loadMessages(userId) {
           buildDMConvList();
           // Mark as seen since the chat is open
           markConversationSeen(userId);
+          fixSeenLabels(msgsEl);
         }
       })
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' }, async (payload) => {
@@ -4392,12 +4396,21 @@ async function loadMessages(userId) {
         // Someone saw our message — update seen label
         const updated = payload.new;
         if (updated.seen) {
-          // Mark the bubble wrap as seen
-          const wrap = msgsEl.querySelector(`.dm-bubble-wrap[data-msg-id="${updated.id}"]`);
-          if (wrap) {
-            const outer = wrap.closest('.dm-bubble-outer');
-            if (outer) outer.dataset.seen = 'true';
-            else wrap.dataset.seen = 'true';
+          // Mark the bubble outer as seen — search by data-msg-id on outer or wrap
+          let outer = msgsEl.querySelector(`.dm-bubble-outer[data-msg-id="${updated.id}"]`);
+          if (!outer) {
+            const wrap = msgsEl.querySelector(`.dm-bubble-wrap[data-msg-id="${updated.id}"]`);
+            if (wrap) outer = wrap.closest('.dm-bubble-outer') || wrap.parentElement;
+          }
+          if (outer) {
+            outer.dataset.seen = 'true';
+            // Also mark all previous sent bubble outers as seen (bulk seen scenario)
+            const allSentOuters = [...msgsEl.querySelectorAll('.dm-msg-group.sent .dm-bubble-outer')];
+            let found = false;
+            for (let i = allSentOuters.length - 1; i >= 0; i--) {
+              if (allSentOuters[i] === outer) { found = true; }
+              if (found) allSentOuters[i].dataset.seen = 'true';
+            }
           }
           fixSeenLabels(msgsEl);
         }
@@ -4543,6 +4556,7 @@ async function loadFsMessages(userId) {
           buildDMConvList();
           // Mark as seen since the chat is open
           markConversationSeen(userId);
+          fixSeenLabels(msgsEl);
         } else {
           const c = dmContacts.find(c => c.id === userId);
           if (c) { updateContactLastMsg(userId, newMsg, user.id); buildDMConvList(); }
@@ -4567,11 +4581,19 @@ async function loadFsMessages(userId) {
         filter: `sender_id=eq.${user.id}` }, (payload) => {
         const updated = payload.new;
         if (updated.seen) {
-          const wrap = msgsEl.querySelector(`.dm-bubble-wrap[data-msg-id="${updated.id}"]`);
-          if (wrap) {
-            const outer = wrap.closest('.dm-bubble-outer');
-            if (outer) outer.dataset.seen = 'true';
-            else wrap.dataset.seen = 'true';
+          let outer = msgsEl.querySelector(`.dm-bubble-outer[data-msg-id="${updated.id}"]`);
+          if (!outer) {
+            const wrap = msgsEl.querySelector(`.dm-bubble-wrap[data-msg-id="${updated.id}"]`);
+            if (wrap) outer = wrap.closest('.dm-bubble-outer') || wrap.parentElement;
+          }
+          if (outer) {
+            outer.dataset.seen = 'true';
+            const allSentOuters = [...msgsEl.querySelectorAll('.dm-msg-group.sent .dm-bubble-outer')];
+            let found = false;
+            for (let i = allSentOuters.length - 1; i >= 0; i--) {
+              if (allSentOuters[i] === outer) { found = true; }
+              if (found) allSentOuters[i].dataset.seen = 'true';
+            }
           }
           fixSeenLabels(msgsEl);
         }
@@ -4814,7 +4836,7 @@ async function dmSend(mode) {
     const msgsEl = document.getElementById(mode === 'mobile' ? 'dmFsMessages' : 'dmChatMessages');
     const contact = dmContacts.find(c => c.id === activeDmId);
     const { data: { user } } = await supabaseClient.auth.getUser();
-    appendDmMediaBubble(msgsEl, staged.dataUrl, staged.isVideo, user ? user.id : null, contact);
+    window._dmMediaLoadingRemover = appendDmMediaBubble(msgsEl, staged.dataUrl, staged.isVideo, user ? user.id : null, contact);
     if (mode === 'mobile') clearDmFsStaging(); else clearDmStaging();
   }
 
@@ -4937,7 +4959,12 @@ async function dmSend(mode) {
     }
     updateContactLastMsg(activeDmId, inserted, user.id);
     buildDMConvList();
+    // Remove media loading indicator now that upload is confirmed
+    if (window._dmMediaLoadingRemover) { window._dmMediaLoadingRemover(); window._dmMediaLoadingRemover = null; }
+    // Re-run seen labels now that the real message ID is stamped on the bubble outer
+    if (msgsEl) fixSeenLabels(msgsEl);
   } catch (err) {
+    if (window._dmMediaLoadingRemover) { window._dmMediaLoadingRemover(); window._dmMediaLoadingRemover = null; }
     spin.remove(); bubble.classList.remove('sending'); bubble.style.opacity = '0.5'; bubble.title = 'Failed to send';
   } finally {
     // Unlock send button
@@ -5011,11 +5038,19 @@ function appendDmMediaBubble(container, dataUrl, isVideo, currentUserId, contact
     img.onclick = () => openLightbox(dataUrl);
     mediaWrap.appendChild(img);
   }
+  // Loading indicator below media
+  const loadingEl = document.createElement('div');
+  loadingEl.className = 'dm-media-loading';
+  loadingEl.innerHTML = `<div class="dm-sending-spinner"></div>`;
+  loadingEl.style.cssText = 'display:flex;align-items:center;justify-content:flex-end;padding:3px 2px 0;';
   bWrap.appendChild(mediaWrap);
+  bWrap.appendChild(loadingEl);
   bubblesWrap.appendChild(bWrap); rowEl.appendChild(bubblesWrap); groupEl.appendChild(rowEl);
   const timeEl = document.createElement('div'); timeEl.className = 'dm-group-time'; timeEl.textContent = formatMsgTime(now);
   groupEl.appendChild(timeEl);
   container.appendChild(groupEl); container.scrollTop = container.scrollHeight;
+  // Return a function to remove the loading indicator once upload completes
+  return () => { loadingEl.remove(); };
 }
 
 function openLightbox(src) { document.getElementById('lightboxImg').src = src; document.getElementById('lightbox').classList.add('show'); }
