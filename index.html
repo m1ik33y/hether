@@ -3709,14 +3709,108 @@ function _isDmAuthValid() { return adminAuthenticated === true && _adminSessionV
 
 // ── DM ──
 let _seenChannel = null; // Persistent channel for seen updates — lives for the whole DM session
+let _seenBroadcast = null; // BroadcastChannel for cross-tab/window instant seen sync
+let _seenPollInterval = null; // Fallback polling for when realtime UPDATE events don't fire
+let _seenMyUserId = null; // Stored so polling can use it
 
-// Called once when DM opens. Listens for any UPDATE on messages sent by me
-// and reflects the seen=true change in whichever chat container is currently active.
+// Apply a seen update for a specific message ID to all active chat containers
+function applySeen(updatedId, myUserId) {
+  const containers = ['dmChatMessages', 'dmFsMessages']
+    .map(id => document.getElementById(id))
+    .filter(Boolean);
+
+  containers.forEach(msgsEl => {
+    let outer = msgsEl.querySelector(`.dm-bubble-outer[data-msg-id="${updatedId}"]`);
+    if (!outer) {
+      const wrap = msgsEl.querySelector(`.dm-bubble-wrap[data-msg-id="${updatedId}"]`);
+      if (wrap) outer = wrap.closest('.dm-bubble-outer') || wrap.parentElement;
+    }
+
+    if (outer) {
+      // Mark this message and all prior sent messages as seen
+      const allSentOuters = [...msgsEl.querySelectorAll('.dm-msg-group.sent .dm-bubble-outer')];
+      let found = false;
+      for (let i = allSentOuters.length - 1; i >= 0; i--) {
+        if (allSentOuters[i] === outer) found = true;
+        if (found) allSentOuters[i].dataset.seen = 'true';
+      }
+    } else {
+      // Message not in view — mark all rendered sent bubbles as seen
+      msgsEl.querySelectorAll('.dm-msg-group.sent .dm-bubble-outer').forEach(o => {
+        o.dataset.seen = 'true';
+      });
+    }
+    fixSeenLabels(msgsEl);
+  });
+}
+
+// Poll Supabase for seen status of recently sent messages — fallback when realtime UPDATE events
+// don't fire (requires REPLICA IDENTITY FULL on the messages table, which may not be set).
+async function pollSeenStatus(myUserId) {
+  if (!activeDmId) return;
+  try {
+    // Only query the last 30 sent messages in the active conversation
+    const { data } = await supabaseClient.from('messages')
+      .select('id, seen')
+      .eq('sender_id', myUserId)
+      .eq('receiver_id', activeDmId)
+      .eq('seen', true)
+      .order('created_at', { ascending: false })
+      .limit(30);
+
+    if (!data || data.length === 0) return;
+
+    const containers = ['dmChatMessages', 'dmFsMessages']
+      .map(id => document.getElementById(id))
+      .filter(Boolean);
+
+    containers.forEach(msgsEl => {
+      let changed = false;
+      data.forEach(row => {
+        const outer = msgsEl.querySelector(`.dm-bubble-outer[data-msg-id="${row.id}"]`);
+        if (outer && outer.dataset.seen !== 'true') {
+          outer.dataset.seen = 'true';
+          changed = true;
+        }
+        // Also check via wrap
+        if (!outer) {
+          const wrap = msgsEl.querySelector(`.dm-bubble-wrap[data-msg-id="${row.id}"]`);
+          if (wrap) {
+            const o = wrap.closest('.dm-bubble-outer') || wrap.parentElement;
+            if (o && o.dataset.seen !== 'true') {
+              o.dataset.seen = 'true';
+              changed = true;
+            }
+          }
+        }
+      });
+      if (changed) fixSeenLabels(msgsEl);
+    });
+  } catch(e) {}
+}
+
+// Called once when DM opens. Uses three complementary mechanisms:
+// 1. Supabase realtime UPDATE (works if REPLICA IDENTITY FULL is set)
+// 2. BroadcastChannel (works when both users are on same origin in different tabs/windows)
+// 3. Polling every 3 seconds (universal fallback for real-time seen updates)
 async function startSeenChannel(myUserId) {
+  _seenMyUserId = myUserId;
+
+  // Clean up any existing subscriptions
   if (_seenChannel) {
     try { await supabaseClient.removeChannel(_seenChannel); } catch(e) {}
     _seenChannel = null;
   }
+  if (_seenBroadcast) {
+    try { _seenBroadcast.close(); } catch(e) {}
+    _seenBroadcast = null;
+  }
+  if (_seenPollInterval) {
+    clearInterval(_seenPollInterval);
+    _seenPollInterval = null;
+  }
+
+  // ── Mechanism 1: Supabase realtime UPDATE events ──
   _seenChannel = supabaseClient
     .channel(`seen-updates:${myUserId}`)
     .on('postgres_changes', {
@@ -3726,43 +3820,44 @@ async function startSeenChannel(myUserId) {
       // No server-side filter — filter client-side to avoid REPLICA IDENTITY requirement
     }, (payload) => {
       const updated = payload.new;
-      // Only care about our own sent messages being marked seen
       if (updated.sender_id !== myUserId) return;
       if (!updated.seen) return;
+      applySeen(updated.id, myUserId);
+    })
+    .subscribe();
 
-      // Update whichever container is active right now
-      const containers = ['dmChatMessages', 'dmFsMessages']
-        .map(id => document.getElementById(id))
-        .filter(Boolean);
-
-      containers.forEach(msgsEl => {
-        // Find the specific bubble outer for this message ID
-        let outer = msgsEl.querySelector(`.dm-bubble-outer[data-msg-id="${updated.id}"]`);
-        if (!outer) {
-          const wrap = msgsEl.querySelector(`.dm-bubble-wrap[data-msg-id="${updated.id}"]`);
-          if (wrap) outer = wrap.closest('.dm-bubble-outer') || wrap.parentElement;
-        }
-
-        if (outer) {
-          // Mark this outer and all prior sent outers as seen
-          // (receiver may have seen multiple messages at once)
-          const allSentOuters = [...msgsEl.querySelectorAll('.dm-msg-group.sent .dm-bubble-outer')];
-          let found = false;
-          for (let i = allSentOuters.length - 1; i >= 0; i--) {
-            if (allSentOuters[i] === outer) found = true;
-            if (found) allSentOuters[i].dataset.seen = 'true';
-          }
-        } else {
-          // Message not visible (older, not rendered) — mark all rendered sent bubbles seen
-          // since receiver has clearly seen up through this point
+  // ── Mechanism 2: BroadcastChannel for instant cross-tab seen sync ──
+  // When the receiver (in another tab/window on same origin) calls markConversationSeen,
+  // it broadcasts the seen event so the sender tab updates immediately without DB roundtrip.
+  try {
+    _seenBroadcast = new BroadcastChannel('hether-seen-updates');
+    _seenBroadcast.onmessage = (e) => {
+      const { type, receiverId, senderId, msgId } = e.data || {};
+      if (type !== 'SEEN' || senderId !== myUserId) return;
+      // The receiver just saw our messages — update UI immediately
+      if (msgId) {
+        applySeen(msgId, myUserId);
+      } else {
+        // No specific msgId — mark all rendered sent bubbles in this conversation
+        const containers = ['dmChatMessages', 'dmFsMessages']
+          .map(id => document.getElementById(id))
+          .filter(Boolean);
+        containers.forEach(msgsEl => {
           msgsEl.querySelectorAll('.dm-msg-group.sent .dm-bubble-outer').forEach(o => {
             o.dataset.seen = 'true';
           });
-        }
-        fixSeenLabels(msgsEl);
-      });
-    })
-    .subscribe();
+          fixSeenLabels(msgsEl);
+        });
+      }
+    };
+  } catch(e) {
+    // BroadcastChannel not supported (rare) — polling covers it
+  }
+
+  // ── Mechanism 3: Polling fallback (fires every 3s while DM is open) ──
+  // This guarantees seen tags appear in real-time even when realtime events
+  // don't fire due to missing REPLICA IDENTITY FULL on the messages table.
+  _seenPollInterval = setInterval(() => pollSeenStatus(myUserId), 3000);
 }
 
 async function stopSeenChannel() {
@@ -3770,6 +3865,15 @@ async function stopSeenChannel() {
     try { await supabaseClient.removeChannel(_seenChannel); } catch(e) {}
     _seenChannel = null;
   }
+  if (_seenBroadcast) {
+    try { _seenBroadcast.close(); } catch(e) {}
+    _seenBroadcast = null;
+  }
+  if (_seenPollInterval) {
+    clearInterval(_seenPollInterval);
+    _seenPollInterval = null;
+  }
+  _seenMyUserId = null;
 }
 
 function showDmListSkeleton() {
@@ -3789,11 +3893,32 @@ async function markConversationSeen(senderId) {
   try {
     const { data: { user } } = await supabaseClient.auth.getUser();
     if (!user) return;
+
+    // Find the latest unseen message to know what to broadcast
+    const { data: unseenMsgs } = await supabaseClient.from('messages')
+      .select('id')
+      .eq('sender_id', senderId)
+      .eq('receiver_id', user.id)
+      .eq('seen', false)
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    const latestUnseenId = unseenMsgs && unseenMsgs.length > 0 ? unseenMsgs[0].id : null;
+
     await supabaseClient.from('messages')
       .update({ seen: true, seen_at: new Date().toISOString() })
       .eq('sender_id', senderId)
       .eq('receiver_id', user.id)
       .eq('seen', false);
+
+    // ── Broadcast seen event via BroadcastChannel so sender tab updates instantly ──
+    // This fires even when Supabase realtime UPDATE events don't (no REPLICA IDENTITY FULL needed)
+    try {
+      const bc = new BroadcastChannel('hether-seen-updates');
+      bc.postMessage({ type: 'SEEN', senderId: senderId, receiverId: user.id, msgId: latestUnseenId });
+      bc.close();
+    } catch(e) {}
+
     // Refresh seen labels in active chat containers
     ['dmChatMessages', 'dmFsMessages'].forEach(id => {
       const el = document.getElementById(id);
@@ -4438,9 +4563,8 @@ async function loadMessages(userId) {
           appendIncomingMessage(msgsEl, newMsg, user.id, dmDesktopContact);
           updateContactLastMsg(userId, newMsg, user.id);
           buildDMConvList();
-          // Mark as seen since the chat is open
-          markConversationSeen(userId);
-          fixSeenLabels(msgsEl);
+          // Mark as seen since the chat is open — await so fixSeenLabels runs after DB update
+          markConversationSeen(userId).then(() => fixSeenLabels(msgsEl));
         }
       })
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' }, async (payload) => {
@@ -4597,9 +4721,8 @@ async function loadFsMessages(userId) {
           appendIncomingMessage(msgsEl, newMsg, user.id, dmMobileContact);
           updateContactLastMsg(userId, newMsg, user.id);
           buildDMConvList();
-          // Mark as seen since the chat is open
-          markConversationSeen(userId);
-          fixSeenLabels(msgsEl);
+          // Mark as seen since the chat is open — await so fixSeenLabels runs after DB update
+          markConversationSeen(userId).then(() => fixSeenLabels(msgsEl));
         } else {
           const c = dmContacts.find(c => c.id === userId);
           if (c) { updateContactLastMsg(userId, newMsg, user.id); buildDMConvList(); }
@@ -4721,6 +4844,7 @@ function appendIncomingMessage(container, msg, currentUserId, contact) {
           const parentGroup = wrap.closest('.dm-msg-group');
           if (parentGroup) parentGroup.dataset.groupTs = ts;
           container.scrollTop = container.scrollHeight;
+          fixSeenLabels(container);
           return;
         }
       }
@@ -7123,6 +7247,24 @@ function copySnippet(index) {
     }, 1800);
   }
 }
+
+// ── REAL-TIME SEEN: mark conversation seen when user returns to tab/window ──
+// This ensures the receiver-side marks seen immediately when they focus the page,
+// triggering the BroadcastChannel event so the sender sees the "Seen" tag instantly.
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && activeDmId) {
+    markConversationSeen(activeDmId);
+    // Also trigger a poll so sender's seen labels update from latest DB state
+    if (_seenMyUserId) pollSeenStatus(_seenMyUserId);
+  }
+});
+
+window.addEventListener('focus', () => {
+  if (activeDmId) {
+    markConversationSeen(activeDmId);
+    if (_seenMyUserId) pollSeenStatus(_seenMyUserId);
+  }
+});
 
 // ── KEYBOARD SHORTCUT: ESC closes admin overlay if open ──
 document.addEventListener('keydown', function(e) {
