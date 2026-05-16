@@ -3713,13 +3713,15 @@ let _seenBroadcast = null; // BroadcastChannel for cross-tab/window instant seen
 let _seenPollInterval = null; // Fallback polling for when realtime UPDATE events don't fire
 let _seenMyUserId = null; // Stored so polling can use it
 
-// Apply a seen update for a specific message ID to all active chat containers
+// Mark the specific bubble (and only it) as seen=true, then re-run fixSeenLabels.
+// fixSeenLabels will show Seen only on the LAST sent bubble if it is seen=true.
 function applySeen(updatedId, myUserId) {
   const containers = ['dmChatMessages', 'dmFsMessages']
     .map(id => document.getElementById(id))
     .filter(Boolean);
 
   containers.forEach(msgsEl => {
+    // Find the outer element for this message
     let outer = msgsEl.querySelector(`.dm-bubble-outer[data-msg-id="${updatedId}"]`);
     if (!outer) {
       const wrap = msgsEl.querySelector(`.dm-bubble-wrap[data-msg-id="${updatedId}"]`);
@@ -3727,64 +3729,50 @@ function applySeen(updatedId, myUserId) {
     }
 
     if (outer) {
-      // Mark this message and all prior sent messages as seen
-      const allSentOuters = [...msgsEl.querySelectorAll('.dm-msg-group.sent .dm-bubble-outer')];
-      let found = false;
-      for (let i = allSentOuters.length - 1; i >= 0; i--) {
-        if (allSentOuters[i] === outer) found = true;
-        if (found) allSentOuters[i].dataset.seen = 'true';
-      }
-    } else {
-      // Message not in view — mark all rendered sent bubbles as seen
-      msgsEl.querySelectorAll('.dm-msg-group.sent .dm-bubble-outer').forEach(o => {
-        o.dataset.seen = 'true';
-      });
+      outer.dataset.seen = 'true';
     }
+    // Always re-run fixSeenLabels — it will attach Seen to last sent bubble if seen=true
     fixSeenLabels(msgsEl);
   });
 }
 
 // Poll Supabase for seen status of recently sent messages — fallback when realtime UPDATE events
 // don't fire (requires REPLICA IDENTITY FULL on the messages table, which may not be set).
+// Poll the DB for the seen status of the last sent message in this conversation.
+// Updates data-seen on that bubble and calls fixSeenLabels — which only shows
+// the Seen tag on the last sent bubble, only if seen=true.
 async function pollSeenStatus(myUserId) {
   if (!activeDmId) return;
   try {
-    // Only query the last 30 sent messages in the active conversation
+    // Fetch only the single latest message sent by me in this conversation
     const { data } = await supabaseClient.from('messages')
       .select('id, seen')
       .eq('sender_id', myUserId)
       .eq('receiver_id', activeDmId)
-      .eq('seen', true)
       .order('created_at', { ascending: false })
-      .limit(30);
+      .limit(1);
 
     if (!data || data.length === 0) return;
+    const latest = data[0];
 
     const containers = ['dmChatMessages', 'dmFsMessages']
       .map(id => document.getElementById(id))
       .filter(Boolean);
 
     containers.forEach(msgsEl => {
-      let changed = false;
-      data.forEach(row => {
-        const outer = msgsEl.querySelector(`.dm-bubble-outer[data-msg-id="${row.id}"]`);
-        if (outer && outer.dataset.seen !== 'true') {
-          outer.dataset.seen = 'true';
-          changed = true;
+      // Find the outer for the latest sent message
+      let outer = msgsEl.querySelector(`.dm-bubble-outer[data-msg-id="${latest.id}"]`);
+      if (!outer) {
+        const wrap = msgsEl.querySelector(`.dm-bubble-wrap[data-msg-id="${latest.id}"]`);
+        if (wrap) outer = wrap.closest('.dm-bubble-outer') || wrap.parentElement;
+      }
+      if (outer) {
+        const newVal = latest.seen ? 'true' : 'false';
+        if (outer.dataset.seen !== newVal) {
+          outer.dataset.seen = newVal;
+          fixSeenLabels(msgsEl);
         }
-        // Also check via wrap
-        if (!outer) {
-          const wrap = msgsEl.querySelector(`.dm-bubble-wrap[data-msg-id="${row.id}"]`);
-          if (wrap) {
-            const o = wrap.closest('.dm-bubble-outer') || wrap.parentElement;
-            if (o && o.dataset.seen !== 'true') {
-              o.dataset.seen = 'true';
-              changed = true;
-            }
-          }
-        }
-      });
-      if (changed) fixSeenLabels(msgsEl);
+      }
     });
   } catch(e) {}
 }
@@ -3828,27 +3816,17 @@ async function startSeenChannel(myUserId) {
 
   // ── Mechanism 2: BroadcastChannel for instant cross-tab seen sync ──
   // When the receiver (in another tab/window on same origin) calls markConversationSeen,
-  // it broadcasts the seen event so the sender tab updates immediately without DB roundtrip.
+  // it broadcasts a SEEN event. We immediately poll the DB for the last sent message's
+  // seen status and update the UI — no roundtrip delay on the sender side.
   try {
     _seenBroadcast = new BroadcastChannel('hether-seen-updates');
     _seenBroadcast.onmessage = (e) => {
-      const { type, receiverId, senderId, msgId } = e.data || {};
+      const { type, senderId } = e.data || {};
+      // senderId = the other user (who sent the messages we're checking)
+      // myUserId = us (the sender of those messages, now receiving the seen notification)
       if (type !== 'SEEN' || senderId !== myUserId) return;
-      // The receiver just saw our messages — update UI immediately
-      if (msgId) {
-        applySeen(msgId, myUserId);
-      } else {
-        // No specific msgId — mark all rendered sent bubbles in this conversation
-        const containers = ['dmChatMessages', 'dmFsMessages']
-          .map(id => document.getElementById(id))
-          .filter(Boolean);
-        containers.forEach(msgsEl => {
-          msgsEl.querySelectorAll('.dm-msg-group.sent .dm-bubble-outer').forEach(o => {
-            o.dataset.seen = 'true';
-          });
-          fixSeenLabels(msgsEl);
-        });
-      }
+      // Immediately poll DB to get confirmed seen state of our last sent message
+      pollSeenStatus(myUserId);
     };
   } catch(e) {
     // BroadcastChannel not supported (rare) — polling covers it
@@ -3894,32 +3872,23 @@ async function markConversationSeen(senderId) {
     const { data: { user } } = await supabaseClient.auth.getUser();
     if (!user) return;
 
-    // Find the latest unseen message to know what to broadcast
-    const { data: unseenMsgs } = await supabaseClient.from('messages')
-      .select('id')
-      .eq('sender_id', senderId)
-      .eq('receiver_id', user.id)
-      .eq('seen', false)
-      .order('created_at', { ascending: false })
-      .limit(1);
-
-    const latestUnseenId = unseenMsgs && unseenMsgs.length > 0 ? unseenMsgs[0].id : null;
-
+    // Mark all unseen messages from sender as seen
     await supabaseClient.from('messages')
       .update({ seen: true, seen_at: new Date().toISOString() })
       .eq('sender_id', senderId)
       .eq('receiver_id', user.id)
       .eq('seen', false);
 
-    // ── Broadcast seen event via BroadcastChannel so sender tab updates instantly ──
-    // This fires even when Supabase realtime UPDATE events don't (no REPLICA IDENTITY FULL needed)
+    // ── Broadcast via BroadcastChannel so sender tab updates instantly ──
+    // senderId here = the person who sent the messages (the other user).
+    // On the sender's tab, _seenBroadcast listens for this and updates their UI.
     try {
       const bc = new BroadcastChannel('hether-seen-updates');
-      bc.postMessage({ type: 'SEEN', senderId: senderId, receiverId: user.id, msgId: latestUnseenId });
+      bc.postMessage({ type: 'SEEN', senderId: senderId, receiverId: user.id });
       bc.close();
     } catch(e) {}
 
-    // Refresh seen labels in active chat containers
+    // Refresh our own seen labels (receiver side — usually no sent bubbles visible here)
     ['dmChatMessages', 'dmFsMessages'].forEach(id => {
       const el = document.getElementById(id);
       if (el) fixSeenLabels(el);
@@ -4252,24 +4221,22 @@ function renderGroupedMessages(container, groups, currentUserId, contact) {
 }
 /* Ensure only the last seen sent bubble shows "Seen" */
 function fixSeenLabels(container) {
-  // Select ALL sent bubble outers (with or without data-seen attribute)
-  const allSentWraps = [...container.querySelectorAll('.dm-msg-group.sent .dm-bubble-outer')];
-  // Hide all existing seen labels first
-  allSentWraps.forEach(w => {
+  // Get ALL sent bubble outers in DOM order
+  const allSentOuters = [...container.querySelectorAll('.dm-msg-group.sent .dm-bubble-outer')];
+  // Remove every existing seen label
+  allSentOuters.forEach(w => {
     const lbl = w.querySelector('.dm-seen-label');
-    if (lbl) lbl.style.display = 'none';
+    if (lbl) lbl.remove();
   });
-  // Find the last one explicitly marked seen
-  const lastSeen = [...allSentWraps].reverse().find(w => w.dataset.seen === 'true');
-  if (lastSeen) {
-    let lbl = lastSeen.querySelector('.dm-seen-label');
-    if (!lbl) {
-      lbl = document.createElement('div');
-      lbl.className = 'dm-seen-label';
-      lbl.textContent = 'Seen';
-      lastSeen.appendChild(lbl);
-    }
-    lbl.style.display = 'block';
+  if (allSentOuters.length === 0) return;
+  // ONLY the last sent bubble can ever show Seen
+  const lastOuter = allSentOuters[allSentOuters.length - 1];
+  // Show Seen only if that bubble is explicitly marked seen=true
+  if (lastOuter.dataset.seen === 'true') {
+    const lbl = document.createElement('div');
+    lbl.className = 'dm-seen-label';
+    lbl.textContent = 'Seen';
+    lastOuter.appendChild(lbl);
   }
 }
 
@@ -4384,17 +4351,11 @@ function makeBubbleWrap(msg, isSent, contact, currentUserId) {
   bOuter.className = 'dm-bubble-outer';
   bOuter.appendChild(bWrap);
 
-  // Store seen state for post-render seen label updates
+  // Store seen state — fixSeenLabels() handles rendering the label after all bubbles are in DOM
   if (isSent) {
     bWrap.dataset.seen = msg.seen ? 'true' : 'false';
     bOuter.dataset.seen = msg.seen ? 'true' : 'false';
     bOuter.dataset.msgId = msg.id || '';
-    if (msg.seen) {
-      const seenEl = document.createElement('div');
-      seenEl.className = 'dm-seen-label';
-      seenEl.textContent = 'Seen';
-      bOuter.appendChild(seenEl);
-    }
   }
 
   return bOuter;
