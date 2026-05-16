@@ -4167,12 +4167,11 @@ function groupMessages(messages) {
     const ts = d.getTime();
     const dayLabel = formatTimeSeparator(d);
     if (dayLabel !== lastDayLabel) { groups.push({ type: 'separator', label: dayLabel }); lastDayLabel = dayLabel; }
-    // Group if same sender AND within 60 seconds of the last message in the group
-    const withinGap = lastMsgTs !== null && (ts - lastMsgTs) < 60000;
-    if (currentGroup && currentGroup.sender_id === msg.sender_id && withinGap) {
+    // Group if same sender (consecutive run — no time limit)
+    if (currentGroup && currentGroup.sender_id === msg.sender_id) {
       currentGroup.messages.push(msg);
       currentGroup.time = formatMsgTime(d);
-      currentGroup.groupKey = ts; // update so next msg checks against this one
+      currentGroup.groupKey = ts;
     } else {
       currentGroup = { type: 'group', groupKey: ts, sender_id: msg.sender_id, messages: [msg], time: formatMsgTime(d) };
       groups.push(currentGroup);
@@ -4824,13 +4823,11 @@ function appendIncomingMessage(container, msg, currentUserId, contact) {
     }
   }
 
-  // Check last group — merge if same sender and within 60s
+  // Check last group — merge if same sender (no time limit)
   const allGroups = container.querySelectorAll('.dm-msg-group');
   const lastGroup = allGroups[allGroups.length - 1];
-  const lastGroupTs = lastGroup ? parseInt(lastGroup.dataset.groupTs || '0', 10) : 0;
-  const withinGap = lastGroupTs > 0 && (ts - lastGroupTs) < 60000;
 
-  if (lastGroup && lastGroup.dataset.senderId === msg.sender_id && withinGap) {
+  if (lastGroup && lastGroup.dataset.senderId === msg.sender_id) {
     const bubblesWrap = lastGroup.querySelector('.dm-msg-bubbles');
     if (bubblesWrap) {
       bubblesWrap.appendChild(makeBubbleWrap(msg, isSent, contact, currentUserId));
@@ -4967,13 +4964,10 @@ async function dmSend(mode) {
   const contact = dmContacts.find(c => c.id === activeDmId);
 
   // ── Optimistic bubble ──
-  // Compute timestamp for NOW for gap-based grouping
   const now = new Date();
   const nowTs = now.getTime();
   const allGroups = msgsEl.querySelectorAll('.dm-msg-group');
   const lastGroup = allGroups[allGroups.length - 1];
-  const lastGroupTs = lastGroup ? parseInt(lastGroup.dataset.groupTs || '0', 10) : 0;
-  const withinGap = lastGroupTs > 0 && (nowTs - lastGroupTs) < 60000;
 
   const bWrap = document.createElement('div');
   bWrap.className = 'dm-bubble-wrap';
@@ -5011,8 +5005,8 @@ async function dmSend(mode) {
   if (!text) {
     // media-only: no text bubble to show optimistically
   } else
-  // merge into last group if same sender within 60s, else create new group
-  if (lastGroup && lastGroup.dataset.senderId === user.id && withinGap) {
+  // merge into last group if same sender (consecutive — no time limit), else create new group
+  if (lastGroup && lastGroup.dataset.senderId === user.id) {
     const bubblesWrap = lastGroup.querySelector('.dm-msg-bubbles');
     if (bubblesWrap) {
       bubblesWrap.appendChild(bWrap);
