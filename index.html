@@ -626,6 +626,17 @@ body {
 }
 .media-staging-send:hover { background: var(--accent-hover); }
 
+/* ── EMOJI-ONLY MESSAGES ── */
+.dm-bubble-emoji-only {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 2px !important;
+  font-size: 42px !important;
+  line-height: 1.15 !important;
+  min-width: 0 !important;
+}
+
 /* typing */
 .typing-dots { display: flex; gap: 4px; padding: 4px 0; }
 .typing-dots span { width: 6px; height: 6px; border-radius: 50%; background: var(--text3); animation: bounce 1.2s infinite; }
@@ -903,6 +914,20 @@ body {
   background: var(--accent); flex-shrink: 0;
 }
 
+.dm-unread-badge {
+  min-width: 18px; height: 18px; border-radius: 9px;
+  background: var(--accent); color: #fff;
+  font-size: 10.5px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 5px; flex-shrink: 0; letter-spacing: 0;
+}
+
+.dm-seen-label {
+  font-size: 10px; color: var(--text3); text-align: right;
+  padding: 1px 4px 0; display: none; letter-spacing: 0.1px;
+  width: 100%;
+}
+
 /* ── CHAT PANEL ── */
 .dm-chat-panel {
   flex: 1;
@@ -965,11 +990,10 @@ body {
 .dm-chat-messages::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 2px; }
 
 .dm-time-separator {
-  text-align: center; font-size: 11px; color: var(--text3);
-  padding: 8px 0; margin: 6px 0; font-weight: 500;
-  flex-shrink: 0;
+  display: none;
 }
 
+.dm-group-time { display: none; }
 .dm-msg-group {
   display: flex;
   flex-direction: column;
@@ -1075,12 +1099,44 @@ body {
 .dm-msg-group.sent .dm-bubble { background: var(--accent); color: #fff; }
 .dm-msg-group.received .dm-bubble { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
 
-.dm-msg-group.sent .dm-bubble-wrap:first-child .dm-bubble { border-bottom-right-radius: 6px; }
-.dm-msg-group.sent .dm-bubble-wrap:last-child .dm-bubble { border-top-right-radius: 6px; }
-.dm-msg-group.sent .dm-bubble-wrap:not(:first-child):not(:last-child) .dm-bubble { border-top-right-radius: 6px; border-bottom-right-radius: 6px; }
-.dm-msg-group.received .dm-bubble-wrap:first-child .dm-bubble { border-bottom-left-radius: 6px; }
-.dm-msg-group.received .dm-bubble-wrap:last-child .dm-bubble { border-top-left-radius: 6px; }
-.dm-msg-group.received .dm-bubble-wrap:not(:first-child):not(:last-child) .dm-bubble { border-top-left-radius: 6px; border-bottom-left-radius: 6px; }
+/* ── INSTAGRAM-STYLE GROUPED BUBBLE CORNERS ── */
+/* Sent bubbles (right side) - flat on bottom-right for top/mid, flat on top-right for bottom/mid */
+.dm-msg-group.sent .dm-bubble.bubble-first {
+  border-radius: 18px 18px 4px 18px;
+}
+.dm-msg-group.sent .dm-bubble.bubble-middle {
+  border-radius: 18px 6px 6px 18px;
+}
+.dm-msg-group.sent .dm-bubble.bubble-last {
+  border-radius: 18px 4px 18px 18px;
+}
+.dm-msg-group.sent .dm-bubble.bubble-solo {
+  border-radius: 18px;
+}
+
+/* Received bubbles (left side) - flat on bottom-left for top/mid, flat on top-left for bottom/mid */
+.dm-msg-group.received .dm-bubble.bubble-first {
+  border-radius: 18px 18px 18px 4px;
+}
+.dm-msg-group.received .dm-bubble.bubble-middle {
+  border-radius: 4px 18px 18px 4px;
+}
+.dm-msg-group.received .dm-bubble.bubble-last {
+  border-radius: 4px 18px 18px 18px;
+}
+.dm-msg-group.received .dm-bubble.bubble-solo {
+  border-radius: 18px;
+}
+
+/* Emoji-only and media-only bubbles always stay fully round */
+.dm-bubble.dm-bubble-emoji-only.bubble-first,
+.dm-bubble.dm-bubble-emoji-only.bubble-middle,
+.dm-bubble.dm-bubble-emoji-only.bubble-last,
+.dm-bubble.dm-bubble-media-only.bubble-first,
+.dm-bubble.dm-bubble-media-only.bubble-middle,
+.dm-bubble.dm-bubble-media-only.bubble-last {
+  border-radius: 18px !important;
+}
 
 .dm-bubble.sending { opacity: 0.6; }
 .dm-sending-icon {
@@ -1110,6 +1166,19 @@ body {
 .dm-msg-group-row { overflow: visible !important; }
 .dm-chat-messages { overflow-y: auto; overflow-x: hidden; }
 .dm-fs-messages { overflow-y: auto; overflow-x: hidden; }
+
+/* WhatsApp-style message highlight on reply-tap */
+@keyframes msgHighlight {
+  0%   { background-color: rgba(102,100,194,0.32); }
+  100% { background-color: transparent; }
+}
+.dm-bubble-highlighted .dm-bubble {
+  animation: msgHighlight 1.2s ease-out forwards !important;
+  border-radius: 12px !important;
+}
+.dm-bubble-highlighted {
+  border-radius: 12px;
+}
 @keyframes reactionPop { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
 .dm-reply-preview {
@@ -1122,7 +1191,7 @@ body {
 .dm-reply-preview .dm-reply-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .dm-msg-group.sent .dm-reply-preview { background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.8); border-color: rgba(255,255,255,0.5); }
 
-.dm-group-time { font-size: 10.5px; color: var(--text3); padding: 2px 4px; margin-top: 2px; text-align: center; }
+.dm-group-time { font-size: 10.5px; color: var(--text3); padding: 2px 4px; margin-top: 2px; text-align: center; display: none; }
 
 .dm-bubble-media-only {
   background: transparent !important;
@@ -1513,6 +1582,8 @@ body {
   .mobile-overlay.show { display: block; }
   .hamburger { display: none !important; }
   .chat-header { padding: 12px 16px; }
+  .hide-mobile { display: none !important; }
+  #mobileProfileBtn { display: flex !important; }
   .input-area {
     padding: 10px 12px;
     padding-bottom: max(20px, calc(16px + env(safe-area-inset-bottom, 20px)));
@@ -2140,7 +2211,11 @@ body {
         <div class="status-dot"></div>
         hetherGPT
       </div>
-      <span style="font-size:12px;color:var(--text3);">AI · Calculations &amp; Knowledge</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:12px;color:var(--text3);" class="hide-mobile">AI · Calculations &amp; Knowledge</span>
+        <button id="mobileProfileBtn" onclick="openProfileEdit()" title="Profile" style="display:none;width:30px;height:30px;border-radius:50%;border:none;background:transparent;cursor:pointer;padding:0;flex-shrink:0;overflow:hidden;position:relative;" class="default-avatar profile-avatar">
+        </button>
+      </div>
     </div>
     <div class="messages" id="messages">
       <div class="welcome" id="welcomeScreen">
@@ -2464,6 +2539,8 @@ body {
           <button class="dm-reply-cancel" onclick="cancelReply()">×</button>
         </div>
 
+        <div id="dmTypingSlot" style="display:none;padding:4px 18px 0;background:var(--surface);flex-shrink:0;"></div>
+
         <div class="dm-chat-input-area">
           <div class="dm-input-row">
             <button class="emoji-btn" id="dmEmojiBtn" onclick="toggleEmojiPicker('dm')">
@@ -2538,6 +2615,8 @@ body {
       </div>
       <button class="dm-reply-cancel" onclick="cancelReply('mobile')">×</button>
     </div>
+
+    <div id="dmFsTypingSlot" style="display:none;padding:4px 14px 0;background:var(--surface);flex-shrink:0;"></div>
 
     <div class="dm-fs-input-area">
       <div class="dm-fs-input-row">
@@ -2832,33 +2911,42 @@ async function setupTypingChannel(myUserId, otherUserId) {
         hideRemoteTyping();
       }
     })
-    .subscribe();
+    .subscribe((status) => {
+      // Once joined, flush any pending typing broadcast (common on slow mobile connections)
+      if (status === 'SUBSCRIBED' && typingChannel._pendingTyping) {
+        typingChannel.send({ type: 'broadcast', event: 'typing', payload: { userId: myUserId, isTyping: true } });
+        delete typingChannel._pendingTyping;
+      }
+    });
 }
 
 function showRemoteTyping(userId) {
   const contact = dmContacts.find(c => c.id === userId);
-  const msgsEl = document.getElementById('dmChatMessages');
-  const fsMsgsEl = document.getElementById('dmFsMessages');
-  [{ el: msgsEl, id: 'dmTypingDots' }, { el: fsMsgsEl, id: 'dmFsTypingDots' }].forEach(({ el, id }) => {
-    if (!el) return;
-    let existing = document.getElementById(id);
-    if (!existing) {
-      existing = document.createElement('div');
-      existing.id = id;
-      existing.className = 'dm-typing-indicator';
-      existing.innerHTML = `
-        <div class="dm-typing-avatar default-avatar" style="width:24px;height:24px;border-radius:50%;overflow:hidden;position:relative;background:#e8e8ec;">
-          ${contact && contact.avatarUrl ? `<img src="${contact.avatarUrl}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : DEFAULT_AVATAR_SVG}
-        </div>
-        <div class="dm-typing-bubble"><span></span><span></span><span></span></div>
-      `;
-      el.appendChild(existing);
-    }
-    el.scrollTop = el.scrollHeight;
+  const avatarHtml = contact && contact.avatarUrl
+    ? `<img src="${contact.avatarUrl}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+    : DEFAULT_AVATAR_SVG;
+  const indicatorHtml = `
+    <div class="dm-typing-indicator" style="padding:2px 0 4px;">
+      <div class="dm-typing-avatar default-avatar" style="width:22px;height:22px;border-radius:50%;overflow:hidden;position:relative;background:#e8e8ec;flex-shrink:0;">
+        ${avatarHtml}
+      </div>
+      <div class="dm-typing-bubble"><span></span><span></span><span></span></div>
+    </div>`;
+
+  [{ slotId: 'dmTypingSlot' }, { slotId: 'dmFsTypingSlot' }].forEach(({ slotId }) => {
+    const slot = document.getElementById(slotId);
+    if (!slot) return;
+    slot.innerHTML = indicatorHtml;
+    slot.style.display = 'block';
   });
 }
 
 function hideRemoteTyping() {
+  ['dmTypingSlot', 'dmFsTypingSlot'].forEach(id => {
+    const slot = document.getElementById(id);
+    if (slot) { slot.innerHTML = ''; slot.style.display = 'none'; }
+  });
+  // Also remove any old in-messages typing indicators (legacy cleanup)
   ['dmTypingDots', 'dmFsTypingDots'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.remove();
@@ -2867,7 +2955,12 @@ function hideRemoteTyping() {
 
 function broadcastTyping(isTyping) {
   if (!typingChannel || !activeDmId || !currentUser) return;
-  if (typingChannel.state !== 'joined') return;
+  if (typingChannel.state !== 'joined') {
+    // Channel not ready yet (common on mobile slower connections)
+    // Queue the isTyping=true event so it fires once subscribed
+    if (isTyping) typingChannel._pendingTyping = true;
+    return;
+  }
   typingChannel.send({ type: 'broadcast', event: 'typing', payload: { userId: currentUser.id, isTyping } });
 }
 
@@ -3098,6 +3191,10 @@ function renderProfileEverywhere() {
   const sAvEl = document.getElementById('sidebarProfileAvatar');
   setAvatarEl(sAvEl, profile.avatarUrl);
   document.getElementById('sidebarProfileName').textContent = profile.name;
+
+  // Mobile top-right profile button
+  const mobProfileBtn = document.getElementById('mobileProfileBtn');
+  if (mobProfileBtn) setAvatarEl(mobProfileBtn, profile.avatarUrl);
 
   // Profile dropdown header
   document.getElementById('pdDisplayName').textContent = profile.name;
@@ -3612,6 +3709,24 @@ function showDmListSkeleton() {
   if (mobileList) mobileList.innerHTML = skeleton;
 }
 
+// ── MARK MESSAGES AS SEEN ──
+async function markConversationSeen(senderId) {
+  try {
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if (!user) return;
+    await supabaseClient.from('messages')
+      .update({ seen: true, seen_at: new Date().toISOString() })
+      .eq('sender_id', senderId)
+      .eq('receiver_id', user.id)
+      .eq('seen', false);
+    // Refresh seen labels in active chat containers
+    ['dmChatMessages', 'dmFsMessages'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) fixSeenLabels(el);
+    });
+  } catch (e) {}
+}
+
 async function openDM() {
   dmOpen = true;
   if (isMobile()) {
@@ -3630,6 +3745,30 @@ async function openDM() {
   } catch (e) {
     buildDMConvList();
   }
+  // Global listener: catch new messages for any DM not currently open
+  try {
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if (user) {
+      const globalCh = supabaseClient.channel(`global-inbox:${user.id}`)
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages',
+          filter: `receiver_id=eq.${user.id}` }, (payload) => {
+          const msg = payload.new;
+          if (msg.sender_id === activeDmId) return; // already handled by per-chat channel
+          const contact = dmContacts.find(c => c.id === msg.sender_id);
+          if (contact) {
+            contact.unread = true;
+            contact.unreadCount = (contact.unreadCount || 0) + 1;
+            const d = new Date(msg.created_at);
+            contact.lastMessage = { type: 'received', text: msg.content, time: formatMsgTime(d) };
+            contact.lastMessageTs = d.getTime();
+            buildDMConvList();
+          }
+        })
+        .subscribe();
+      // Store so we can remove on close
+      window._dmGlobalChannel = globalCh;
+    }
+  } catch(e) {}
 }
 
 async function closeDM() {
@@ -3642,6 +3781,7 @@ async function closeDM() {
   document.getElementById('dmFullscreen').classList.remove('show');
   closeMsgActionMenu(); hideRemoteTyping(); stopTypingBroadcast(); resetPresenceDots();
   if (typingChannel) { await supabaseClient.removeChannel(typingChannel); typingChannel = null; }
+  if (window._dmGlobalChannel) { await supabaseClient.removeChannel(window._dmGlobalChannel); window._dmGlobalChannel = null; }
   await subscriptionManager.replaceSubscription(null);
 }
 
@@ -3677,8 +3817,25 @@ function buildDMConvList() {
       item.onclick = () => { isFsList ? openFsChat(c.id) : openDesktopChat(c.id); };
       const lastMsg = c.lastMessage;
       const isUnread = c.unread && c.id !== activeDmId;
-      const previewClass = 'dm-conv-preview' + (isUnread ? ' unread' : '');
-      const previewText = lastMsg ? (lastMsg.type === 'sent' ? 'You: ' + lastMsg.text : lastMsg.text) : '';
+      const unreadCount = isUnread ? (c.unreadCount || 0) : 0;
+
+      // Build preview text
+      let previewHtml = '';
+      if (isUnread && unreadCount >= 2) {
+        const label = unreadCount > 4 ? '4+ new messages' : `${unreadCount} new messages`;
+        previewHtml = `<div class="dm-conv-preview unread">${label}</div>`;
+      } else if (isUnread && unreadCount === 1) {
+        // Show the latest message content truncated
+        const msgText = lastMsg ? (lastMsg.type === 'sent' ? 'You: ' + (lastMsg.text || '') : (lastMsg.text || '')) : '';
+        const truncated = msgText.length > 38 ? msgText.substring(0, 38) + '…' : msgText;
+        previewHtml = `<div class="dm-conv-preview unread">${escHtml(truncated)}</div>`;
+      } else {
+        const msgText = lastMsg ? (lastMsg.type === 'sent' ? 'You: ' + (lastMsg.text || '') : (lastMsg.text || '')) : '';
+        previewHtml = `<div class="dm-conv-preview">${escHtml(msgText)}</div>`;
+      }
+
+      // Badge: always just a dot regardless of count
+      let badgeHtml = isUnread ? '<div class="dm-unread-dot"></div>' : '';
 
       // FIX 1: Conv list avatar using proper silhouette
       const avatarInner = c.avatarUrl
@@ -3692,11 +3849,11 @@ function buildDMConvList() {
         </div>
         <div class="dm-conv-info">
           <div class="dm-conv-name">${escHtml(c.name)}</div>
-          <div class="${previewClass}">${escHtml(previewText)}</div>
+          ${previewHtml}
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
           <div class="dm-conv-time">${lastMsg ? lastMsg.time : ''}</div>
-          ${isUnread ? '<div class="dm-unread-dot"></div>' : ''}
+          ${badgeHtml}
         </div>
       `;
       list.appendChild(item);
@@ -3729,6 +3886,7 @@ async function loadContacts() {
       lastMessage: existing ? existing.lastMessage : null,
       lastMessageTs: existing ? existing.lastMessageTs : 0,
       unread: existing ? existing.unread : false,
+      unreadCount: existing ? (existing.unreadCount || 0) : 0,
       sentByMe: existing ? existing.sentByMe : false,
     });
     colorIdx++;
@@ -3760,6 +3918,7 @@ async function openDesktopChat(id) {
   const contact = dmContacts.find(c => c.id === id);
   if (!contact) return;
   contact.unread = false;
+  contact.unreadCount = 0;
   activeDmId = id;
   document.querySelectorAll('#dmConvList .dm-conv-item').forEach(el => el.classList.toggle('active', el.dataset.id === id));
   document.getElementById('dmTopbarName').textContent = contact.name;
@@ -3780,9 +3939,17 @@ async function openDesktopChat(id) {
   cancelReply();
   clearDmStaging();
   document.getElementById('dmInput').focus();
+  markConversationSeen(id);
 }
 
-function formatMsgTime(date) { return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
+function formatMsgTime(date) {
+  const now = new Date();
+  const isToday = date.getDate() === now.getDate() && date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+  if (isToday) return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const isThisYear = date.getFullYear() === now.getFullYear();
+  if (isThisYear) return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  return date.toLocaleDateString([], { month: 'short', day: 'numeric', year: '2-digit' });
+}
 function formatTimeSeparator(date) {
   const now = new Date();
   const diff = now - date;
@@ -3796,17 +3963,23 @@ function groupMessages(messages) {
   const groups = [];
   let currentGroup = null;
   let lastDayLabel = null;
+  let lastMsgTs = null;
   messages.forEach(msg => {
     const d = new Date(msg.created_at || msg.ts || Date.now());
-    const minuteKey = `${msg.sender_id}_${d.getFullYear()}_${d.getMonth()}_${d.getDate()}_${d.getHours()}_${d.getMinutes()}`;
+    const ts = d.getTime();
     const dayLabel = formatTimeSeparator(d);
     if (dayLabel !== lastDayLabel) { groups.push({ type: 'separator', label: dayLabel }); lastDayLabel = dayLabel; }
-    if (currentGroup && currentGroup.minuteKey === minuteKey) {
+    // Group if same sender AND within 60 seconds of the last message in the group
+    const withinGap = lastMsgTs !== null && (ts - lastMsgTs) < 60000;
+    if (currentGroup && currentGroup.sender_id === msg.sender_id && withinGap) {
       currentGroup.messages.push(msg);
+      currentGroup.time = formatMsgTime(d);
+      currentGroup.groupKey = ts; // update so next msg checks against this one
     } else {
-      currentGroup = { type: 'group', minuteKey, sender_id: msg.sender_id, messages: [msg], time: formatMsgTime(d) };
+      currentGroup = { type: 'group', groupKey: ts, sender_id: msg.sender_id, messages: [msg], time: formatMsgTime(d) };
       groups.push(currentGroup);
     }
+    lastMsgTs = ts;
   });
   return groups;
 }
@@ -3845,7 +4018,7 @@ function renderGroupedMessages(container, groups, currentUserId, contact) {
     const isSent = item.sender_id === currentUserId;
     const groupEl = document.createElement('div');
     groupEl.className = `dm-msg-group ${isSent ? 'sent' : 'received'}`;
-    groupEl.dataset.minuteKey = item.minuteKey;
+    groupEl.dataset.groupTs = item.groupKey;
     groupEl.dataset.senderId = item.sender_id;
     const rowEl = document.createElement('div');
     rowEl.className = 'dm-msg-group-row';
@@ -3861,6 +4034,7 @@ function renderGroupedMessages(container, groups, currentUserId, contact) {
       if (msg.id) renderedMsgIds.add(msg.id);
       bubblesWrap.appendChild(makeBubbleWrap(msg, isSent, contact, currentUserId));
     });
+    applyBubbleGrouping(bubblesWrap);
 
     rowEl.appendChild(bubblesWrap);
     groupEl.appendChild(rowEl);
@@ -3871,9 +4045,62 @@ function renderGroupedMessages(container, groups, currentUserId, contact) {
   });
 
   container.scrollTop = container.scrollHeight;
+  fixSeenLabels(container);
+}
+/* Ensure only the last seen sent bubble shows "Seen" */
+function fixSeenLabels(container) {
+  const allSentWraps = [...container.querySelectorAll('.dm-msg-group.sent .dm-bubble-wrap[data-seen]')];
+  allSentWraps.forEach(w => {
+    const lbl = w.querySelector('.dm-seen-label');
+    if (lbl) lbl.style.display = 'none';
+  });
+  const lastSeen = [...allSentWraps].reverse().find(w => w.dataset.seen === 'true');
+  if (lastSeen) {
+    let lbl = lastSeen.querySelector('.dm-seen-label');
+    if (!lbl) {
+      lbl = document.createElement('div');
+      lbl.className = 'dm-seen-label';
+      lbl.textContent = 'Seen';
+      lastSeen.appendChild(lbl);
+    }
+    lbl.style.display = 'block';
+  }
 }
 
-/* Shared bubble-wrap builder */
+// Returns true if the string contains only emoji characters (and whitespace)
+function isEmojiOnly(str) {
+  if (!str || !str.trim()) return false;
+  // Strip all emoji sequences; if nothing remains the string is emoji-only
+  const emojiRegex = /^(\p{Emoji_Presentation}|\p{Extended_Pictographic}|\uFE0F|\u200D|\p{Emoji_Modifier}|\p{Emoji_Modifier_Base}|\uFE0E|\p{Emoji_Component}|\s)+$/u;
+  return emojiRegex.test(str.trim());
+}
+
+// Apply Instagram-style corner classes to all bubble siblings in a .dm-msg-bubbles container
+function applyBubbleGrouping(bubblesWrap) {
+  if (!bubblesWrap) return;
+  const wraps = bubblesWrap.querySelectorAll(':scope > .dm-bubble-wrap');
+  const total = wraps.length;
+  wraps.forEach((wrap, i) => {
+    const bubble = wrap.querySelector('.dm-bubble');
+    if (!bubble) return;
+    // Skip emoji-only and media-only bubbles (keep fully round)
+    if (bubble.classList.contains('dm-bubble-emoji-only') || bubble.classList.contains('dm-bubble-media-only')) {
+      bubble.classList.remove('bubble-first','bubble-middle','bubble-last','bubble-solo');
+      return;
+    }
+    bubble.classList.remove('bubble-first','bubble-middle','bubble-last','bubble-solo');
+    if (total === 1) {
+      bubble.classList.add('bubble-solo');
+    } else if (i === 0) {
+      bubble.classList.add('bubble-first');
+    } else if (i === total - 1) {
+      bubble.classList.add('bubble-last');
+    } else {
+      bubble.classList.add('bubble-middle');
+    }
+  });
+}
+
 function makeBubbleWrap(msg, isSent, contact, currentUserId) {
   const bWrap = document.createElement('div');
   bWrap.className = 'dm-bubble-wrap';
@@ -3895,13 +4122,15 @@ function makeBubbleWrap(msg, isSent, contact, currentUserId) {
   moreBtn.onclick = (e) => { e.stopPropagation(); showMsgActionMenu(e, bWrap, msg, isSent); };
 
   const bubble = document.createElement('div');
-  bubble.className = 'dm-bubble' + (msg.sending ? ' sending' : '');
+  const emojiOnly = isEmojiOnly(msgText) && !msg.media_url;
+  bubble.className = 'dm-bubble' + (emojiOnly ? ' dm-bubble-emoji-only' : '') + (msg.sending ? ' sending' : '');
   bubble.dataset.msgId = msg.id || '';
 
   if (msg.reply_to_text) {
     const rp = document.createElement('div');
     rp.className = 'dm-reply-preview';
     rp.innerHTML = `<div class="dm-reply-author">${escHtml(msg.reply_to_author || '')}</div><div class="dm-reply-text">${escHtml(msg.reply_to_text)}</div>`;
+    rp.onclick = (e) => { e.stopPropagation(); scrollToReplyTarget(msg.reply_to_text, msg.reply_to_author || ''); };
     bubble.prepend(rp);
   }
 
@@ -3918,12 +4147,12 @@ function makeBubbleWrap(msg, isSent, contact, currentUserId) {
     } else {
       bubble.innerHTML += `<img src="${msg.media_url}" style="max-width:220px;border-radius:10px;margin-bottom:6px;display:block;cursor:pointer;" onclick="openLightbox(this.src)">`;
     }
-    if (msg.content) {
+    if (msg.content && msg.content.trim()) {
       const textNode = document.createElement('div');
       textNode.textContent = msg.content;
       bubble.appendChild(textNode);
     }
-  } else if (msg.content) {
+  } else if (msg.content && msg.content.trim()) {
     const textNode = document.createElement('div');
     textNode.textContent = msg.content;
     bubble.appendChild(textNode);
@@ -3943,6 +4172,17 @@ function makeBubbleWrap(msg, isSent, contact, currentUserId) {
 
   if (isSent) { bWrap.appendChild(moreBtn); bWrap.appendChild(replyBtn); bWrap.appendChild(bubble); }
   else { bWrap.appendChild(bubble); bWrap.appendChild(replyBtn); bWrap.appendChild(moreBtn); }
+
+  // Store seen state for post-render seen label updates
+  if (isSent) {
+    bWrap.dataset.seen = msg.seen ? 'true' : 'false';
+    if (msg.seen) {
+      const seenEl = document.createElement('div');
+      seenEl.className = 'dm-seen-label';
+      seenEl.textContent = 'Seen';
+      bWrap.appendChild(seenEl);
+    }
+  }
 
   return bWrap;
 }
@@ -4016,6 +4256,30 @@ function cancelReply(mode) {
   document.getElementById('dmFsReplyBar')?.classList.remove('show');
 }
 
+// Scroll to the message that was replied to and flash a WhatsApp-style highlight
+function scrollToReplyTarget(replyText, replyAuthor) {
+  // Search both possible containers
+  const containers = ['dmChatMessages', 'dmFsMessages'].map(id => document.getElementById(id)).filter(Boolean);
+  for (const container of containers) {
+    const wraps = container.querySelectorAll('.dm-bubble-wrap');
+    for (const wrap of wraps) {
+      const bubbleText = wrap.dataset.text || '';
+      const bubbleSender = wrap.dataset.sender || '';
+      if (bubbleText.trim() === replyText.trim() && bubbleSender === replyAuthor) {
+        // Remove class first to reset animation, then scroll, then highlight after scroll settles
+        wrap.classList.remove('dm-bubble-highlighted');
+        void wrap.offsetWidth;
+        wrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => {
+          wrap.classList.add('dm-bubble-highlighted');
+          setTimeout(() => wrap.classList.remove('dm-bubble-highlighted'), 1200);
+        }, 350);
+        return;
+      }
+    }
+  }
+}
+
 // ── LOAD MESSAGES (desktop) ──
 const DM_PAGE_SIZE = 15;
 const DM_LOAD_MORE = 10;
@@ -4086,6 +4350,8 @@ async function loadMessages(userId) {
           appendIncomingMessage(msgsEl, newMsg, user.id, dmDesktopContact);
           updateContactLastMsg(userId, newMsg, user.id);
           buildDMConvList();
+          // Mark as seen since the chat is open
+          markConversationSeen(userId);
         }
       })
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' }, async (payload) => {
@@ -4101,6 +4367,17 @@ async function loadMessages(userId) {
           const last = remaining[remaining.length - 1];
           updateContactLastMsg(userId, last, user.id);
           buildDMConvList();
+        }
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages',
+        filter: `sender_id=eq.${user.id}` }, (payload) => {
+        // Someone saw our message — update seen label
+        const updated = payload.new;
+        if (updated.seen) {
+          // Mark the bubble wrap as seen
+          const wrap = msgsEl.querySelector(`.dm-bubble-wrap[data-msg-id="${updated.id}"]`);
+          if (wrap) { wrap.dataset.seen = 'true'; }
+          fixSeenLabels(msgsEl);
         }
       })
       .subscribe();
@@ -4149,7 +4426,7 @@ async function loadMoreMessagesDesktop() {
           const isSent = item.sender_id === dmDesktopUser.id;
           const groupEl = document.createElement('div');
           groupEl.className = `dm-msg-group ${isSent ? 'sent' : 'received'}`;
-          groupEl.dataset.minuteKey = item.minuteKey;
+          groupEl.dataset.groupTs = item.groupKey;
           groupEl.dataset.senderId = item.sender_id;
           const rowEl = document.createElement('div');
           rowEl.className = 'dm-msg-group-row';
@@ -4157,6 +4434,7 @@ async function loadMoreMessagesDesktop() {
           const bubblesWrap = document.createElement('div');
           bubblesWrap.className = 'dm-msg-bubbles';
           item.messages.forEach(msg => { if (msg.id) renderedMsgIds.add(msg.id); bubblesWrap.appendChild(makeBubbleWrap(msg, isSent, dmDesktopContact, dmDesktopUser.id)); });
+          applyBubbleGrouping(bubblesWrap);
           rowEl.appendChild(bubblesWrap);
           groupEl.appendChild(rowEl);
           const timeEl = document.createElement('div');
@@ -4241,9 +4519,11 @@ async function loadFsMessages(userId) {
           appendIncomingMessage(msgsEl, newMsg, user.id, dmMobileContact);
           updateContactLastMsg(userId, newMsg, user.id);
           buildDMConvList();
+          // Mark as seen since the chat is open
+          markConversationSeen(userId);
         } else {
           const c = dmContacts.find(c => c.id === userId);
-          if (c) { c.unread = true; updateContactLastMsg(userId, newMsg, user.id); buildDMConvList(); }
+          if (c) { updateContactLastMsg(userId, newMsg, user.id); buildDMConvList(); }
         }
       })
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' }, async (payload) => {
@@ -4259,6 +4539,15 @@ async function loadFsMessages(userId) {
           const last = remaining[remaining.length - 1];
           updateContactLastMsg(userId, last, user.id);
           buildDMConvList();
+        }
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages',
+        filter: `sender_id=eq.${user.id}` }, (payload) => {
+        const updated = payload.new;
+        if (updated.seen) {
+          const wrap = msgsEl.querySelector(`.dm-bubble-wrap[data-msg-id="${updated.id}"]`);
+          if (wrap) { wrap.dataset.seen = 'true'; }
+          fixSeenLabels(msgsEl);
         }
       })
       .subscribe();
@@ -4296,7 +4585,7 @@ async function loadMoreMessagesMobile() {
           const isSent = item.sender_id === dmMobileUser.id;
           const groupEl = document.createElement('div');
           groupEl.className = `dm-msg-group ${isSent ? 'sent' : 'received'}`;
-          groupEl.dataset.minuteKey = item.minuteKey;
+          groupEl.dataset.groupTs = item.groupKey;
           groupEl.dataset.senderId = item.sender_id;
           const rowEl = document.createElement('div');
           rowEl.className = 'dm-msg-group-row';
@@ -4304,6 +4593,7 @@ async function loadMoreMessagesMobile() {
           const bubblesWrap = document.createElement('div');
           bubblesWrap.className = 'dm-msg-bubbles';
           item.messages.forEach(msg => { if (msg.id) renderedMsgIds.add(msg.id); bubblesWrap.appendChild(makeBubbleWrap(msg, isSent, dmMobileContact, dmMobileUser.id)); });
+          applyBubbleGrouping(bubblesWrap);
           rowEl.appendChild(bubblesWrap);
           groupEl.appendChild(rowEl);
           const timeEl = document.createElement('div');
@@ -4335,65 +4625,59 @@ async function loadMoreMessagesMobile() {
 function appendIncomingMessage(container, msg, currentUserId, contact) {
   const isSent = msg.sender_id === currentUserId;
   const d = new Date(msg.created_at || Date.now());
-  const minuteKey = `${msg.sender_id}_${d.getFullYear()}_${d.getMonth()}_${d.getDate()}_${d.getHours()}_${d.getMinutes()}`;
+  const ts = d.getTime();
 
   // Remove matching optimistic bubble (sent messages already shown optimistically)
   if (isSent) {
     const msgText = msg.content || '';
     container.querySelectorAll('.dm-bubble.sending').forEach(b => {
-      // match by text content (strip reply preview text)
       const clone = b.cloneNode(true);
       clone.querySelectorAll('.dm-reply-preview, .dm-sending-icon').forEach(el => el.remove());
       if (clone.textContent.trim() === msgText.trim()) {
         const wrap = b.closest('.dm-bubble-wrap');
         if (wrap) {
-          // upgrade it: remove sending state, set real id
           b.classList.remove('sending');
           b.style.opacity = '';
           const spinner = b.querySelector('.dm-sending-icon');
           if (spinner) spinner.remove();
           b.dataset.msgId = msg.id;
           wrap.dataset.msgId = msg.id;
-          // Fix the moreBtn to have the real msg
           const moreBtn = wrap.querySelector('.dm-more-btn');
           if (moreBtn) {
             moreBtn.onclick = (e) => { e.stopPropagation(); showMsgActionMenu(e, wrap, msg, true); };
           }
-          // Try merging its group into the right minuteKey group
           const parentGroup = wrap.closest('.dm-msg-group');
-          if (parentGroup) {
-            parentGroup.dataset.minuteKey = minuteKey;
-          }
+          if (parentGroup) parentGroup.dataset.groupTs = ts;
           container.scrollTop = container.scrollHeight;
           return;
         }
       }
     });
-    // Check if we already upgraded it (no more sending bubbles with this text)
     const stillPending = [...container.querySelectorAll('.dm-bubble.sending')].some(b => {
       const clone = b.cloneNode(true);
       clone.querySelectorAll('.dm-reply-preview, .dm-sending-icon').forEach(el => el.remove());
       return clone.textContent.trim() === (msg.content || '').trim();
     });
     if (!stillPending) {
-      // Was upgraded in place
       container.scrollTop = container.scrollHeight;
       return;
     }
   }
 
-  // Check last group in container
+  // Check last group — merge if same sender and within 60s
   const allGroups = container.querySelectorAll('.dm-msg-group');
   const lastGroup = allGroups[allGroups.length - 1];
+  const lastGroupTs = lastGroup ? parseInt(lastGroup.dataset.groupTs || '0', 10) : 0;
+  const withinGap = lastGroupTs > 0 && (ts - lastGroupTs) < 60000;
 
-  if (lastGroup && lastGroup.dataset.minuteKey === minuteKey && lastGroup.dataset.senderId === msg.sender_id) {
-    // Append bubble into existing group
+  if (lastGroup && lastGroup.dataset.senderId === msg.sender_id && withinGap) {
     const bubblesWrap = lastGroup.querySelector('.dm-msg-bubbles');
     if (bubblesWrap) {
       bubblesWrap.appendChild(makeBubbleWrap(msg, isSent, contact, currentUserId));
-      // Update time label
+      applyBubbleGrouping(bubblesWrap);
       const timeEl = lastGroup.querySelector('.dm-group-time');
       if (timeEl) timeEl.textContent = formatMsgTime(d);
+      lastGroup.dataset.groupTs = ts;
       container.scrollTop = container.scrollHeight;
       return;
     }
@@ -4402,20 +4686,18 @@ function appendIncomingMessage(container, msg, currentUserId, contact) {
   // Create a new group
   const groupEl = document.createElement('div');
   groupEl.className = `dm-msg-group ${isSent ? 'sent' : 'received'}`;
-  groupEl.dataset.minuteKey = minuteKey;
+  groupEl.dataset.groupTs = ts;
   groupEl.dataset.senderId = msg.sender_id;
   groupEl.style.animation = 'msgIn 0.15s ease';
 
   const rowEl = document.createElement('div');
   rowEl.className = 'dm-msg-group-row';
-
-  if (!isSent) {
-    rowEl.appendChild(makeGroupAvatar(contact));
-  }
+  if (!isSent) rowEl.appendChild(makeGroupAvatar(contact));
 
   const bubblesWrap = document.createElement('div');
   bubblesWrap.className = 'dm-msg-bubbles';
   bubblesWrap.appendChild(makeBubbleWrap(msg, isSent, contact, currentUserId));
+  applyBubbleGrouping(bubblesWrap);
 
   rowEl.appendChild(bubblesWrap);
   groupEl.appendChild(rowEl);
@@ -4440,7 +4722,10 @@ function updateContactLastMsg(userId, msg, currentUserId) {
   contact.lastMessage = { type: msg.sender_id === currentUserId ? 'sent' : 'received', text: msg.content, time: formatMsgTime(d) };
   contact.lastMessageTs = d.getTime();
   if (msg.sender_id === currentUserId) contact.sentByMe = true;
-  if (msg.sender_id !== currentUserId && activeDmId !== userId) contact.unread = true;
+  if (msg.sender_id !== currentUserId && activeDmId !== userId) {
+    contact.unread = true;
+    contact.unreadCount = (contact.unreadCount || 0) + 1;
+  }
   buildDMConvList();
 }
 
@@ -4448,7 +4733,9 @@ function updateContactLastMsg(userId, msg, currentUserId) {
 async function openFsChat(id) {
   const contact = dmContacts.find(c => c.id === id);
   if (!contact) return;
-  contact.unread = false; activeDmId = id;
+  contact.unread = false;
+  contact.unreadCount = 0;
+  activeDmId = id;
 
   // FIX 1: fs avatar
   const av = document.getElementById('dmFsAvatar');
@@ -4467,6 +4754,7 @@ async function openFsChat(id) {
   const chatView = document.getElementById('dmFsChatView');
   chatView.style.display = 'flex'; chatView.style.flexDirection = 'column'; chatView.style.height = '100%';
   document.getElementById('dmFsInput').focus();
+  markConversationSeen(id);
 }
 
 function dmFsBack() {
@@ -4486,8 +4774,13 @@ function dmHandleKey(e, mode) {
 ──────────────────────────────────────────── */
 async function dmSend(mode) {
   const inputId = mode === 'mobile' ? 'dmFsInput' : 'dmInput';
+  const sendBtnId = mode === 'mobile' ? 'dmFsSendBtn' : 'dmSendBtn';
   const input = document.getElementById(inputId);
+  const sendBtn = document.getElementById(sendBtnId);
   const staged = mode === 'mobile' ? dmFsStagedMedia : dmStagedMedia;
+
+  // Prevent double-send: if already sending, bail out immediately
+  if (sendBtn && sendBtn.dataset.sending === '1') return;
 
   if (staged) {
     const msgsEl = document.getElementById(mode === 'mobile' ? 'dmFsMessages' : 'dmChatMessages');
@@ -4500,24 +4793,27 @@ async function dmSend(mode) {
   const text = input.value.trim();
   if ((!text && !staged) || !activeDmId) { input.style.height = 'auto'; return; }
 
+  // Lock send button immediately — clear input right away so user knows it's queued
+  if (sendBtn) { sendBtn.dataset.sending = '1'; sendBtn.style.opacity = '0.5'; sendBtn.disabled = true; }
+  input.value = ''; input.style.height = 'auto';
+  if (mode === 'mobile') toggleDmFsSendBtn(); else toggleDmSendBtn();
+
   const { data: { user } } = await supabaseClient.auth.getUser();
   const msgReplyTo = replyingTo ? { ...replyingTo } : null;
   cancelReply(mode);
   stopTypingBroadcast();
-  input.value = ''; input.style.height = 'auto';
-  if (mode === 'mobile') toggleDmFsSendBtn(); else toggleDmSendBtn();
 
   const msgsEl = document.getElementById(mode === 'mobile' ? 'dmFsMessages' : 'dmChatMessages');
   const contact = dmContacts.find(c => c.id === activeDmId);
 
-  // Compute minuteKey for NOW so we can tag the optimistic group
-  const now = new Date();
-  const minuteKey = `${user.id}_${now.getFullYear()}_${now.getMonth()}_${now.getDate()}_${now.getHours()}_${now.getMinutes()}`;
-
   // ── Optimistic bubble ──
-  // Check if last group matches minuteKey (same sender, same minute)
+  // Compute timestamp for NOW for gap-based grouping
+  const now = new Date();
+  const nowTs = now.getTime();
   const allGroups = msgsEl.querySelectorAll('.dm-msg-group');
   const lastGroup = allGroups[allGroups.length - 1];
+  const lastGroupTs = lastGroup ? parseInt(lastGroup.dataset.groupTs || '0', 10) : 0;
+  const withinGap = lastGroupTs > 0 && (nowTs - lastGroupTs) < 60000;
 
   const bWrap = document.createElement('div');
   bWrap.className = 'dm-bubble-wrap';
@@ -4534,7 +4830,8 @@ async function dmSend(mode) {
   moreBtnOpt.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>`;
 
   const bubble = document.createElement('div');
-  bubble.className = 'dm-bubble sending';
+  const optimisticEmojiOnly = isEmojiOnly(text) && !staged;
+  bubble.className = 'dm-bubble' + (optimisticEmojiOnly ? ' dm-bubble-emoji-only' : '') + ' sending';
 
   if (msgReplyTo) {
     const rp = document.createElement('div');
@@ -4543,31 +4840,38 @@ async function dmSend(mode) {
     bubble.prepend(rp);
   }
 
-  const textNode = document.createElement('div'); textNode.textContent = text; bubble.appendChild(textNode);
+  if (text) { const textNode = document.createElement('div'); textNode.textContent = text; bubble.appendChild(textNode); }
   const spin = document.createElement('span');
   spin.className = 'dm-sending-icon'; spin.innerHTML = `<div class="dm-sending-spinner"></div>`;
   bubble.appendChild(spin);
 
   bWrap.appendChild(moreBtnOpt); bWrap.appendChild(replyBtnOpt); bWrap.appendChild(bubble);
 
-  // FIX 2: merge into last group if same minute, else create new group
-  if (lastGroup && lastGroup.dataset.minuteKey === minuteKey && lastGroup.dataset.senderId === user.id) {
+  // Only show optimistic text bubble if there's actual text
+  if (!text) {
+    // media-only: no text bubble to show optimistically
+  } else
+  // merge into last group if same sender within 60s, else create new group
+  if (lastGroup && lastGroup.dataset.senderId === user.id && withinGap) {
     const bubblesWrap = lastGroup.querySelector('.dm-msg-bubbles');
     if (bubblesWrap) {
       bubblesWrap.appendChild(bWrap);
+      applyBubbleGrouping(bubblesWrap);
       const timeEl = lastGroup.querySelector('.dm-group-time');
       if (timeEl) timeEl.textContent = formatMsgTime(now);
+      lastGroup.dataset.groupTs = nowTs;
     }
   } else {
     // New group
     const optimisticGroup = document.createElement('div');
     optimisticGroup.className = 'dm-msg-group sent';
-    optimisticGroup.dataset.minuteKey = minuteKey;
+    optimisticGroup.dataset.groupTs = nowTs;
     optimisticGroup.dataset.senderId = user.id;
     optimisticGroup.dataset.optimistic = 'true';
     const rowEl = document.createElement('div'); rowEl.className = 'dm-msg-group-row';
     const bubblesWrap = document.createElement('div'); bubblesWrap.className = 'dm-msg-bubbles';
     bubblesWrap.appendChild(bWrap);
+    applyBubbleGrouping(bubblesWrap);
     rowEl.appendChild(bubblesWrap);
     optimisticGroup.appendChild(rowEl);
     const timeEl = document.createElement('div'); timeEl.className = 'dm-group-time'; timeEl.textContent = formatMsgTime(now);
@@ -4581,7 +4885,7 @@ async function dmSend(mode) {
     const insertData = {
       sender_id: user.id,
       receiver_id: activeDmId,
-      content: text || null,
+      content: (text && text.trim()) ? text.trim() : null,  // never send whitespace-only text
       media_url: staged ? staged.dataUrl : null,
       is_video: staged ? staged.isVideo : false
     };
@@ -4605,7 +4909,11 @@ async function dmSend(mode) {
     buildDMConvList();
   } catch (err) {
     spin.remove(); bubble.classList.remove('sending'); bubble.style.opacity = '0.5'; bubble.title = 'Failed to send';
-  } finally { input.focus(); }
+  } finally {
+    // Unlock send button
+    if (sendBtn) { delete sendBtn.dataset.sending; sendBtn.style.opacity = ''; sendBtn.disabled = false; }
+    input.focus();
+  }
 }
 
 // ── DM MEDIA STAGING ──
@@ -4652,11 +4960,9 @@ function clearDmFsStaging() {
 
 function appendDmMediaBubble(container, dataUrl, isVideo, currentUserId, contact) {
   const now = new Date();
-  const minuteKey = currentUserId ? `${currentUserId}_${now.getFullYear()}_${now.getMonth()}_${now.getDate()}_${now.getHours()}_${now.getMinutes()}` : '';
-
   const groupEl = document.createElement('div');
   groupEl.className = 'dm-msg-group sent';
-  groupEl.dataset.minuteKey = minuteKey;
+  groupEl.dataset.groupTs = now.getTime();
   groupEl.dataset.senderId = currentUserId || '';
   const rowEl = document.createElement('div'); rowEl.className = 'dm-msg-group-row';
   const bubblesWrap = document.createElement('div'); bubblesWrap.className = 'dm-msg-bubbles';
@@ -5342,19 +5648,52 @@ async function handleSignupSubmit() {
 async function preloadAllChats() {
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (!user) return;
+
+  // Fetch last 15 messages per conversation + unseen count from DB
   const { data, error } = await supabaseClient.from('messages').select('*')
     .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
     .order('created_at', { ascending: false });
   if (error || !data) { buildDMConvList(); return; }
-  const latestMap = new Map();
+
+  const latestMap = new Map();    // otherId -> latest msg
   const sentByMeSet = new Set();
+  const unseenCountMap = new Map(); // otherId -> count of unseen msgs sent TO me
+  const last15Map = new Map();    // otherId -> array of last 15 msgs (ascending)
+
   data.forEach(msg => {
     const otherId = msg.sender_id === user.id ? msg.receiver_id : msg.sender_id;
     if (!latestMap.has(otherId)) latestMap.set(otherId, msg);
     if (msg.sender_id === user.id) sentByMeSet.add(otherId);
+    // Count unseen messages sent TO me by this contact
+    if (msg.sender_id === otherId && msg.receiver_id === user.id && msg.seen === false) {
+      unseenCountMap.set(otherId, (unseenCountMap.get(otherId) || 0) + 1);
+    }
+    // Collect last 15 messages per conversation
+    if (!last15Map.has(otherId)) last15Map.set(otherId, []);
+    const arr = last15Map.get(otherId);
+    if (arr.length < 15) arr.push(msg);
   });
-  dmContacts.forEach(c => { if (sentByMeSet.has(c.id)) c.sentByMe = true; });
-  latestMap.forEach((msg, userId) => updateContactLastMsg(userId, msg, user.id));
+
+  dmContacts.forEach(c => {
+    if (sentByMeSet.has(c.id)) c.sentByMe = true;
+    const count = unseenCountMap.get(c.id) || 0;
+    if (count > 0) {
+      c.unread = true;
+      c.unreadCount = count;
+    }
+    // Store last 15 messages (reverse to ascending order)
+    const msgs = last15Map.get(c.id);
+    if (msgs) c.preloadedMsgs = [...msgs].reverse();
+  });
+
+  latestMap.forEach((msg, userId) => {
+    const contact = dmContacts.find(c => c.id === userId);
+    if (!contact) return;
+    const d = new Date(msg.created_at);
+    contact.lastMessage = { type: msg.sender_id === user.id ? 'sent' : 'received', text: msg.content, time: formatMsgTime(d) };
+    contact.lastMessageTs = d.getTime();
+  });
+
   buildDMConvList();
 }
 
