@@ -1042,6 +1042,8 @@ body {
   flex: 1;
   overflow: hidden;
 }
+/* tighter gap between consecutive bubbles in same group */
+.dm-msg-bubbles .dm-bubble-wrap + .dm-bubble-wrap { margin-top: -1px; }
 .dm-msg-group.sent .dm-msg-bubbles { align-items: flex-end; }
 .dm-msg-group.received .dm-msg-bubbles { align-items: flex-start; }
 
@@ -1105,30 +1107,40 @@ body {
 .dm-msg-group.sent .dm-bubble { background: var(--accent); color: #fff; }
 .dm-msg-group.received .dm-bubble { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
 
-/* ── INSTAGRAM-STYLE GROUPED BUBBLE CORNERS ── */
-/* Sent bubbles (right side) - flat on bottom-right for top/mid, flat on top-right for bottom/mid */
+/* ── INSTAGRAM/iMESSAGE-STYLE GROUPED BUBBLE CORNERS ── */
+/*
+  SENT (right side) — tight corner on the RIGHT side toward the tail:
+    first  → top-right corner stays 18, bottom-right collapses to 6
+    middle → both right corners collapse to 6
+    last   → bottom-right stays 18, top-right collapses to 6
+    solo   → all 18 (no grouping)
+
+  RECEIVED (left side) — mirror: tight corners on the LEFT side
+*/
+
+/* SENT */
 .dm-msg-group.sent .dm-bubble.bubble-first {
-  border-radius: 18px 18px 4px 18px;
+  border-radius: 18px 18px 6px 18px;
 }
 .dm-msg-group.sent .dm-bubble.bubble-middle {
   border-radius: 18px 6px 6px 18px;
 }
 .dm-msg-group.sent .dm-bubble.bubble-last {
-  border-radius: 18px 4px 18px 18px;
+  border-radius: 18px 6px 18px 18px;
 }
 .dm-msg-group.sent .dm-bubble.bubble-solo {
   border-radius: 18px;
 }
 
-/* Received bubbles (left side) - flat on bottom-left for top/mid, flat on top-left for bottom/mid */
+/* RECEIVED */
 .dm-msg-group.received .dm-bubble.bubble-first {
-  border-radius: 18px 18px 18px 4px;
+  border-radius: 18px 18px 18px 6px;
 }
 .dm-msg-group.received .dm-bubble.bubble-middle {
-  border-radius: 4px 18px 18px 4px;
+  border-radius: 6px 18px 18px 6px;
 }
 .dm-msg-group.received .dm-bubble.bubble-last {
-  border-radius: 4px 18px 18px 18px;
+  border-radius: 6px 18px 18px 18px;
 }
 .dm-msg-group.received .dm-bubble.bubble-solo {
   border-radius: 18px;
@@ -4157,26 +4169,60 @@ function formatTimeSeparator(date) {
   return date.toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' });
 }
 
+// Robustly parse a Supabase/ISO timestamp string to a Date object.
+// Supabase can return "2025-05-17 10:30:45.123456+00:00" (space instead of T)
+// or "2025-05-17T10:30:45.123456" (no tz), etc. We normalise to ISO format so
+// every browser parses it the same way (as UTC when no tz, matching Supabase default).
+// Parse any Supabase/ISO timestamp string safely across all browsers.
+// Supabase can return "2025-05-17 10:30:45.123456+00:00" (space not T),
+// or no timezone at all. We normalise so every browser agrees.
+function parseSupabaseDate(rawTs) {
+  if (!rawTs) return new Date();
+  let s = String(rawTs).trim().replace(' ', 'T');
+  // If no timezone suffix, assume UTC (Supabase stores UTC)
+  if (!/[Zz]$/.test(s) && !/[+-]\d{2}:\d{2}$/.test(s) && !/[+-]\d{4}$/.test(s)) s += 'Z';
+  const d = new Date(s);
+  return isNaN(d) ? new Date() : d;
+}
+
+// A stable string key representing the local minute + sender.
+// Two messages have the same key → they belong in the same group.
+// Uses local time to stay consistent with formatTimeSeparator (which also uses local time).
+function msgMinuteKey(rawTs, senderId) {
+  const d = parseSupabaseDate(rawTs);
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()} ${d.getHours()}:${d.getMinutes()} ${senderId}`;
+}
+
 function groupMessages(messages) {
   const groups = [];
   let currentGroup = null;
   let lastDayLabel = null;
-  let lastMsgTs = null;
+
   messages.forEach(msg => {
-    const d = new Date(msg.created_at || msg.ts || Date.now());
+    const rawTs = msg.created_at || msg.ts || null;
+    const d = parseSupabaseDate(rawTs);
     const ts = d.getTime();
     const dayLabel = formatTimeSeparator(d);
-    if (dayLabel !== lastDayLabel) { groups.push({ type: 'separator', label: dayLabel }); lastDayLabel = dayLabel; }
-    // Group if same sender (consecutive run — no time limit)
-    if (currentGroup && currentGroup.sender_id === msg.sender_id) {
+    if (dayLabel !== lastDayLabel) {
+      groups.push({ type: 'separator', label: dayLabel });
+      lastDayLabel = dayLabel;
+      currentGroup = null; // day boundary always breaks grouping
+    }
+
+    const mKey = msgMinuteKey(rawTs, msg.sender_id);
+    if (currentGroup && currentGroup.minuteKey === mKey) {
       currentGroup.messages.push(msg);
       currentGroup.time = formatMsgTime(d);
+      currentGroup.lastTs = rawTs;
       currentGroup.groupKey = ts;
     } else {
-      currentGroup = { type: 'group', groupKey: ts, sender_id: msg.sender_id, messages: [msg], time: formatMsgTime(d) };
+      currentGroup = {
+        type: 'group', groupKey: ts, sender_id: msg.sender_id,
+        minuteKey: mKey, firstTs: rawTs, lastTs: rawTs,
+        messages: [msg], time: formatMsgTime(d)
+      };
       groups.push(currentGroup);
     }
-    lastMsgTs = ts;
   });
   return groups;
 }
@@ -4217,6 +4263,8 @@ function renderGroupedMessages(container, groups, currentUserId, contact) {
     groupEl.className = `dm-msg-group ${isSent ? 'sent' : 'received'}`;
     groupEl.dataset.groupTs = item.groupKey;
     groupEl.dataset.senderId = item.sender_id;
+    groupEl.dataset.minuteKey = item.minuteKey;
+    groupEl.dataset.createdAt = item.firstTs || '';
     const rowEl = document.createElement('div');
     rowEl.className = 'dm-msg-group-row';
 
@@ -4241,6 +4289,7 @@ function renderGroupedMessages(container, groups, currentUserId, contact) {
     container.appendChild(groupEl);
   });
 
+  mergeAdjacentGroups(container);
   container.scrollTop = container.scrollHeight;
 }
 function fixSeenLabels(container) { /* seen UI removed */ }
@@ -4253,13 +4302,64 @@ function isEmojiOnly(str) {
   return emojiRegex.test(str.trim());
 }
 
+// Scan the container and merge any two consecutive dm-msg-group elements
+// that belong to the same sender AND share the same minute-key —
+// moving all bubbles from the later group into the earlier one.
+function mergeAdjacentGroups(container) {
+  let changed = true;
+  while (changed) {
+    changed = false;
+    const groups = container.querySelectorAll(':scope > .dm-msg-group');
+    for (let i = 0; i < groups.length - 1; i++) {
+      const a = groups[i];
+      const b = groups[i + 1];
+      if (!a.dataset.senderId || !b.dataset.senderId) continue;
+      if (a.dataset.senderId !== b.dataset.senderId) continue;
+
+      // Derive minute-key from the group's stored value, or from the last/first bubble inside it
+      function groupMinuteKey(grp) {
+        if (grp.dataset.minuteKey) return grp.dataset.minuteKey;
+        // Fallback: read from the last bubble-wrap inside the group
+        const wraps = grp.querySelectorAll('.dm-bubble-wrap');
+        const lastWrap = wraps[wraps.length - 1];
+        return lastWrap ? lastWrap.dataset.minuteKey || '' : '';
+      }
+
+      const keyA = groupMinuteKey(a);
+      const keyB = groupMinuteKey(b);
+      if (!keyA || !keyB || keyA !== keyB) continue;
+
+      const aBubbles = a.querySelector('.dm-msg-bubbles');
+      const bBubbles = b.querySelector('.dm-msg-bubbles');
+      if (aBubbles && bBubbles) {
+        // Move all bubble-outers from b into a, update the minute-key to b's (which is same, but keep consistent)
+        Array.from(bBubbles.children).forEach(child => aBubbles.appendChild(child));
+        applyBubbleGrouping(aBubbles);
+        if (b.dataset.groupTs) a.dataset.groupTs = b.dataset.groupTs;
+        a.dataset.minuteKey = keyB; // same value, but now reflects the latest bubble
+        if (b.dataset.createdAt) a.dataset.createdAt = b.dataset.createdAt;
+        const bTime = b.querySelector('.dm-group-time');
+        const aTime = a.querySelector('.dm-group-time');
+        if (bTime && aTime) aTime.textContent = bTime.textContent;
+        b.remove();
+        changed = true;
+        break;
+      }
+    }
+  }
+}
+
 // Apply Instagram-style corner classes to all bubble siblings in a .dm-msg-bubbles container
 function applyBubbleGrouping(bubblesWrap) {
   if (!bubblesWrap) return;
-  const wraps = bubblesWrap.querySelectorAll(':scope > .dm-bubble-wrap');
-  const total = wraps.length;
-  wraps.forEach((wrap, i) => {
-    const bubble = wrap.querySelector('.dm-bubble');
+  // Direct children may be .dm-bubble-outer (which wraps .dm-bubble-wrap)
+  // or .dm-bubble-wrap directly. Support both.
+  const children = Array.from(bubblesWrap.children).filter(el =>
+    el.classList.contains('dm-bubble-outer') || el.classList.contains('dm-bubble-wrap')
+  );
+  const total = children.length;
+  children.forEach((child, i) => {
+    const bubble = child.querySelector('.dm-bubble');
     if (!bubble) return;
     // Skip emoji-only and media-only bubbles (keep fully round)
     if (bubble.classList.contains('dm-bubble-emoji-only') || bubble.classList.contains('dm-bubble-media-only')) {
@@ -4285,6 +4385,11 @@ function makeBubbleWrap(msg, isSent, contact, currentUserId) {
   bWrap.dataset.msgId = msg.id || '';
   bWrap.dataset.text = msg.content || msg.text || '';
   bWrap.dataset.sender = isSent ? 'You' : (contact ? contact.name : 'User');
+
+  // Stamp the raw timestamp on the wrap — used by grouping logic
+  const rawTs = msg.created_at || msg.ts || '';
+  bWrap.dataset.ts = rawTs;
+  bWrap.dataset.minuteKey = rawTs ? msgMinuteKey(rawTs, msg.sender_id) : '';
 
   const msgText = msg.content || msg.text || '';
   const msgSender = isSent ? 'You' : (contact ? contact.name : 'User');
@@ -4593,6 +4698,8 @@ async function loadMoreMessagesDesktop() {
           groupEl.className = `dm-msg-group ${isSent ? 'sent' : 'received'}`;
           groupEl.dataset.groupTs = item.groupKey;
           groupEl.dataset.senderId = item.sender_id;
+          groupEl.dataset.minuteKey = item.minuteKey;
+          groupEl.dataset.createdAt = item.firstTs || '';
           const rowEl = document.createElement('div');
           rowEl.className = 'dm-msg-group-row';
           if (!isSent) rowEl.appendChild(makeGroupAvatar(dmDesktopContact));
@@ -4611,6 +4718,7 @@ async function loadMoreMessagesDesktop() {
       const indicator = msgsEl.querySelector('.dm-load-more-indicator');
       if (indicator) { msgsEl.insertBefore(frag, indicator.nextSibling); indicator.remove(); }
       else { msgsEl.insertBefore(frag, msgsEl.firstChild); }
+      mergeAdjacentGroups(msgsEl);
       if (!dmDesktopAllLoaded) prependLoadMoreIndicator(msgsEl, 'desktop');
       // Maintain scroll position
       msgsEl.scrollTop = msgsEl.scrollHeight - prevScrollHeight;
@@ -4743,6 +4851,8 @@ async function loadMoreMessagesMobile() {
           groupEl.className = `dm-msg-group ${isSent ? 'sent' : 'received'}`;
           groupEl.dataset.groupTs = item.groupKey;
           groupEl.dataset.senderId = item.sender_id;
+          groupEl.dataset.minuteKey = item.minuteKey;
+          groupEl.dataset.createdAt = item.firstTs || '';
           const rowEl = document.createElement('div');
           rowEl.className = 'dm-msg-group-row';
           if (!isSent) rowEl.appendChild(makeGroupAvatar(dmMobileContact));
@@ -4761,6 +4871,7 @@ async function loadMoreMessagesMobile() {
       const indicator = msgsEl.querySelector('.dm-load-more-indicator');
       if (indicator) { msgsEl.insertBefore(frag, indicator.nextSibling); indicator.remove(); }
       else { msgsEl.insertBefore(frag, msgsEl.firstChild); }
+      mergeAdjacentGroups(msgsEl);
       if (!dmMobileAllLoaded) prependLoadMoreIndicator(msgsEl, 'mobile');
       msgsEl.scrollTop = msgsEl.scrollHeight - prevScrollHeight;
     } else {
@@ -4823,11 +4934,14 @@ function appendIncomingMessage(container, msg, currentUserId, contact) {
     }
   }
 
-  // Check last group — merge if same sender (no time limit)
+  // Check last group — merge if same sender AND same minute-key
   const allGroups = container.querySelectorAll('.dm-msg-group');
   const lastGroup = allGroups[allGroups.length - 1];
+  const msgCreatedAt = msg.created_at || null;
+  const incomingMinuteKey = msgCreatedAt ? msgMinuteKey(msgCreatedAt, msg.sender_id) : null;
 
-  if (lastGroup && lastGroup.dataset.senderId === msg.sender_id) {
+  if (lastGroup && lastGroup.dataset.senderId === msg.sender_id &&
+      incomingMinuteKey && lastGroup.dataset.minuteKey === incomingMinuteKey) {
     const bubblesWrap = lastGroup.querySelector('.dm-msg-bubbles');
     if (bubblesWrap) {
       bubblesWrap.appendChild(makeBubbleWrap(msg, isSent, contact, currentUserId));
@@ -4835,6 +4949,9 @@ function appendIncomingMessage(container, msg, currentUserId, contact) {
       const timeEl = lastGroup.querySelector('.dm-group-time');
       if (timeEl) timeEl.textContent = formatMsgTime(d);
       lastGroup.dataset.groupTs = ts;
+      lastGroup.dataset.minuteKey = incomingMinuteKey;
+      lastGroup.dataset.createdAt = msgCreatedAt || lastGroup.dataset.createdAt;
+      mergeAdjacentGroups(container);
       container.scrollTop = container.scrollHeight;
       return;
     }
@@ -4845,6 +4962,8 @@ function appendIncomingMessage(container, msg, currentUserId, contact) {
   groupEl.className = `dm-msg-group ${isSent ? 'sent' : 'received'}`;
   groupEl.dataset.groupTs = ts;
   groupEl.dataset.senderId = msg.sender_id;
+  groupEl.dataset.minuteKey = incomingMinuteKey || '';
+  groupEl.dataset.createdAt = msgCreatedAt || '';
   groupEl.style.animation = 'msgIn 0.15s ease';
 
   const rowEl = document.createElement('div');
@@ -4869,6 +4988,7 @@ function appendIncomingMessage(container, msg, currentUserId, contact) {
   } else {
     container.appendChild(groupEl);
   }
+  mergeAdjacentGroups(container);
   container.scrollTop = container.scrollHeight;
 }
 
@@ -4966,6 +5086,7 @@ async function dmSend(mode) {
   // ── Optimistic bubble ──
   const now = new Date();
   const nowTs = now.getTime();
+  const nowIso = now.toISOString();
   const allGroups = msgsEl.querySelectorAll('.dm-msg-group');
   const lastGroup = allGroups[allGroups.length - 1];
 
@@ -4973,6 +5094,8 @@ async function dmSend(mode) {
   bWrap.className = 'dm-bubble-wrap';
   bWrap.dataset.text = text;
   bWrap.dataset.sender = 'You';
+  bWrap.dataset.ts = nowIso;
+  bWrap.dataset.minuteKey = msgMinuteKey(nowIso, user.id);
 
   const replyBtnOpt = document.createElement('button');
   replyBtnOpt.className = 'dm-reply-btn'; replyBtnOpt.title = 'Reply';
@@ -5004,35 +5127,42 @@ async function dmSend(mode) {
   // Only show optimistic text bubble if there's actual text
   if (!text) {
     // media-only: no text bubble to show optimistically
-  } else
-  // merge into last group if same sender (consecutive — no time limit), else create new group
-  if (lastGroup && lastGroup.dataset.senderId === user.id) {
-    const bubblesWrap = lastGroup.querySelector('.dm-msg-bubbles');
-    if (bubblesWrap) {
+  } else {
+    const nowMinuteKey = msgMinuteKey(nowIso, user.id);
+    // merge into last group if same sender AND same minute-key, else create new group
+    if (lastGroup && lastGroup.dataset.senderId === user.id && lastGroup.dataset.minuteKey === nowMinuteKey) {
+      const bubblesWrap = lastGroup.querySelector('.dm-msg-bubbles');
+      if (bubblesWrap) {
+        bubblesWrap.appendChild(bWrap);
+        applyBubbleGrouping(bubblesWrap);
+        const timeEl = lastGroup.querySelector('.dm-group-time');
+        if (timeEl) timeEl.textContent = formatMsgTime(now);
+        lastGroup.dataset.groupTs = nowTs;
+        lastGroup.dataset.minuteKey = nowMinuteKey;
+        lastGroup.dataset.createdAt = nowIso;
+      }
+    } else {
+      // New group
+      const optimisticGroup = document.createElement('div');
+      optimisticGroup.className = 'dm-msg-group sent';
+      optimisticGroup.dataset.groupTs = nowTs;
+      optimisticGroup.dataset.senderId = user.id;
+      optimisticGroup.dataset.minuteKey = nowMinuteKey;
+      optimisticGroup.dataset.createdAt = nowIso;
+      optimisticGroup.dataset.optimistic = 'true';
+      const rowEl = document.createElement('div'); rowEl.className = 'dm-msg-group-row';
+      const bubblesWrap = document.createElement('div'); bubblesWrap.className = 'dm-msg-bubbles';
       bubblesWrap.appendChild(bWrap);
       applyBubbleGrouping(bubblesWrap);
-      const timeEl = lastGroup.querySelector('.dm-group-time');
-      if (timeEl) timeEl.textContent = formatMsgTime(now);
-      lastGroup.dataset.groupTs = nowTs;
+      rowEl.appendChild(bubblesWrap);
+      optimisticGroup.appendChild(rowEl);
+      const timeEl = document.createElement('div'); timeEl.className = 'dm-group-time'; timeEl.textContent = formatMsgTime(now);
+      optimisticGroup.appendChild(timeEl);
+      msgsEl.appendChild(optimisticGroup);
     }
-  } else {
-    // New group
-    const optimisticGroup = document.createElement('div');
-    optimisticGroup.className = 'dm-msg-group sent';
-    optimisticGroup.dataset.groupTs = nowTs;
-    optimisticGroup.dataset.senderId = user.id;
-    optimisticGroup.dataset.optimistic = 'true';
-    const rowEl = document.createElement('div'); rowEl.className = 'dm-msg-group-row';
-    const bubblesWrap = document.createElement('div'); bubblesWrap.className = 'dm-msg-bubbles';
-    bubblesWrap.appendChild(bWrap);
-    applyBubbleGrouping(bubblesWrap);
-    rowEl.appendChild(bubblesWrap);
-    optimisticGroup.appendChild(rowEl);
-    const timeEl = document.createElement('div'); timeEl.className = 'dm-group-time'; timeEl.textContent = formatMsgTime(now);
-    optimisticGroup.appendChild(timeEl);
-    msgsEl.appendChild(optimisticGroup);
   }
 
+  mergeAdjacentGroups(msgsEl);
   msgsEl.scrollTop = msgsEl.scrollHeight;
 
   try {
