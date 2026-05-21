@@ -3427,6 +3427,12 @@ async function setupTypingChannel(myUserId, otherUserId) {
         hideRemoteTyping();
       }
     })
+    .on('broadcast', { event: 'theme_change' }, ({ payload }) => {
+      // Only apply if it came from the other user (not self)
+      if (payload.senderId === myUserId) return;
+      applyChatTheme(payload.theme);
+      if (_themePickerOpen) renderThemePicker();
+    })
     .subscribe((status) => {
       // Once joined, flush any pending typing broadcast (common on slow mobile connections)
       if (status === 'SUBSCRIBED' && typingChannel._pendingTyping) {
@@ -8436,6 +8442,16 @@ async function saveChatThemeToSupabase(themeId) {
       { onConflict: 'user1_id,user2_id' }
     );
   if (error) { console.error('Theme save error:', error); return; }
+
+  // Broadcast theme change instantly over the typing channel so the other
+  // user sees it in real time without waiting for DB replication.
+  if (typingChannel && typingChannel.state === 'joined') {
+    typingChannel.send({
+      type: 'broadcast',
+      event: 'theme_change',
+      payload: { theme: themeId, senderId: user.id }
+    });
+  }
 
   // Insert a system message so both users see it in chat
   const themeObj = CHAT_THEMES.find(t => t.id === themeId);
