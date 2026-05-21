@@ -69,6 +69,7 @@ body {
   width: 100%;
 }
 
+
 /* ── DEFAULT AVATAR SILHOUETTE ── */
 .default-avatar {
   background: #e8e8ec !important;
@@ -705,17 +706,18 @@ body {
 
 /* ── DM TOPBAR PRESENCE DOT ── */
 .dm-presence-dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  flex-shrink: 0; display: inline-block;
+  width: 9px; height: 9px; border-radius: 50%;
+  position: absolute; bottom: 1px; right: 1px;
+  border: 2px solid var(--surface);
+  display: none;
   transition: background 0.3s ease, box-shadow 0.3s ease;
 }
 .dm-presence-dot.online {
+  display: block;
   background: #22c55e;
-  box-shadow: 0 0 0 2px rgba(34,197,94,0.25);
 }
 .dm-presence-dot.offline {
-  background: var(--text3);
-  box-shadow: none;
+  display: none;
 }
 
 /* ── SETTINGS ── */
@@ -818,7 +820,9 @@ body {
   padding: 18px 16px;
   overflow-y: auto;
   flex-shrink: 0;
+  scrollbar-width: none;
 }
+.dm-profile-tab::-webkit-scrollbar { display: none; }
 
 .dm-profile-tab.show {
   display: flex;
@@ -827,8 +831,8 @@ body {
 .dm-profile-tab-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  justify-content: center;
+  position: relative;
   margin-bottom: 22px;
 }
 
@@ -838,6 +842,7 @@ body {
   color: var(--text);
   text-transform: uppercase;
   letter-spacing: 0.6px;
+  text-align: center;
 }
 
 .dm-profile-tab-close {
@@ -855,6 +860,8 @@ body {
   justify-content: center;
   transition: background var(--t), color var(--t);
   flex-shrink: 0;
+  position: absolute;
+  right: 0;
 }
 .dm-profile-tab-close:hover { background: var(--border); color: var(--text); }
 
@@ -930,19 +937,21 @@ body {
 .dm-nickname-edit-btn {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 9px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--text2);
+  justify-content: center;
+  width: calc(100% - 32px);
+  padding: 9px 0;
+  border-radius: 8px;
+  border: none;
+  background: rgba(72, 72, 72, 0.911);
+  color: white;
   font-family: 'DM Sans', sans-serif;
-  font-size: 12px;
+  font-size: 13.5px;
+  font-weight: 600;
   cursor: pointer;
-  transition: all var(--t);
+  transition: background var(--t), color var(--t);
   flex-shrink: 0;
 }
-.dm-nickname-edit-btn:hover { border-color: var(--accent); color: var(--accent); }
+.dm-nickname-edit-btn:hover { background: rgba(62, 62, 62, 0.911); }
 
 .dm-nickname-editor {
   margin-top: 8px;
@@ -988,6 +997,115 @@ body {
   font-size: 11px;
   color: var(--text3);
 }
+
+/* ── CHAT THEMES ── */
+/* Default CSS vars for DM bubbles (overridden by data-chat-theme) */
+:root {
+  --dm-sent-bg: #495cea;
+  --dm-sent-color: #ffffff;
+  --dm-recv-bg: var(--surface2);
+  --dm-recv-color: var(--text);
+}
+
+/* Override bubble colors per theme */
+[data-chat-theme="default"] .dm-msg-group.sent .dm-bubble   { background: #495cea !important; color: #fff !important; }
+[data-chat-theme="default"] .dm-msg-group.received .dm-bubble { background: var(--surface2) !important; color: var(--text) !important; }
+
+[data-chat-theme="lovecore"] .dm-msg-group.sent .dm-bubble   { background: #e8265a !important; color: #fff !important; }
+[data-chat-theme="lovecore"] .dm-msg-group.received .dm-bubble { background: #ffd6e0 !important; color: #7a1030 !important; }
+
+[data-chat-theme="solarized"] .dm-msg-group.sent .dm-bubble   { background: #1a1a1a !important; color: #f0f0f0 !important; }
+[data-chat-theme="solarized"] .dm-msg-group.received .dm-bubble { background: #e8e8e8 !important; color: #1a1a1a !important; }
+
+[data-chat-theme="honey"] .dm-msg-group.sent .dm-bubble   { background: #e6a817 !important; color: #fff !important; }
+[data-chat-theme="honey"] .dm-msg-group.received .dm-bubble { background: #fff3c4 !important; color: #7a4f00 !important; }
+
+[data-chat-theme="bluehaze"] .dm-msg-group.sent .dm-bubble   { background: #7ba7c2 !important; color: #fff !important; }
+[data-chat-theme="bluehaze"] .dm-msg-group.received .dm-bubble { background: #ddeaf4 !important; color: #2d4f6b !important; }
+
+[data-chat-theme="nightdrive"] .dm-msg-group.sent .dm-bubble   { background: #1a3a6e !important; color: #c8d8f8 !important; }
+[data-chat-theme="nightdrive"] .dm-msg-group.received .dm-bubble { background: #0d1f3c !important; color: #8aaee0 !important; }
+
+[data-chat-theme="lagoon"] .dm-msg-group.sent .dm-bubble   { background: #e07c3a !important; color: #fff !important; }
+[data-chat-theme="lagoon"] .dm-msg-group.received .dm-bubble { background: #b2ede8 !important; color: #1a4f4a !important; }
+
+/* ── THEME PICKER BUTTON ── */
+.dm-theme-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: calc(100% - 32px);
+  margin: 10px auto 0;
+  padding: 8px 0;
+  border: none;
+  background: none;
+  color: var(--text3);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: color var(--t);
+  border-radius: 7px;
+}
+.dm-theme-toggle-btn:hover { color: var(--text); background: none; }
+.dm-theme-toggle-btn svg { flex-shrink: 0; }
+
+/* ── THEME PICKER LIST ── */
+.dm-theme-picker {
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 10px;
+  padding: 0 2px;
+}
+.dm-theme-picker.open { display: flex; }
+
+.dm-theme-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background var(--t), border-color var(--t);
+}
+.dm-theme-item:hover { background: var(--surface2); }
+.dm-theme-item.active { border-color: var(--accent); background: var(--surface2); }
+
+.dm-theme-item-label {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text);
+  flex: 1;
+  line-height: 1.2;
+}
+.dm-theme-item-sub {
+  font-size: 10.5px;
+  color: var(--text3);
+}
+
+.dm-theme-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
+  width: 80px;
+}
+.dm-theme-bubble-sent,
+.dm-theme-bubble-recv {
+  border-radius: 12px;
+  display: block;
+  font-size: 9.5px;
+  font-family: 'DM Sans', sans-serif;
+  padding: 4px 8px;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dm-theme-bubble-sent { align-self: flex-end; }
+.dm-theme-bubble-recv { align-self: flex-start; }
 
 .dm-chat-topbar-avatar,
 .dm-chat-topbar-info {
@@ -1206,6 +1324,7 @@ body {
   flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
   color: var(--text3); gap: 10px;background:var(--surface)
 }
+[data-theme="dark"] .dm-empty-state { background: none; }
 .dm-empty-state svg { opacity: 0.3; }
 .dm-empty-state p { font-size: 14px; font-weight: 500; opacity: 0.6; }
 
@@ -1225,11 +1344,7 @@ body {
 .dm-chat-topbar-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 .dm-chat-topbar-info { flex: 1; min-width: 0; }
 .dm-chat-topbar-name { font-size: 14px; font-weight: 600; color: var(--text); }
-.dm-chat-topbar-status {
-  display: flex; align-items: center; gap: 5px;
-  margin-top: 2px;
-  min-height: 14px;
-}
+/* .dm-chat-topbar-status removed — presence dot now on avatar */
 
 .dm-delete-chat-btn {
   background: transparent; border: none; cursor: pointer;
@@ -1255,6 +1370,24 @@ body {
 
 .dm-time-separator {
   display: none;
+}
+
+/* ── SYSTEM MESSAGE (nickname change, etc.) ── */
+.dm-system-msg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 16px;
+  margin: 4px 0;
+  flex-shrink: 0;
+}
+.dm-system-msg-text {
+  font-size: 11.5px;
+  color: rgba(187, 187, 187, 0.837);
+  font-style: italic;
+  text-align: center;
+  user-select: none;
+  max-width: 80%;
 }
 
 .dm-group-time { display: none; }
@@ -1441,6 +1574,7 @@ body {
 .dm-msg-group { overflow: visible !important; }
 .dm-msg-group-row { overflow: visible !important; }
 .dm-chat-messages { overflow-y: auto; overflow-x: hidden;background:var(--surface) }
+[data-theme="dark"] .dm-chat-messages { background: none; }
 .dm-fs-messages { overflow-y: auto; overflow-x: hidden; }
 
 /* WhatsApp-style message highlight on reply-tap */
@@ -1502,6 +1636,7 @@ body {
   background: var(--surface);
   flex-shrink: 0;
 }
+[data-theme="dark"] .dm-chat-input-area { background: none; }
 
 .dm-media-staging-wrap {
   display: none; padding: 8px 14px;
@@ -2304,6 +2439,42 @@ body {
   0%,100% { opacity: 0.5; }
   50% { opacity: 1; }
 }
+
+/* ── EDIT BAR (above input, like reply bar) ── */
+.dm-edit-bar {
+  display: none;
+  padding: 7px 14px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  font-size: 12.5px;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.dm-edit-bar.show { display: flex; }
+.dm-edit-bar-label {
+  display: flex; align-items: center; gap: 6px;
+  color: var(--accent); font-size: 11.5px; font-weight: 600;
+  flex-shrink: 0;
+}
+.dm-edit-bar-text {
+  flex: 1; min-width: 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  color: var(--text2); font-size: 12.5px;
+}
+
+/* ── EDITED TAG — sits outside/above the bubble ── */
+.dm-edited-tag {
+  font-size: 10px;
+  -right: 2px;
+  color: rgba(187, 187, 187, 0.6);;
+  font-style: italic;
+  margin-bottom: 2px;
+  padding: 0 2px;
+  user-select: none;
+}
+.dm-msg-group.sent .dm-edited-tag { text-align: right; }
+.dm-msg-group.received .dm-edited-tag { text-align: left; }
 </style>
 </head>
 <body>
@@ -2488,7 +2659,7 @@ body {
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
         <span style="font-size:12px;color:var(--text3);" class="hide-mobile">AI · Calculations &amp; Knowledge</span>
-        <button id="mobileProfileBtn" onclick="openProfileEdit()" title="Profile" style="display:none;width:30px;height:30px;border-radius:50%;border:none;background:transparent;cursor:pointer;padding:0;flex-shrink:0;overflow:hidden;position:relative;" class="default-avatar profile-avatar">
+        <button id="mobileProfileBtn" onclick="toggleProfileDropdownMobile()" title="Profile" style="display:none;width:30px;height:30px;border-radius:50%;border:none;background:transparent;cursor:pointer;padding:0;flex-shrink:0;overflow:hidden;position:relative;" class="default-avatar profile-avatar">
         </button>
       </div>
     </div>
@@ -2781,12 +2952,13 @@ body {
         </div>
         <div id="dmActiveChatWrap" style="display:none;">
           <div class="dm-chat-topbar" id="dmChatTopbar">
-            <div class="dm-chat-topbar-avatar" id="dmTopbarAvatar" onclick="openNicknamePanel()"></div>
+            <div style="position:relative;flex-shrink:0;cursor:pointer;" onclick="openNicknamePanel()">
+              <div class="dm-chat-topbar-avatar" id="dmTopbarAvatar"></div>
+              <span class="dm-presence-dot offline" id="dmPresenceDot"></span>
+            </div>
             <div class="dm-chat-topbar-info" onclick="openNicknamePanel()">
               <div class="dm-chat-topbar-name" id="dmTopbarName"></div>
-              <div class="dm-chat-topbar-status" id="dmTopbarStatus">
-                <span class="dm-presence-dot offline" id="dmPresenceDot"></span>
-              </div>
+              <div id="dmTopbarUsername" style="font-size:11.5px;color:var(--text2);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;"></div>
             </div>
             <button class="dm-delete-chat-btn" id="dmDeleteChatBtn" onclick="openClearChatConfirm()" title="Clear chat (Alt+Backspace)">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><line x1="15" x2="9" y1="9" y2="15"/><line x1="9" x2="15" y1="9" y2="15"/></svg>
@@ -2801,6 +2973,15 @@ body {
               <span style="font-size:12px;color:var(--text2);">Image ready to send</span>
             </div>
             <button class="dm-reply-cancel" onclick="clearDmStaging()" title="Remove image">×</button>
+          </div>
+
+          <div class="dm-edit-bar" id="dmEditBar">
+            <div class="dm-edit-bar-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              Editing
+            </div>
+            <div class="dm-edit-bar-text" id="dmEditBarText"></div>
+            <button class="dm-reply-cancel" onclick="cancelEdit('desktop')" title="Cancel edit">×</button>
           </div>
 
           <div class="dm-reply-bar" id="dmReplyBar">
@@ -2839,34 +3020,40 @@ body {
 
       <div class="dm-profile-tab" id="dmProfileTab">
         <div class="dm-profile-tab-header">
-          <div class="dm-profile-tab-title">User details</div>
+          <div class="dm-profile-tab-title">Profile</div>
           <button class="dm-profile-tab-close" onclick="closeNicknamePanel()" title="Close">×</button>
         </div>
         <div class="dm-profile-tab-avatar default-avatar" id="dmProfileTabAvatar"></div>
         <div class="dm-profile-tab-name" id="dmProfileTabName">User</div>
         <div class="dm-profile-tab-username" id="dmProfileTabUsername">@username</div>
 
-        <div class="dm-profile-tab-section">
-          <div class="dm-profile-tab-section-label">Nickname</div>
-          <div class="dm-nickname-display" id="dmNicknameDisplay">
-            <span id="dmNicknameValue" class="dm-nickname-value-text">—</span>
-            <button class="dm-nickname-edit-btn" id="dmNicknameEditBtn" onclick="showNicknameEditor()">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-              Edit
-            </button>
-          </div>
-          <div class="dm-nickname-editor" id="dmNicknameEditor" style="display:none;">
-            <input type="text" class="dm-nickname-input" id="dmNicknameInput" placeholder="Add a nickname…" maxlength="40" onkeydown="nicknameInputKey(event)">
-            <div class="dm-nickname-editor-btns">
-              <button class="dm-nickname-clear-btn" id="dmNicknameClearBtn" onclick="clearNickname()">Remove</button>
-              <div style="display:flex;gap:6px;margin-left:auto;">
-                <button class="btn-cancel" style="padding:6px 12px;font-size:12.5px;" onclick="hideNicknameEditor()">Cancel</button>
-                <button class="btn-confirm" style="padding:6px 14px;font-size:12.5px;" onclick="commitNickname()">Save</button>
-              </div>
+        <button class="dm-nickname-edit-btn" id="dmNicknameEditBtn" onclick="showNicknameEditor()" style="margin:14px auto 0;">
+          Edit Nickname
+        </button>
+
+        <div class="dm-nickname-editor" id="dmNicknameEditor" style="display:none;margin-top:14px;">
+          <input type="text" class="dm-nickname-input" id="dmNicknameInput" placeholder="Add a nickname…" maxlength="40" onkeydown="nicknameInputKey(event)">
+          <div class="dm-nickname-editor-btns">
+            <button class="dm-nickname-clear-btn" id="dmNicknameClearBtn" onclick="clearNickname()">Remove</button>
+            <div style="display:flex;gap:6px;margin-left:auto;">
+              <button class="btn-cancel" style="padding:6px 12px;font-size:12.5px;" onclick="hideNicknameEditor()">Cancel</button>
+              <button class="btn-confirm" style="padding:6px 14px;font-size:12.5px;" onclick="commitNickname()">Save</button>
             </div>
-            <div class="dm-nickname-hint">Only visible to you</div>
           </div>
+          <div class="dm-nickname-hint">Only visible to you</div>
         </div>
+
+        <!-- Chat Theme Picker -->
+        <button class="dm-theme-toggle-btn" id="dmThemeToggleBtn" onclick="toggleThemePicker()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20C6.48 22 2 17.52 2 12"/><path d="M12 8v4l3 3"/></svg>
+          Chat Theme
+          <svg id="dmThemeChevron" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform 0.2s;"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+
+        <div class="dm-theme-picker" id="dmThemePicker">
+          <!-- populated by JS -->
+        </div>
+
       </div><!-- /dm-profile-tab -->
   </div><!-- /dm-popup -->
 </div><!-- /dm-overlay -->
@@ -2894,10 +3081,13 @@ body {
       <button class="dm-fs-back" onclick="dmFsBack()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
       </button>
-      <div class="dm-fs-avatar default-avatar" id="dmFsAvatar"></div>
-      <div style="flex:1;min-width:0;display:flex;align-items:center;gap:7px;">
-        <div class="dm-fs-name" id="dmFsName"></div>
+      <div style="position:relative;flex-shrink:0;">
+        <div class="dm-fs-avatar default-avatar" id="dmFsAvatar"></div>
         <span class="dm-presence-dot offline" id="dmFsPresenceDot"></span>
+      </div>
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;">
+        <div class="dm-fs-name" id="dmFsName"></div>
+        <div id="dmFsUsername" style="font-size:11px;color:var(--text2);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;"></div>
       </div>
       <button class="dm-delete-chat-btn" onclick="openClearChatConfirm()" title="Clear chat" style="margin-left:auto;">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><line x1="15" x2="9" y1="9" y2="15"/><line x1="9" x2="15" y1="9" y2="15"/></svg>
@@ -2912,6 +3102,15 @@ body {
         <span style="font-size:12px;color:var(--text2);">Image ready to send</span>
       </div>
       <button class="dm-reply-cancel" onclick="clearDmFsStaging()" title="Remove image">×</button>
+    </div>
+
+    <div class="dm-edit-bar" id="dmFsEditBar">
+      <div class="dm-edit-bar-label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Editing
+      </div>
+      <div class="dm-edit-bar-text" id="dmFsEditBarText"></div>
+      <button class="dm-reply-cancel" onclick="cancelEdit('mobile')" title="Cancel edit">×</button>
     </div>
 
     <div class="dm-reply-bar" id="dmFsReplyBar">
@@ -3402,6 +3601,14 @@ function showMsgActionMenu(e, bWrap, msg, isSent) {
   menu.appendChild(copyBtn);
 
   if (isSent && msg && msg.id) {
+    // Only show Edit for text messages (not media-only)
+    if (bWrap.dataset.text && bWrap.dataset.text.trim()) {
+      const editBtn = document.createElement('button');
+      editBtn.className = 'dm-msg-action-item';
+      editBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit`;
+      editBtn.onclick = (ev) => { ev.stopPropagation(); closeMsgActionMenu(); editMessage(msg.id, bWrap); };
+      menu.appendChild(editBtn);
+    }
     const unsendBtn = document.createElement('button');
     unsendBtn.className = 'dm-msg-action-item danger';
     unsendBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg> Unsend`;
@@ -3436,6 +3643,106 @@ async function unsendMessage(msgId) {
   if (error) alert('Failed to unsend message: ' + error.message);
 }
 
+// ── EDIT MESSAGE ──
+// Tracks current edit state: { msgId, bWrap, mode }
+let currentEditState = null;
+
+function editMessage(msgId, bWrap) {
+  const currentText = bWrap.dataset.text || '';
+  const mode = isMobile() ? 'mobile' : 'desktop';
+
+  // Cancel any existing reply when entering edit mode
+  cancelReply(mode);
+
+  // Store edit state
+  currentEditState = { msgId, bWrap, mode };
+
+  // Populate the input box with current message text
+  const inputEl = document.getElementById(mode === 'mobile' ? 'dmFsInput' : 'dmInput');
+  if (inputEl) {
+    inputEl.value = currentText;
+    inputEl.style.height = 'auto';
+    inputEl.style.height = Math.min(inputEl.scrollHeight, 120) + 'px';
+    if (mode === 'mobile') toggleDmFsSendBtn(); else toggleDmSendBtn();
+    inputEl.focus();
+    inputEl.selectionStart = inputEl.selectionEnd = inputEl.value.length;
+  }
+
+  // Show edit bar with preview of current text
+  const preview = currentText.length > 60 ? currentText.slice(0, 60) + '…' : currentText;
+  const desktopBar = document.getElementById('dmEditBar');
+  const desktopBarText = document.getElementById('dmEditBarText');
+  if (desktopBar && desktopBarText) { desktopBarText.textContent = preview; desktopBar.classList.add('show'); }
+  const mobileBar = document.getElementById('dmFsEditBar');
+  const mobileBarText = document.getElementById('dmFsEditBarText');
+  if (mobileBar && mobileBarText) { mobileBarText.textContent = preview; mobileBar.classList.add('show'); }
+}
+
+function cancelEdit(mode) {
+  currentEditState = null;
+  const inputEl = document.getElementById(mode === 'mobile' ? 'dmFsInput' : 'dmInput');
+  if (inputEl) { inputEl.value = ''; inputEl.style.height = 'auto'; }
+  if (mode === 'mobile') toggleDmFsSendBtn(); else toggleDmSendBtn();
+  document.getElementById('dmEditBar')?.classList.remove('show');
+  document.getElementById('dmFsEditBar')?.classList.remove('show');
+}
+
+async function commitEdit(newText) {
+  if (!currentEditState) return;
+  const { msgId, bWrap, mode } = currentEditState;
+  if (!newText) { cancelEdit(mode); return; }
+
+  // Clear edit state & bars
+  cancelEdit(mode);
+
+  // Optimistic update — reflect in UI immediately
+  applyEditToBubble(bWrap, newText, true);
+
+  // UPDATE the row in Supabase (content + edited flag)
+  // The real-time UPDATE subscription will propagate to the other user
+  const { error } = await supabaseClient
+    .from('messages')
+    .update({ content: newText, edited: true })
+    .eq('id', msgId);
+
+  if (error) {
+    console.error('Edit failed:', error.message);
+  }
+}
+
+// Patch a bubble's text content in place (used by sender optimistic + receiver realtime)
+function applyEditToBubble(bWrap, newText, isSent) {
+  const bubble = bWrap.querySelector('.dm-bubble');
+  if (!bubble) return;
+
+  // Remove old text node (preserve reply-preview and media)
+  Array.from(bubble.childNodes).forEach(n => {
+    if (n.nodeType === 1 && !n.classList.contains('dm-reply-preview') &&
+        !n.tagName.match(/^(IMG|VIDEO)$/i) && !n.classList.contains('dm-sending-icon')) {
+      n.remove();
+    }
+  });
+
+  const textDiv = document.createElement('div');
+  textDiv.textContent = newText;
+  bubble.appendChild(textDiv);
+
+  // Add or update the external edited tag on bOuter (above the bubble)
+  const bOuter = bWrap.closest('.dm-bubble-outer') || bWrap.parentElement;
+  if (bOuter) {
+    let editedTag = bOuter.querySelector('.dm-edited-tag');
+    if (!editedTag) {
+      editedTag = document.createElement('div');
+      editedTag.className = 'dm-edited-tag';
+      editedTag.textContent = 'edited';
+      bOuter.insertBefore(editedTag, bWrap);
+    }
+  }
+
+  // Update dataset so copy/reply use new text
+  bWrap.dataset.text = newText;
+}
+
 document.addEventListener('click', (e) => {
   if (_actionMenuOpen && !document.getElementById('dmMsgActionMenu').contains(e.target)) closeMsgActionMenu();
 });
@@ -3457,7 +3764,8 @@ function onDmSearch(val) {
   const dropdown = document.getElementById('dmSearchDropdown');
   val = val.trim().toLowerCase();
   if (!val) { dropdown.classList.remove('show'); return; }
-  const matches = dmContacts.filter(c => c.name.toLowerCase().startsWith(val));
+  // Always search by real username, not nickname
+  const matches = dmContacts.filter(c => (c.realName || c.name).toLowerCase().startsWith(val));
   renderSearchDropdown(dropdown, matches, 'desktop');
 }
 
@@ -3465,7 +3773,8 @@ function onDmFsSearch(val) {
   const dropdown = document.getElementById('dmFsSearchDropdown');
   val = val.trim().toLowerCase();
   if (!val) { dropdown.classList.remove('show'); return; }
-  const matches = dmContacts.filter(c => c.name.toLowerCase().startsWith(val));
+  // Always search by real username, not nickname
+  const matches = dmContacts.filter(c => (c.realName || c.name).toLowerCase().startsWith(val));
   renderSearchDropdown(dropdown, matches, 'mobile');
 }
 
@@ -3475,15 +3784,17 @@ function renderSearchDropdown(dropdown, matches, mode) {
     dropdown.innerHTML = '<div class="dm-search-empty">No users found</div>';
     dropdown.classList.add('show'); return;
   }
-  const sorted = [...matches].sort((a, b) => a.name.localeCompare(b.name));
+  // Sort by real username
+  const sorted = [...matches].sort((a, b) => (a.realName || a.name).localeCompare(b.realName || b.name));
   sorted.forEach(c => {
     const item = document.createElement('div');
     item.className = 'dm-search-item';
+    const realName = c.realName || c.name;
     item.innerHTML = `
       <div class="dm-search-avatar default-avatar" style="background:#e8e8ec;overflow:hidden;position:relative;">
         ${c.avatarUrl ? `<img src="${c.avatarUrl}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;position:absolute;inset:0;">` : DEFAULT_AVATAR_SVG}
       </div>
-      <div class="dm-search-name">${escHtml(c.name)}</div>
+      <div class="dm-search-name">${escHtml(realName)}</div>
     `;
     item.onclick = () => {
       dropdown.classList.remove('show');
@@ -3976,6 +4287,7 @@ function _dismissAdminOverlay() {
 function closeAdminPopup() {
   _adminSessionValid = false;
   adminAuthenticated = false;
+  document.getElementById('dmProfileTab')?.classList.remove('show');
   _dismissAdminOverlay();
 }
 
@@ -4321,12 +4633,16 @@ async function openDM() {
 
 async function closeDM() {
   dmOpen = false;
+  // Wipe auth flags unconditionally — no path should leave these true after close
   adminAuthenticated = false;
-  _adminSessionValid = false; // Always require password again after closing DM
+  _adminSessionValid = false;
+  // Also dismiss the admin overlay UI in case it was open simultaneously
+  _dismissAdminOverlay();
   await leavePresence();
   activeDmId = null;
   document.getElementById('dmOverlay').classList.remove('show');
   document.getElementById('dmFullscreen').classList.remove('show');
+  document.getElementById('dmProfileTab')?.classList.remove('show');
   closeMsgActionMenu(); hideRemoteTyping(); stopTypingBroadcast(); resetPresenceDots();
   if (typingChannel) { await supabaseClient.removeChannel(typingChannel); typingChannel = null; }
   if (window._dmGlobalChannel) { await supabaseClient.removeChannel(window._dmGlobalChannel); window._dmGlobalChannel = null; }
@@ -4417,8 +4733,14 @@ function buildDMConvList() {
 async function loadContacts() {
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (!user) return;
-  const { data } = await supabaseClient.from('profiles').select('id, username, avatar_url');
+  const [{ data }, { data: nicknameRows }] = await Promise.all([
+    supabaseClient.from('profiles').select('id, username, avatar_url'),
+    supabaseClient.from('nicknames').select('target_id, nickname').eq('setter_id', user.id)
+  ]);
   if (!data) return;
+  // Build a quick lookup: target_id -> nickname
+  const nicknameMap = {};
+  (nicknameRows || []).forEach(row => { nicknameMap[row.target_id] = row.nickname; });
   const existingMap = new Map(dmContacts.map(c => [c.id, c]));
   dmContacts.length = 0;
   const colors = [
@@ -4433,8 +4755,15 @@ async function loadContacts() {
   data.forEach(u => {
     if (u.id === user.id) return;
     const existing = existingMap.get(u.id);
+    const realName = u.username || 'User';
+    const nickname = nicknameMap[u.id] || null;
+    const displayName = nickname || realName;
     dmContacts.push({
-      id: u.id, name: u.username || 'User', initials: (u.username || 'U')[0].toUpperCase(),
+      id: u.id,
+      name: displayName,
+      realName: realName,
+      nickname: nickname,
+      initials: displayName[0].toUpperCase(),
       avatarUrl: u.avatar_url || null, color: colors[colorIdx % colors.length], online: true,
       lastMessage: existing ? existing.lastMessage : null,
       lastMessageTs: existing ? existing.lastMessageTs : 0,
@@ -4475,6 +4804,11 @@ async function openDesktopChat(id) {
   activeDmId = id;
   document.querySelectorAll('#dmConvList .dm-conv-item').forEach(el => el.classList.toggle('active', el.dataset.id === id));
   document.getElementById('dmTopbarName').textContent = contact.name;
+  const usernameEl = document.getElementById('dmTopbarUsername');
+  if (usernameEl) {
+    const real = contact.realName || contact.name;
+    usernameEl.textContent = contact.nickname ? real : '';
+  }
   const av = document.getElementById('dmTopbarAvatar');
   // FIX 1: topbar avatar
   setAvatarEl(av, contact.avatarUrl);
@@ -4490,9 +4824,13 @@ async function openDesktopChat(id) {
   if (user) await setupTypingChannel(user.id, id);
   loadMessages(id);
   cancelReply();
+  if (currentEditState) { currentEditState = null; document.getElementById('dmEditBar')?.classList.remove('show'); document.getElementById('dmFsEditBar')?.classList.remove('show'); }
   clearDmStaging();
   document.getElementById('dmInput').focus();
   markConversationSeen(id);
+  // Load and subscribe to chat theme for this conversation
+  loadChatThemeFromSupabase(id);
+  subscribeToChatTheme(id);
 }
 
 async function openNicknamePanel() {
@@ -4527,19 +4865,15 @@ async function loadNicknameSideTab(targetId) {
   setAvatarEl(avatarEl, profileData?.avatar_url || null);
   avatarEl.style.borderRadius = '50%';
 
-  // Update nickname display
-  const nicknameVal = document.getElementById('dmNicknameValue');
-  if (nicknameVal) {
-    if (activeDmNickname) {
-      nicknameVal.textContent = activeDmNickname;
-      nicknameVal.classList.remove('empty');
-    } else {
-      nicknameVal.textContent = '—';
-      nicknameVal.classList.add('empty');
-    }
-  }
-  // Reset editor state
+  // Reset editor state (button visible, editor hidden)
   hideNicknameEditor();
+
+  // Reset theme picker state
+  _themePickerOpen = false;
+  const picker = document.getElementById('dmThemePicker');
+  const chevron = document.getElementById('dmThemeChevron');
+  if (picker) picker.classList.remove('open');
+  if (chevron) chevron.style.transform = '';
 }
 
 async function openNicknameEditor() {
@@ -4550,20 +4884,20 @@ async function openNicknameEditor() {
 function showNicknameEditor() {
   const input = document.getElementById('dmNicknameInput');
   const editor = document.getElementById('dmNicknameEditor');
-  const display = document.getElementById('dmNicknameDisplay');
-  if (!editor || !display) return;
+  const editBtn = document.getElementById('dmNicknameEditBtn');
+  if (!editor) return;
   if (input) input.value = activeDmNickname || '';
-  display.style.display = 'none';
+  if (editBtn) editBtn.style.display = 'none';
   editor.style.display = 'flex';
   if (input) input.focus();
 }
 
 function hideNicknameEditor() {
   const editor = document.getElementById('dmNicknameEditor');
-  const display = document.getElementById('dmNicknameDisplay');
-  if (!editor || !display) return;
+  const editBtn = document.getElementById('dmNicknameEditBtn');
+  if (!editor) return;
   editor.style.display = 'none';
-  display.style.display = 'flex';
+  if (editBtn) editBtn.style.display = 'flex';
 }
 
 function nicknameInputKey(e) {
@@ -4587,18 +4921,55 @@ async function saveNicknameForTarget(nickname) {
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (!user || !activeDmProfileTarget) return;
 
+  // Get the target's real username for the system message
+  const contact = dmContacts.find(c => c.id === activeDmProfileTarget);
+  const targetRealName = contact?.realName || contact?.name || 'them';
+  const myName = (await supabaseClient.from('profiles').select('username').eq('id', user.id).single()).data?.username || 'You';
+
+  let systemText = null;
+
   if (nickname === '') {
     await supabaseClient.from('nicknames').delete()
       .eq('setter_id', user.id)
       .eq('target_id', activeDmProfileTarget);
     activeDmNickname = null;
+    systemText = `${myName} removed the nickname for ${targetRealName}.`;
   } else {
-    // Upsert: update if row exists, insert if not — no duplicates
     await supabaseClient.from('nicknames').upsert(
       [{ setter_id: user.id, target_id: activeDmProfileTarget, nickname }],
       { onConflict: 'setter_id,target_id' }
     );
     activeDmNickname = nickname;
+    systemText = `${myName} set the nickname for ${targetRealName} to "${nickname}".`;
+  }
+
+  // Insert system message so both users see it in chat
+  if (systemText && activeDmId === activeDmProfileTarget) {
+    await supabaseClient.from('messages').insert({
+      sender_id: user.id,
+      receiver_id: activeDmProfileTarget,
+      content: systemText,
+      message_type: 'system'
+    });
+  }
+
+  // Update the in-memory contact so sidebar + topbar reflect the new nickname immediately
+  if (contact) {
+    contact.nickname = activeDmNickname;
+    contact.name = activeDmNickname || contact.realName || contact.name;
+    contact.initials = contact.name[0].toUpperCase();
+    buildDMConvList();
+    if (activeDmId === activeDmProfileTarget) {
+      const topbarName = document.getElementById('dmTopbarName');
+      if (topbarName) topbarName.textContent = contact.name;
+      const fsName = document.getElementById('dmFsName');
+      if (fsName) fsName.textContent = contact.name;
+      const real = contact.realName || contact.name;
+      const usernameEl = document.getElementById('dmTopbarUsername');
+      if (usernameEl) usernameEl.textContent = contact.nickname ? real : '';
+      const fsUsernameEl = document.getElementById('dmFsUsername');
+      if (fsUsernameEl) fsUsernameEl.textContent = contact.nickname ? real : '';
+    }
   }
 
   await loadNicknameSideTab(activeDmProfileTarget);
@@ -4658,7 +5029,14 @@ function groupMessages(messages) {
     if (dayLabel !== lastDayLabel) {
       groups.push({ type: 'separator', label: dayLabel });
       lastDayLabel = dayLabel;
-      currentGroup = null; // day boundary always breaks grouping
+      currentGroup = null;
+    }
+
+    // System messages are always their own item — never grouped with bubbles
+    if (msg.message_type === 'system') {
+      currentGroup = null;
+      groups.push({ type: 'system', content: msg.content || '', ts: rawTs });
+      return;
     }
 
     const mKey = msgMinuteKey(rawTs, msg.sender_id);
@@ -4699,6 +5077,16 @@ function makeGroupAvatar(contact) {
   return av;
 }
 
+function makeSystemMsgEl(text) {
+  const wrap = document.createElement('div');
+  wrap.className = 'dm-system-msg';
+  const inner = document.createElement('div');
+  inner.className = 'dm-system-msg-text';
+  inner.textContent = text;
+  wrap.appendChild(inner);
+  return wrap;
+}
+
 function renderGroupedMessages(container, groups, currentUserId, contact) {
   container.innerHTML = '';
   renderedMsgIds.clear();
@@ -4708,6 +5096,10 @@ function renderGroupedMessages(container, groups, currentUserId, contact) {
       const sep = document.createElement('div');
       sep.className = 'dm-time-separator'; sep.textContent = item.label;
       container.appendChild(sep); return;
+    }
+
+    if (item.type === 'system') {
+      container.appendChild(makeSystemMsgEl(item.content)); return;
     }
 
     const isSent = item.sender_id === currentUserId;
@@ -4911,6 +5303,15 @@ function makeBubbleWrap(msg, isSent, contact, currentUserId) {
   // Wrap bWrap in a column container so seen label sits BELOW the bubble row
   const bOuter = document.createElement('div');
   bOuter.className = 'dm-bubble-outer';
+
+  // Edited tag sits ABOVE the bubble, outside it
+  if (msg.edited) {
+    const editedTag = document.createElement('div');
+    editedTag.className = 'dm-edited-tag';
+    editedTag.textContent = 'edited';
+    bOuter.appendChild(editedTag);
+  }
+
   bOuter.appendChild(bWrap);
 
   if (isSent) {
@@ -4957,6 +5358,13 @@ function showCtxMenu(x, y, bWrap, msg, isSent, contact) {
   deleteBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg> Delete message`;
   deleteBtn.onclick = () => { closeCtxMenu(); showConfirm('Delete message?', 'This message will be removed from your view.', 'Delete', () => { deleteMessage(msg, bWrap); }); };
 
+  if (isSent && msg && msg.id && text && text.trim()) {
+    const editCtxBtn = document.createElement('button');
+    editCtxBtn.className = 'dm-ctx-item';
+    editCtxBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit`;
+    editCtxBtn.onclick = () => { closeCtxMenu(); editMessage(msg.id, bWrap); };
+    menu.appendChild(editCtxBtn);
+  }
   menu.appendChild(replyBtn); menu.appendChild(reactBtn); menu.appendChild(copyBtn); menu.appendChild(deleteBtn);
   if (x + 160 > window.innerWidth) menu.style.left = (x - 160) + 'px';
   if (y + 100 > window.innerHeight) menu.style.top = (y - 100) + 'px';
@@ -4973,6 +5381,7 @@ function closeCtxMenu() { document.getElementById('dmCtxMenu').style.display = '
 document.addEventListener('click', () => closeCtxMenu());
 
 function startReply(text, author) {
+  if (currentEditState) cancelEdit(currentEditState.mode);
   replyingTo = { text, author };
   clearDmStaging(); clearDmFsStaging();
   const bar = document.getElementById('dmReplyBar');
@@ -5087,6 +5496,19 @@ async function loadMessages(userId) {
           markConversationSeen(userId).then(() => fixSeenLabels(msgsEl));
         }
       })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages' }, (payload) => {
+        const updated = payload.new;
+        if (!updated || !updated.edited) return;
+        const isForThis = (updated.sender_id === user.id && updated.receiver_id === userId) || (updated.sender_id === userId && updated.receiver_id === user.id);
+        if (!isForThis) return;
+        // Find the bubble wrap in both desktop containers
+        ['dmChatMessages', 'dmFsMessages'].forEach(cId => {
+          const container = document.getElementById(cId);
+          if (!container) return;
+          const bWrap = container.querySelector(`.dm-bubble-wrap[data-msg-id="${updated.id}"]`);
+          if (bWrap) applyEditToBubble(bWrap, updated.content, updated.sender_id === user.id);
+        });
+      })
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' }, async (payload) => {
         if (activeDmId !== userId) return;
         const { data: remaining } = await supabaseClient.from('messages').select('*')
@@ -5144,6 +5566,8 @@ async function loadMoreMessagesDesktop() {
           const sep = document.createElement('div');
           sep.className = 'dm-time-separator'; sep.textContent = item.label;
           frag.appendChild(sep);
+        } else if (item.type === 'system') {
+          frag.appendChild(makeSystemMsgEl(item.content));
         } else {
           const isSent = item.sender_id === dmDesktopUser.id;
           const groupEl = document.createElement('div');
@@ -5251,6 +5675,18 @@ async function loadFsMessages(userId) {
           if (c) { updateContactLastMsg(userId, newMsg, user.id); buildDMConvList(); }
         }
       })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages' }, (payload) => {
+        const updated = payload.new;
+        if (!updated || !updated.edited) return;
+        const isForThis = (updated.sender_id === user.id && updated.receiver_id === userId) || (updated.sender_id === userId && updated.receiver_id === user.id);
+        if (!isForThis) return;
+        ['dmChatMessages', 'dmFsMessages'].forEach(cId => {
+          const container = document.getElementById(cId);
+          if (!container) return;
+          const bWrap = container.querySelector(`.dm-bubble-wrap[data-msg-id="${updated.id}"]`);
+          if (bWrap) applyEditToBubble(bWrap, updated.content, updated.sender_id === user.id);
+        });
+      })
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' }, async (payload) => {
         if (activeDmId !== userId) return;
         const { data: remaining } = await supabaseClient.from('messages').select('*')
@@ -5297,6 +5733,8 @@ async function loadMoreMessagesMobile() {
           const sep = document.createElement('div');
           sep.className = 'dm-time-separator'; sep.textContent = item.label;
           frag.appendChild(sep);
+        } else if (item.type === 'system') {
+          frag.appendChild(makeSystemMsgEl(item.content));
         } else {
           const isSent = item.sender_id === dmMobileUser.id;
           const groupEl = document.createElement('div');
@@ -5342,6 +5780,16 @@ async function loadMoreMessagesMobile() {
    Also removes matching optimistic bubble first.
 ──────────────────────────────────────────── */
 function appendIncomingMessage(container, msg, currentUserId, contact) {
+  // System messages render as a centered pill, not a bubble
+  if (msg.message_type === 'system') {
+    const el = makeSystemMsgEl(msg.content || '');
+    const typingEl = document.getElementById('dmTypingDots') || document.getElementById('dmFsTypingDots');
+    if (typingEl && typingEl.parentNode === container) container.insertBefore(el, typingEl);
+    else container.appendChild(el);
+    container.scrollTop = container.scrollHeight;
+    return;
+  }
+
   const isSent = msg.sender_id === currentUserId;
   const d = new Date(msg.created_at || Date.now());
   const ts = d.getTime();
@@ -5472,6 +5920,11 @@ async function openFsChat(id) {
   av.style.borderRadius = '50%';
 
   document.getElementById('dmFsName').textContent = contact.name;
+  const fsUsernameEl = document.getElementById('dmFsUsername');
+  if (fsUsernameEl) {
+    const real = contact.realName || contact.name;
+    fsUsernameEl.textContent = contact.nickname ? real : '';
+  }
   resetPresenceDots(); updatePresenceDots();
   const msgsEl = document.getElementById('dmFsMessages');
   showSkeletonMessages(msgsEl);
@@ -5479,6 +5932,7 @@ async function openFsChat(id) {
   if (user) await setupTypingChannel(user.id, id);
   loadFsMessages(id);
   cancelReply('mobile'); clearDmFsStaging();
+  if (currentEditState) { currentEditState = null; document.getElementById('dmEditBar')?.classList.remove('show'); document.getElementById('dmFsEditBar')?.classList.remove('show'); }
   document.getElementById('dmFsListView').style.display = 'none';
   const chatView = document.getElementById('dmFsChatView');
   chatView.style.display = 'flex'; chatView.style.flexDirection = 'column'; chatView.style.height = '100%';
@@ -5494,6 +5948,7 @@ function dmFsBack() {
 
 function dmHandleKey(e, mode) {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); dmSend(mode); }
+  if (e.key === 'Escape' && currentEditState) { e.preventDefault(); cancelEdit(mode); }
 }
 
 /* ────────────────────────────────────────────
@@ -5502,6 +5957,15 @@ function dmHandleKey(e, mode) {
    have, so appendIncomingMessage merges them.
 ──────────────────────────────────────────── */
 async function dmSend(mode) {
+  // If in edit mode, commit the edit instead of sending a new message
+  if (currentEditState) {
+    const inputId = mode === 'mobile' ? 'dmFsInput' : 'dmInput';
+    const input = document.getElementById(inputId);
+    const newText = (input?.value || '').trim();
+    await commitEdit(newText);
+    return;
+  }
+
   const inputId = mode === 'mobile' ? 'dmFsInput' : 'dmInput';
   const sendBtnId = mode === 'mobile' ? 'dmFsSendBtn' : 'dmSendBtn';
   const input = document.getElementById(inputId);
@@ -5751,8 +6215,14 @@ function closeLightbox() { document.getElementById('lightbox').classList.remove(
 // ── PROFILE DROPDOWN ──
 let profileDropdownOpen = false;
 function toggleProfileDropdown() {
+  var dropdown = document.getElementById('profileDropdown');
+  // Reset any mobile positioning
+  dropdown.style.left = '';
+  dropdown.style.right = '';
+  dropdown.style.top = '';
+  dropdown.style.bottom = '';
   profileDropdownOpen = !profileDropdownOpen;
-  document.getElementById('profileDropdown').classList.toggle('show', profileDropdownOpen);
+  dropdown.classList.toggle('show', profileDropdownOpen);
 }
 function closeProfileDropdown() {
   profileDropdownOpen = false;
@@ -5760,8 +6230,23 @@ function closeProfileDropdown() {
   document.getElementById('pdAccounts').classList.remove('show');
   document.getElementById('switchArrow').style.transform = '';
 }
-document.addEventListener('click', (e) => {
-  if (!document.getElementById('profileBtn').contains(e.target) && !document.getElementById('profileDropdown').contains(e.target)) closeProfileDropdown();
+function toggleProfileDropdownMobile() {
+  var dropdown = document.getElementById('profileDropdown');
+  var btn = document.getElementById('mobileProfileBtn');
+  var rect = btn.getBoundingClientRect();
+  dropdown.style.left = 'auto';
+  dropdown.style.right = '8px';
+  dropdown.style.bottom = 'auto';
+  dropdown.style.top = (rect.bottom + 8) + 'px';
+  profileDropdownOpen = !profileDropdownOpen;
+  dropdown.classList.toggle('show', profileDropdownOpen);
+}
+document.addEventListener('click', function(e) {
+  var profileBtn = document.getElementById('profileBtn');
+  var mobileProfileBtn = document.getElementById('mobileProfileBtn');
+  var dropdown = document.getElementById('profileDropdown');
+  var clickedTrigger = (profileBtn && profileBtn.contains(e.target)) || (mobileProfileBtn && mobileProfileBtn.contains(e.target));
+  if (!clickedTrigger && !dropdown.contains(e.target)) closeProfileDropdown();
 });
 
 let accountSwitcherOpen = false;
@@ -6172,9 +6657,10 @@ document.addEventListener('keydown', e => {
   }
   if (e.key === 'Escape') {
     if (dmOpen) { closeDM(); return; }
+    if (document.getElementById('adminOverlay')?.classList.contains('show')) { closeAdminPopup(); return; }
     if (document.getElementById('clearChatOverlay').classList.contains('show')) { closeClearChatConfirm(); return; }
     if (document.getElementById('confirmOverlay').classList.contains('show')) { closeConfirm(); return; }
-    closeMsgActionMenu(); closeAdminPopup(); closeProfileEdit(); closeLogout(); closeProfileDropdown(); closeLightbox(); closeCtxMenu();
+    closeMsgActionMenu(); closeProfileEdit(); closeLogout(); closeProfileDropdown(); closeLightbox(); closeCtxMenu();
   }
 });
 
@@ -7794,6 +8280,227 @@ function copySnippet(index) {
   }
 }
 
+// ══════════════════════════════════════════════════════════
+// ── CHAT THEMES ──
+// ══════════════════════════════════════════════════════════
+
+const CHAT_THEMES = [
+  {
+    id: 'default',
+    label: 'Default Blue',
+    tag: 'Default',
+    sent: '#495cea',
+    recv: '#e4e4ea',
+    sentText: '#ffffff',
+    recvText: '#18181b',
+  },
+  {
+    id: 'lovecore',
+    label: 'Valentine',
+    tag: 'Lovecore',
+    sent: '#e8265a',
+    recv: '#ffd6e0',
+    sentText: '#ffffff',
+    recvText: '#7a1030',
+  },
+  {
+    id: 'solarized',
+    label: 'Black & White',
+    tag: 'Solarized Ink',
+    sent: '#1a1a1a',
+    recv: '#e8e8e8',
+    sentText: '#f0f0f0',
+    recvText: '#1a1a1a',
+  },
+  {
+    id: 'honey',
+    label: 'Warm Yellow',
+    tag: 'Honey',
+    sent: '#e6a817',
+    recv: '#fff3c4',
+    sentText: '#ffffff',
+    recvText: '#7a4f00',
+  },
+  {
+    id: 'bluehaze',
+    label: 'Faded Blue',
+    tag: 'Blue Haze',
+    sent: '#7ba7c2',
+    recv: '#ddeaf4',
+    sentText: '#ffffff',
+    recvText: '#2d4f6b',
+  },
+  {
+    id: 'nightdrive',
+    label: 'Dark Blue',
+    tag: 'Night Drive',
+    sent: '#1a3a6e',
+    recv: '#0d1f3c',
+    sentText: '#c8d8f8',
+    recvText: '#8aaee0',
+  },
+  {
+    id: 'lagoon',
+    label: 'Teal & Orange',
+    tag: 'Lagoon',
+    sent: '#e07c3a',
+    recv: '#b2ede8',
+    sentText: '#ffffff',
+    recvText: '#1a4f4a',
+  },
+];
+
+let _themePickerOpen = false;
+let _chatThemeChannel = null;
+let _currentAppliedTheme = 'default';
+
+function toggleThemePicker() {
+  _themePickerOpen = !_themePickerOpen;
+  const picker = document.getElementById('dmThemePicker');
+  const chevron = document.getElementById('dmThemeChevron');
+  if (picker) picker.classList.toggle('open', _themePickerOpen);
+  if (chevron) chevron.style.transform = _themePickerOpen ? 'rotate(180deg)' : '';
+  if (_themePickerOpen) renderThemePicker();
+}
+
+function renderThemePicker() {
+  const picker = document.getElementById('dmThemePicker');
+  if (!picker) return;
+  picker.innerHTML = '';
+  CHAT_THEMES.forEach(t => {
+    const item = document.createElement('div');
+    item.className = 'dm-theme-item' + (t.id === _currentAppliedTheme ? ' active' : '');
+    item.dataset.theme = t.id;
+    item.onclick = () => selectChatTheme(t.id);
+    item.innerHTML = `
+      <div class="dm-theme-preview">
+        <span class="dm-theme-bubble-recv" style="background:${t.recv};color:${t.recvText};">hey! 👋</span>
+        <span class="dm-theme-bubble-sent" style="background:${t.sent};color:${t.sentText};">hii!!</span>
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div class="dm-theme-item-label">${t.tag}</div>
+        <div class="dm-theme-item-sub">${t.label}</div>
+      </div>
+      ${t.id === _currentAppliedTheme ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+    `;
+    picker.appendChild(item);
+  });
+}
+
+function applyChatTheme(themeId) {
+  _currentAppliedTheme = themeId || 'default';
+  const chatWrap = document.getElementById('dmActiveChatWrap');
+  if (chatWrap) {
+    chatWrap.dataset.chatTheme = _currentAppliedTheme;
+  }
+  // Also apply to fullscreen mobile view
+  const fsChatWrap = document.getElementById('dmFsChatWrap') || document.getElementById('dmFsMessages');
+  if (fsChatWrap) {
+    let el = fsChatWrap;
+    while (el && !el.id?.startsWith('dm')) el = el.parentElement;
+    if (el) el.dataset.chatTheme = _currentAppliedTheme;
+  }
+  const dmOverlay = document.getElementById('dmOverlay');
+  if (dmOverlay) dmOverlay.dataset.chatTheme = _currentAppliedTheme;
+}
+
+async function selectChatTheme(themeId) {
+  applyChatTheme(themeId);
+  renderThemePicker();
+  await saveChatThemeToSupabase(themeId);
+}
+
+function _sortUserIds(uid1, uid2) {
+  return [uid1, uid2].sort();
+}
+
+async function saveChatThemeToSupabase(themeId) {
+  if (!activeDmProfileTarget) return;
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (!user) return;
+  const [u1, u2] = _sortUserIds(user.id, activeDmProfileTarget);
+
+  // upsert by user1_id + user2_id
+  const { error } = await supabaseClient
+    .from('chat_settings')
+    .upsert(
+      {
+        user1_id: u1,
+        user2_id: u2,
+        theme: themeId,
+        changed_by: user.id,
+      },
+      { onConflict: 'user1_id,user2_id' }
+    );
+  if (error) { console.error('Theme save error:', error); return; }
+
+  // Insert a system message so both users see it in chat
+  const themeObj = CHAT_THEMES.find(t => t.id === themeId);
+  const themeName = themeObj ? themeObj.tag : themeId;
+  const myName = (await supabaseClient.from('profiles').select('username').eq('id', user.id).single()).data?.username || 'Someone';
+  const systemText = `${myName} changed the chat theme to ${themeName}.`;
+
+  if (activeDmId && activeDmProfileTarget) {
+    await supabaseClient.from('messages').insert({
+      sender_id: user.id,
+      receiver_id: activeDmProfileTarget,
+      content: systemText,
+      message_type: 'system'
+    });
+  }
+}
+
+async function loadChatThemeFromSupabase(otherUserId) {
+  if (!otherUserId) return;
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (!user) return;
+  const [u1, u2] = _sortUserIds(user.id, otherUserId);
+
+  const { data, error } = await supabaseClient
+    .from('chat_settings')
+    .select('theme')
+    .eq('user1_id', u1)
+    .eq('user2_id', u2)
+    .maybeSingle();
+
+  const theme = data?.theme || 'default';
+  applyChatTheme(theme);
+  if (_themePickerOpen) renderThemePicker();
+}
+
+async function subscribeToChatTheme(otherUserId) {
+  if (!otherUserId) return;
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (!user) return;
+  const [u1, u2] = _sortUserIds(user.id, otherUserId);
+
+  // Unsubscribe from previous
+  if (_chatThemeChannel) {
+    try { await supabaseClient.removeChannel(_chatThemeChannel); } catch(e) {}
+    _chatThemeChannel = null;
+  }
+
+  _chatThemeChannel = supabaseClient
+    .channel(`chat_theme:${u1}:${u2}`)
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'chat_settings',
+        filter: `user1_id=eq.${u1}`,
+      },
+      (payload) => {
+        if (payload.new?.user2_id === u2 || payload.new?.user1_id === u1) {
+          const newTheme = payload.new?.theme || 'default';
+          applyChatTheme(newTheme);
+          if (_themePickerOpen) renderThemePicker();
+        }
+      }
+    )
+    .subscribe();
+}
+
 // ── REAL-TIME SEEN: mark conversation seen when user returns to tab/window ──
 // This ensures the receiver-side marks seen immediately when they focus the page,
 // triggering the BroadcastChannel event so the sender sees the "Seen" tag instantly.
@@ -7812,14 +8519,7 @@ window.addEventListener('focus', () => {
   }
 });
 
-// ── KEYBOARD SHORTCUT: ESC closes admin overlay if open ──
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') {
-    if (document.getElementById('adminOverlay')?.classList.contains('show')) {
-      closeAdminPopup(); // resets flags + hides overlay
-    }
-  }
-});
+
 
 </script>
 <!-- MOBILE BOTTOM NAV BAR -->
