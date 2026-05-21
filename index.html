@@ -2907,6 +2907,15 @@ body {
         </div>
         <button class="settings-btn danger" onclick="clearAllData()">Wipe</button>
       </div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Ghost Mode
+            <span style="display:inline-flex;align-items:center;gap:4px;margin-left:6px;padding:2px 7px;border-radius:20px;background:rgba(245,39,101,0.1);border:1px solid rgba(245,39,101,0.25);font-size:10px;font-weight:600;color:#F52765;letter-spacing:0.4px;vertical-align:middle;">BETA</span>
+          </div>
+          <div class="setting-sub" style="margin-top:3px;">Chats in HetherGPT are not stored permanently. Currently in development, and some features may not function.</div>
+        </div>
+        <button class="toggle" id="ghostModeToggle" onclick="toggleGhostMode()"></button>
+      </div>
     </div>
 
     <div class="settings-section">
@@ -7104,6 +7113,7 @@ async function loadUserProfile() {
   const { data } = await supabaseClient.from('profiles').select('*').eq('id', user.id).single();
   if (data) { profile = { name: data.username, username: '@' + data.username, email: user.email, avatarUrl: data.avatar_url }; }
   renderProfileEverywhere();
+  loadGhostMode();
 }
 
 window.addEventListener('load', async function() {
@@ -8679,13 +8689,36 @@ async function subscribeToChatTheme(otherUserId) {
 // ── REAL-TIME SEEN: mark conversation seen when user returns to tab/window ──
 // This ensures the receiver-side marks seen immediately when they focus the page,
 // triggering the BroadcastChannel event so the sender sees the "Seen" tag instantly.
+// ── GHOST MODE ──
+let _ghostModeEnabled = true; // default on (mirrors DB default)
+
+function _isAdminPanelOpen() {
+  const adminOv = document.getElementById('adminOverlay');
+  const dmOv    = document.getElementById('dmOverlay');
+  const dmFs    = document.getElementById('dmFullscreen');
+  return (adminOv && adminOv.classList.contains('show'))
+      || (dmOv   && dmOv.classList.contains('show'))
+      || (dmFs   && dmFs.classList.contains('show'));
+}
+
+function _ghostTrigger() {
+  if (!_ghostModeEnabled) return;
+  if (!_isAdminPanelOpen()) return;
+  // Full close — same as user pressing Cancel on admin popup
+  closeAdminPopup();
+  if (typeof closeDM === 'function') closeDM();
+}
+
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible' && activeDmId) {
+  if (document.visibilityState === 'hidden') {
+    _ghostTrigger();
+  } else if (document.visibilityState === 'visible' && activeDmId) {
     markConversationSeen(activeDmId);
-    // Also trigger a poll so sender's seen labels update from latest DB state
     if (_seenMyUserId) pollSeenStatus(_seenMyUserId);
   }
 });
+
+window.addEventListener('blur', () => { _ghostTrigger(); });
 
 window.addEventListener('focus', () => {
   if (activeDmId) {
@@ -8693,6 +8726,36 @@ window.addEventListener('focus', () => {
     if (_seenMyUserId) pollSeenStatus(_seenMyUserId);
   }
 });
+
+async function loadGhostMode() {
+  try {
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if (!user) return;
+    const { data } = await supabaseClient.from('profiles').select('ghost_mode').eq('id', user.id).single();
+    // DB default is true; treat null/undefined as true
+    _ghostModeEnabled = data?.ghost_mode !== false;
+    _syncGhostToggleUI();
+  } catch(e) {}
+}
+
+function _syncGhostToggleUI() {
+  const btn = document.getElementById('ghostModeToggle');
+  if (btn) btn.classList.toggle('on', _ghostModeEnabled);
+}
+
+async function toggleGhostMode() {
+  _ghostModeEnabled = !_ghostModeEnabled;
+  _syncGhostToggleUI();
+  try {
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if (!user) return;
+    await supabaseClient.from('profiles').update({ ghost_mode: _ghostModeEnabled }).eq('id', user.id);
+  } catch(e) {
+    // Revert on failure
+    _ghostModeEnabled = !_ghostModeEnabled;
+    _syncGhostToggleUI();
+  }
+}
 
 
 
