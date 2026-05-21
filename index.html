@@ -3433,6 +3433,16 @@ async function setupTypingChannel(myUserId, otherUserId) {
       applyChatTheme(payload.theme);
       if (_themePickerOpen) renderThemePicker();
     })
+    .on('broadcast', { event: 'msg_edit' }, ({ payload }) => {
+      // Only apply if it came from the other user (not self)
+      if (payload.senderId === myUserId) return;
+      ['dmChatMessages', 'dmFsMessages'].forEach(cId => {
+        const container = document.getElementById(cId);
+        if (!container) return;
+        const bWrap = container.querySelector(`.dm-bubble-wrap[data-msg-id="${payload.msgId}"]`);
+        if (bWrap) applyEditToBubble(bWrap, payload.content, false);
+      });
+    })
     .subscribe((status) => {
       // Once joined, flush any pending typing broadcast (common on slow mobile connections)
       if (status === 'SUBSCRIBED' && typingChannel._pendingTyping) {
@@ -3705,7 +3715,6 @@ async function commitEdit(newText) {
   applyEditToBubble(bWrap, newText, true);
 
   // UPDATE the row in Supabase (content + edited flag)
-  // The real-time UPDATE subscription will propagate to the other user
   const { error } = await supabaseClient
     .from('messages')
     .update({ content: newText, edited: true })
@@ -3713,6 +3722,18 @@ async function commitEdit(newText) {
 
   if (error) {
     console.error('Edit failed:', error.message);
+    return;
+  }
+
+  // Broadcast the edit instantly over the typing channel so the other
+  // user's UI updates in real time without waiting for DB replication.
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (user && typingChannel && typingChannel.state === 'joined') {
+    typingChannel.send({
+      type: 'broadcast',
+      event: 'msg_edit',
+      payload: { msgId, content: newText, senderId: user.id }
+    });
   }
 }
 
