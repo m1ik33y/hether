@@ -3130,6 +3130,7 @@ body {
       </div>
       <div class="dm-search-dropdown" id="dmFsSearchDropdown"></div>
     </div>
+    <div class="dm-sidebar-load-bar" id="dmFsSidebarLoadBar"><div class="dm-load-bar-fill" id="dmFsSidebarLoadFill"></div></div>
     <div class="dm-conv-list" id="dmFsConvList" style="flex:1;overflow-y:auto;padding:8px;"></div>
   </div>
   <div id="dmFsChatView" style="display:none;flex-direction:column;height:100%;">
@@ -3137,11 +3138,11 @@ body {
       <button class="dm-fs-back" onclick="dmFsBack()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
       </button>
-      <div style="position:relative;flex-shrink:0;">
+      <div style="position:relative;flex-shrink:0;cursor:pointer;" onclick="openMobileProfileSheet()">
         <div class="dm-fs-avatar default-avatar" id="dmFsAvatar"></div>
         <span class="dm-presence-dot offline" id="dmFsPresenceDot"></span>
       </div>
-      <div style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;">
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;cursor:pointer;" onclick="openMobileProfileSheet()">
         <div class="dm-fs-name" id="dmFsName"></div>
         <div id="dmFsUsername" style="font-size:11px;color:var(--text2);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;"></div>
       </div>
@@ -3150,6 +3151,7 @@ body {
       </button>
     </div>
 
+    <div class="dm-chat-load-bar" id="dmFsChatLoadBar"><div class="dm-load-bar-fill" id="dmFsChatLoadFill"></div></div>
     <div class="dm-fs-messages" id="dmFsMessages"></div>
 
     <div class="dm-fs-media-staging-wrap" id="dmFsMediaStagingWrap">
@@ -4681,6 +4683,7 @@ async function openDM() {
   }
   // Show sidebar loading bar while contacts load
   _startLoadBar('dmSidebarLoadBar', 'dmSidebarLoadFill');
+  _startLoadBar('dmFsSidebarLoadBar', 'dmFsSidebarLoadFill');
   showDmListSkeleton();
   await joinPresence();
   try {
@@ -4691,6 +4694,7 @@ async function openDM() {
   }
   // Hide sidebar loading bar once contacts are ready
   _finishLoadBar('dmSidebarLoadBar', 'dmSidebarLoadFill');
+  _finishLoadBar('dmFsSidebarLoadBar', 'dmFsSidebarLoadFill');
   // Global listener: catch new messages for any DM not currently open
   try {
     const { data: { user } } = await supabaseClient.auth.getUser();
@@ -4913,6 +4917,9 @@ async function openDesktopChat(id) {
 
   // Show the loading bar and hide messages until load completes
   _startLoadBar('dmChatLoadBar', 'dmChatLoadFill');
+  _startLoadBar('dmFsChatLoadBar', 'dmFsChatLoadFill');
+  const fsMsgsEl = document.getElementById('dmFsMessages');
+  if (fsMsgsEl) fsMsgsEl.classList.add('dm-loading');
   const msgsEl = document.getElementById('dmChatMessages');
   if (msgsEl) msgsEl.classList.add('dm-loading');
   msgsEl.innerHTML = '';
@@ -5686,10 +5693,16 @@ function _finishLoadBar(barId, fillId) {
 
 function _hideLoadBar() {
   _finishLoadBar('dmChatLoadBar', 'dmChatLoadFill');
+  _finishLoadBar('dmFsChatLoadBar', 'dmFsChatLoadFill');
   const msgsEl = document.getElementById('dmChatMessages');
   if (msgsEl) {
     msgsEl.classList.remove('dm-loading');
     requestAnimationFrame(() => { msgsEl.scrollTop = msgsEl.scrollHeight; });
+  }
+  const fsMsgsEl2 = document.getElementById('dmFsMessages');
+  if (fsMsgsEl2) {
+    fsMsgsEl2.classList.remove('dm-loading');
+    requestAnimationFrame(() => { fsMsgsEl2.scrollTop = fsMsgsEl2.scrollHeight; });
   }
 }
 
@@ -8760,7 +8773,263 @@ async function toggleGhostMode() {
 
 
 </script>
-<!-- MOBILE BOTTOM NAV BAR -->
+<!-- MOBILE PROFILE BOTTOM SHEET -->
+<style>
+.mob-profile-sheet-backdrop {
+  display: none; position: fixed; inset: 0; z-index: 1500;
+  background: rgba(0,0,0,0.45); backdrop-filter: blur(2px);
+  animation: fadeIn 0.18s ease;
+}
+.mob-profile-sheet-backdrop.show { display: block; }
+
+.mob-profile-sheet {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 1501;
+  background: var(--surface); border-radius: 18px 18px 0 0;
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -8px 40px rgba(0,0,0,0.2);
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+  max-height: 88dvh;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.mob-profile-sheet.show { transform: translateY(0); }
+
+.mob-profile-sheet-handle {
+  width: 36px; height: 4px; border-radius: 2px;
+  background: var(--border); margin: 10px auto 0;
+  flex-shrink: 0;
+}
+
+.mob-profile-sheet-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 18px 10px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.mob-profile-sheet-title {
+  font-size: 14px; font-weight: 700; color: var(--text);
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.mob-profile-sheet-close {
+  width: 28px; height: 28px; border-radius: 8px; border: none;
+  background: var(--surface2); color: var(--text3); cursor: pointer;
+  font-size: 17px; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+}
+.mob-profile-sheet-close:hover { background: var(--border); }
+
+.mob-profile-sheet-body {
+  flex: 1; overflow-y: auto; padding: 18px 18px 40px;
+  display: flex; flex-direction: column;
+}
+.mob-profile-sheet-body::-webkit-scrollbar { display: none; }
+</style>
+
+<div class="mob-profile-sheet-backdrop" id="mobProfileSheetBackdrop" onclick="closeMobileProfileSheet()"></div>
+<div class="mob-profile-sheet" id="mobProfileSheet">
+  <div class="mob-profile-sheet-handle"></div>
+  <div class="mob-profile-sheet-header">
+    <span class="mob-profile-sheet-title">Profile</span>
+    <button class="mob-profile-sheet-close" onclick="closeMobileProfileSheet()">&#215;</button>
+  </div>
+  <div class="mob-profile-sheet-body">
+    <div class="dm-profile-tab-avatar default-avatar" id="mobProfileSheetAvatar" style="width:72px;height:72px;margin:0 auto 12px;border-radius:50%;font-size:28px;"></div>
+    <div class="dm-profile-tab-name" id="mobProfileSheetName" style="text-align:center;font-size:16px;font-weight:700;margin-bottom:4px;"></div>
+    <div class="dm-profile-tab-username" id="mobProfileSheetUsername" style="text-align:center;font-size:12.5px;color:var(--text3);margin-bottom:20px;"></div>
+
+    <div class="dm-profile-tab-section">
+      <div class="dm-profile-tab-section-label">Nickname</div>
+      <button class="dm-nickname-edit-btn" id="mobNicknameEditBtn" onclick="mobShowNicknameEditor()" style="margin-top:4px;">
+        Edit Nickname
+      </button>
+      <div class="dm-nickname-editor" id="mobNicknameEditor" style="display:none;margin-top:10px;">
+        <input type="text" class="dm-nickname-input" id="mobNicknameInput" placeholder="Add a nickname&#8230;" maxlength="40" onkeydown="mobNicknameInputKey(event)">
+        <div class="dm-nickname-editor-btns">
+          <button class="dm-nickname-clear-btn" id="mobNicknameClearBtn" onclick="mobClearNickname()">Remove</button>
+          <div style="display:flex;gap:6px;margin-left:auto;">
+            <button class="btn-cancel" style="padding:6px 12px;font-size:12.5px;" onclick="mobHideNicknameEditor()">Cancel</button>
+            <button class="btn-confirm" style="padding:6px 14px;font-size:12.5px;" onclick="mobCommitNickname()">Save</button>
+          </div>
+        </div>
+        <div class="dm-nickname-hint">Only visible to you</div>
+      </div>
+    </div>
+
+    <div class="dm-profile-tab-section" style="margin-top:14px;">
+      <button class="dm-theme-toggle-btn" id="mobThemeToggleBtn" onclick="mobToggleThemePicker()" style="width:100%;padding:10px 0;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20C6.48 22 2 17.52 2 12"/><path d="M12 8v4l3 3"/></svg>
+        Chat Theme
+        <svg id="mobThemeChevron" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform 0.2s;"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="dm-theme-picker" id="mobThemePicker"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── MOBILE PROFILE BOTTOM SHEET ──
+let _mobThemePickerOpen = false;
+
+async function openMobileProfileSheet() {
+  if (!activeDmId) return;
+  await _loadMobProfileSheet(activeDmId);
+  document.getElementById('mobProfileSheetBackdrop').classList.add('show');
+  requestAnimationFrame(() => {
+    document.getElementById('mobProfileSheet').classList.add('show');
+  });
+}
+
+function closeMobileProfileSheet() {
+  document.getElementById('mobProfileSheet').classList.remove('show');
+  document.getElementById('mobProfileSheetBackdrop').classList.remove('show');
+  mobHideNicknameEditor();
+  _mobThemePickerOpen = false;
+  const picker = document.getElementById('mobThemePicker');
+  const chevron = document.getElementById('mobThemeChevron');
+  if (picker) picker.classList.remove('open');
+  if (chevron) chevron.style.transform = '';
+}
+
+async function _loadMobProfileSheet(targetId) {
+  if (!targetId) return;
+  activeDmProfileTarget = targetId;
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (!user) return;
+
+  const [{ data: profileData }, { data: nicknameRows }] = await Promise.all([
+    supabaseClient.from('profiles').select('username, avatar_url').eq('id', targetId).single(),
+    supabaseClient.from('nicknames').select('nickname').eq('setter_id', user.id).eq('target_id', targetId).order('created_at', { ascending: false }).limit(1)
+  ]);
+
+  const profileName = profileData?.username || 'User';
+  activeDmNickname = nicknameRows?.[0]?.nickname || null;
+  const displayName = activeDmNickname || profileName;
+  const actualUsername = profileData?.username ? '@' + profileData.username : 'Unknown user';
+
+  document.getElementById('mobProfileSheetName').textContent = displayName;
+  document.getElementById('mobProfileSheetUsername').textContent = actualUsername;
+  const avatarEl = document.getElementById('mobProfileSheetAvatar');
+  setAvatarEl(avatarEl, profileData?.avatar_url || null);
+  avatarEl.style.borderRadius = '50%';
+
+  const editBtn = document.getElementById('mobNicknameEditBtn');
+  if (editBtn) editBtn.textContent = activeDmNickname ? 'Edit Nickname' : 'Add Nickname';
+
+  mobHideNicknameEditor();
+  _mobThemePickerOpen = false;
+  const picker = document.getElementById('mobThemePicker');
+  const chevron = document.getElementById('mobThemeChevron');
+  if (picker) picker.classList.remove('open');
+  if (chevron) chevron.style.transform = '';
+  mobRenderThemePicker();
+}
+
+function mobShowNicknameEditor() {
+  document.getElementById('mobNicknameEditor').style.display = 'flex';
+  document.getElementById('mobNicknameEditBtn').style.display = 'none';
+  const input = document.getElementById('mobNicknameInput');
+  if (input) { input.value = activeDmNickname || ''; input.focus(); }
+  const clearBtn = document.getElementById('mobNicknameClearBtn');
+  if (clearBtn) clearBtn.style.display = activeDmNickname ? '' : 'none';
+}
+
+function mobHideNicknameEditor() {
+  const editor = document.getElementById('mobNicknameEditor');
+  const editBtn = document.getElementById('mobNicknameEditBtn');
+  if (editor) editor.style.display = 'none';
+  if (editBtn) editBtn.style.display = '';
+}
+
+function mobNicknameInputKey(e) {
+  if (e.key === 'Enter') { e.preventDefault(); mobCommitNickname(); }
+  if (e.key === 'Escape') { mobHideNicknameEditor(); }
+}
+
+async function _saveNicknameValue(nickValue) {
+  if (!activeDmProfileTarget) return;
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (!user) return;
+  if (nickValue) {
+    await supabaseClient.from('nicknames').upsert(
+      { setter_id: user.id, target_id: activeDmProfileTarget, nickname: nickValue },
+      { onConflict: 'setter_id,target_id' }
+    );
+    if (activeDmId) {
+      const myName = (await supabaseClient.from('profiles').select('username').eq('id', user.id).single()).data?.username || 'Someone';
+      await supabaseClient.from('messages').insert({
+        sender_id: user.id, receiver_id: activeDmProfileTarget,
+        content: myName + ' set a nickname for this conversation.',
+        message_type: 'system'
+      });
+    }
+  } else {
+    await supabaseClient.from('nicknames').delete().eq('setter_id', user.id).eq('target_id', activeDmProfileTarget);
+  }
+}
+
+async function mobCommitNickname() {
+  const input = document.getElementById('mobNicknameInput');
+  const newNick = input ? input.value.trim() : '';
+  await _saveNicknameValue(newNick);
+  activeDmNickname = newNick || null;
+  const { data: profileData } = await supabaseClient.from('profiles').select('username').eq('id', activeDmProfileTarget).single();
+  const profileName = profileData?.username || 'User';
+  const displayName = activeDmNickname || profileName;
+  document.getElementById('mobProfileSheetName').textContent = displayName;
+  const editBtn = document.getElementById('mobNicknameEditBtn');
+  if (editBtn) editBtn.textContent = activeDmNickname ? 'Edit Nickname' : 'Add Nickname';
+  mobHideNicknameEditor();
+  const fsName = document.getElementById('dmFsName');
+  if (fsName) fsName.textContent = displayName;
+}
+
+async function mobClearNickname() {
+  await _saveNicknameValue('');
+  activeDmNickname = null;
+  const { data: profileData } = await supabaseClient.from('profiles').select('username').eq('id', activeDmProfileTarget).single();
+  const profileName = profileData?.username || 'User';
+  document.getElementById('mobProfileSheetName').textContent = profileName;
+  const editBtn = document.getElementById('mobNicknameEditBtn');
+  if (editBtn) editBtn.textContent = 'Add Nickname';
+  mobHideNicknameEditor();
+  const fsName = document.getElementById('dmFsName');
+  if (fsName) fsName.textContent = profileName;
+}
+
+function mobToggleThemePicker() {
+  _mobThemePickerOpen = !_mobThemePickerOpen;
+  const picker = document.getElementById('mobThemePicker');
+  const chevron = document.getElementById('mobThemeChevron');
+  if (picker) picker.classList.toggle('open', _mobThemePickerOpen);
+  if (chevron) chevron.style.transform = _mobThemePickerOpen ? 'rotate(180deg)' : '';
+  if (_mobThemePickerOpen) mobRenderThemePicker();
+}
+
+function mobRenderThemePicker() {
+  const picker = document.getElementById('mobThemePicker');
+  if (!picker) return;
+  picker.innerHTML = '';
+  (typeof CHAT_THEMES !== 'undefined' ? CHAT_THEMES : []).forEach(theme => {
+    const item = document.createElement('div');
+    item.className = 'dm-theme-item' + (_currentAppliedTheme === theme.id ? ' active' : '');
+    item.onclick = () => { selectChatTheme(theme.id); mobRenderThemePicker(); };
+    item.innerHTML =
+      '<div class="dm-theme-preview">' +
+        '<span class="dm-theme-bubble-sent" style="background:' + theme.sent + ';color:' + theme.sentText + ';">Hey!</span>' +
+        '<span class="dm-theme-bubble-recv" style="background:' + theme.recv + ';color:' + theme.recvText + ';">Hello &#128075;</span>' +
+      '</div>' +
+      '<div>' +
+        '<div class="dm-theme-item-label">' + theme.tag + '</div>' +
+        '<div class="dm-theme-item-sub">' + (theme.sub || '') + '</div>' +
+      '</div>' +
+      (_currentAppliedTheme === theme.id ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>' : '');
+    picker.appendChild(item);
+  });
+}
+</script>
+
 <nav class="mobile-bottom-nav" id="mobileBottomNav">
   <button class="mob-nav-item active" id="mobNavChat" onclick="showView('chat'); updateMobNav('chat')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
