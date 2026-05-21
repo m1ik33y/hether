@@ -1187,12 +1187,14 @@ body {
   color: var(--text3); flex-shrink: 0;
 }
 
-#dmSearchInput {
+#dmSearchInput,
+#dmFsSearchInput {
   flex: 1; background: transparent; border: none; outline: none;
   color: var(--text); font-family: 'DM Sans', sans-serif;
   font-size: 13px; min-width: 0;
 }
-#dmSearchInput::placeholder { color: var(--text3); }
+#dmSearchInput::placeholder,
+#dmFsSearchInput::placeholder { color: var(--text3); }
 
 .dm-search-dropdown {
   position: absolute;
@@ -1344,6 +1346,48 @@ body {
 .dm-chat-topbar-info { flex: 1; min-width: 0; }
 .dm-chat-topbar-name { font-size: 14px; font-weight: 600; color: var(--text); }
 /* .dm-chat-topbar-status removed — presence dot now on avatar */
+
+/* ── DM LOADING BARS (chat + sidebar) ── */
+.dm-chat-load-bar,
+.dm-sidebar-load-bar {
+  height: 2px;
+  width: 100%;
+  flex-shrink: 0;
+  background: transparent;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  position: relative;
+}
+.dm-chat-load-bar.active,
+.dm-sidebar-load-bar.active {
+  opacity: 1;
+}
+
+/* The actual progress fill — width driven by JS */
+.dm-load-bar-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 0 2px 2px 0;
+  transition: width 0.38s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* Light mode: hot pink to indigo */
+[data-theme="light"] .dm-load-bar-fill {
+  background: linear-gradient(90deg, #F52765 0%, #8B31C7 55%, #5A40DE 100%);
+  box-shadow: 2px 0 6px 0px rgba(245, 39, 101, 0.25);
+}
+
+/* Dark mode: electric cyan to violet */
+[data-theme="dark"] .dm-load-bar-fill {
+  background: linear-gradient(90deg, #00d2ff 0%, #7b2ff7 60%, #a855f7 100%);
+  box-shadow: 2px 0 6px 0px rgba(0, 210, 255, 0.2);
+}
+
+/* Hide messages while chat loading bar is active */
+.dm-chat-messages.dm-loading {
+  visibility: hidden;
+}
 
 .dm-delete-chat-btn {
   background: transparent; border: none; cursor: pointer;
@@ -2941,6 +2985,8 @@ body {
         <div class="dm-search-dropdown" id="dmSearchDropdown"></div>
       </div>
 
+      <div class="dm-sidebar-load-bar" id="dmSidebarLoadBar"><div class="dm-load-bar-fill" id="dmSidebarLoadFill"></div></div>
+
       <div class="dm-conv-list" id="dmConvList"></div>
     </div>
     <div class="dm-chat-panel" id="dmChatPanel">
@@ -2963,6 +3009,8 @@ body {
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><line x1="15" x2="9" y1="9" y2="15"/><line x1="9" x2="15" y1="9" y2="15"/></svg>
             </button>
           </div>
+
+          <div class="dm-chat-load-bar" id="dmChatLoadBar"><div class="dm-load-bar-fill" id="dmChatLoadFill"></div></div>
 
           <div class="dm-chat-messages" id="dmChatMessages"></div>
 
@@ -3588,6 +3636,7 @@ const dmContacts = [];
 let activeDmId = null;
 let activeDmProfileTarget = null;
 let activeDmNickname = null;
+let _dmLoadToken = 0; // incremented on every DM switch to cancel stale loads
 let replyingTo = null;
 
 let dmStagedMedia = null;
@@ -4621,6 +4670,8 @@ async function openDM() {
     document.getElementById('dmOverlay').classList.add('show');
     showDmEmptyState();
   }
+  // Show sidebar loading bar while contacts load
+  _startLoadBar('dmSidebarLoadBar', 'dmSidebarLoadFill');
   showDmListSkeleton();
   await joinPresence();
   try {
@@ -4629,6 +4680,8 @@ async function openDM() {
   } catch (e) {
     buildDMConvList();
   }
+  // Hide sidebar loading bar once contacts are ready
+  _finishLoadBar('dmSidebarLoadBar', 'dmSidebarLoadFill');
   // Global listener: catch new messages for any DM not currently open
   try {
     const { data: { user } } = await supabaseClient.auth.getUser();
@@ -4828,12 +4881,16 @@ async function openDesktopChat(id) {
   contact.unread = false;
   contact.unreadCount = 0;
   activeDmId = id;
+
+  // Increment token — any in-flight loadMessages for a different id will bail
+  const myToken = ++_dmLoadToken;
+
   document.querySelectorAll('#dmConvList .dm-conv-item').forEach(el => el.classList.toggle('active', el.dataset.id === id));
   document.getElementById('dmTopbarName').textContent = contact.name;
   const usernameEl = document.getElementById('dmTopbarUsername');
   if (usernameEl) {
     const real = contact.realName || contact.name;
-    usernameEl.textContent = contact.nickname ? real : '';
+    usernameEl.textContent = real;
   }
   const av = document.getElementById('dmTopbarAvatar');
   // FIX 1: topbar avatar
@@ -4844,11 +4901,22 @@ async function openDesktopChat(id) {
   updatePresenceDots();
   document.getElementById('dmEmptyState').style.display = 'none';
   document.getElementById('dmActiveChatWrap').style.display = 'flex';
+
+  // Show the loading bar and hide messages until load completes
+  _startLoadBar('dmChatLoadBar', 'dmChatLoadFill');
   const msgsEl = document.getElementById('dmChatMessages');
-  showSkeletonMessages(msgsEl);
+  if (msgsEl) msgsEl.classList.add('dm-loading');
+  msgsEl.innerHTML = '';
+
   const { data: { user } } = await supabaseClient.auth.getUser();
+  // Bail if user switched away while we were awaiting
+  if (_dmLoadToken !== myToken) return;
+
   if (user) await setupTypingChannel(user.id, id);
-  loadMessages(id);
+  if (_dmLoadToken !== myToken) return;
+
+  await loadMessages(id, myToken);
+
   cancelReply();
   if (currentEditState) { currentEditState = null; document.getElementById('dmEditBar')?.classList.remove('show'); document.getElementById('dmFsEditBar')?.classList.remove('show'); }
   clearDmStaging();
@@ -4992,9 +5060,9 @@ async function saveNicknameForTarget(nickname) {
       if (fsName) fsName.textContent = contact.name;
       const real = contact.realName || contact.name;
       const usernameEl = document.getElementById('dmTopbarUsername');
-      if (usernameEl) usernameEl.textContent = contact.nickname ? real : '';
+      if (usernameEl) usernameEl.textContent = real;
       const fsUsernameEl = document.getElementById('dmFsUsername');
-      if (fsUsernameEl) fsUsernameEl.textContent = contact.nickname ? real : '';
+      if (fsUsernameEl) fsUsernameEl.textContent = real;
     }
   }
 
@@ -5458,9 +5526,12 @@ let dmDesktopUserId = null;
 let dmDesktopUser = null;
 let dmDesktopContact = null;
 
-async function loadMessages(userId) {
+async function loadMessages(userId, loadToken) {
+  const token = loadToken !== undefined ? loadToken : _dmLoadToken;
   const { data: { user } } = await supabaseClient.auth.getUser();
-  if (!user) return;
+  if (!user) { _hideLoadBar(); return; }
+  if (_dmLoadToken !== token) return; // stale — user already switched
+
   await subscriptionManager.replaceSubscription(null);
   renderedMsgIds.clear();
   dmDesktopOffset = 0;
@@ -5470,12 +5541,15 @@ async function loadMessages(userId) {
   dmDesktopUser = user;
   dmDesktopContact = dmContacts.find(c => c.id === userId);
   const msgsEl = document.getElementById('dmChatMessages');
-  if (!msgsEl) return;
+  if (!msgsEl) { _hideLoadBar(); return; }
 
   try {
     // Count total
     const { count } = await supabaseClient.from('messages').select('*', { count: 'exact', head: true })
       .or(`and(sender_id.eq.${user.id},receiver_id.eq.${userId}),and(sender_id.eq.${userId},receiver_id.eq.${user.id})`);
+
+    if (_dmLoadToken !== token) return; // switched while counting
+
     const total = count || 0;
     dmDesktopOffset = Math.max(0, total - DM_PAGE_SIZE);
     if (dmDesktopOffset === 0) dmDesktopAllLoaded = true;
@@ -5484,7 +5558,10 @@ async function loadMessages(userId) {
       .or(`and(sender_id.eq.${user.id},receiver_id.eq.${userId}),and(sender_id.eq.${userId},receiver_id.eq.${user.id})`)
       .order('created_at', { ascending: true })
       .range(dmDesktopOffset, total - 1);
-    if (error) return;
+
+    if (_dmLoadToken !== token) return; // switched while fetching
+
+    if (error) { _hideLoadBar(); return; }
     if (data && data.length > 0) {
       data.forEach(m => { if (m.id) renderedMsgIds.add(m.id); });
       const groups = groupMessages(data.map(m => ({ ...m, ts: m.created_at })));
@@ -5496,6 +5573,9 @@ async function loadMessages(userId) {
       updateContactLastMsg(userId, last, user.id);
     } else { msgsEl.innerHTML = ''; }
   } catch (err) { msgsEl.innerHTML = ''; }
+
+  // Reveal messages and hide loading bar
+  _hideLoadBar();
 
   // Scroll listener for pagination
   msgsEl.onscroll = null;
@@ -5553,6 +5633,55 @@ async function loadMessages(userId) {
       .subscribe();
     await subscriptionManager.replaceSubscription(channel);
   } catch (err) {}
+}
+
+function _startLoadBar(barId, fillId) {
+  const bar = document.getElementById(barId);
+  const fill = document.getElementById(fillId);
+  if (!bar || !fill) return;
+  // Reset
+  fill.style.transition = 'none';
+  fill.style.width = '0%';
+  bar.classList.add('active');
+  // Kick off fake progress: fast to ~75%, then slow crawl to ~88%
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      fill.style.transition = 'width 0.7s cubic-bezier(0.25, 1, 0.5, 1)';
+      fill.style.width = '75%';
+      setTimeout(() => {
+        fill.style.transition = 'width 2.5s cubic-bezier(0.1, 0.9, 0.3, 1)';
+        fill.style.width = '88%';
+      }, 720);
+    });
+  });
+}
+
+function _finishLoadBar(barId, fillId) {
+  const bar = document.getElementById(barId);
+  const fill = document.getElementById(fillId);
+  if (!bar || !fill) return;
+  // Snap to 100%, then fade out
+  fill.style.transition = 'width 0.22s cubic-bezier(0.4, 0, 0.2, 1)';
+  fill.style.width = '100%';
+  setTimeout(() => {
+    bar.style.transition = 'opacity 0.25s ease';
+    bar.classList.remove('active');
+    // Reset fill after fade
+    setTimeout(() => {
+      fill.style.transition = 'none';
+      fill.style.width = '0%';
+      bar.style.transition = '';
+    }, 280);
+  }, 240);
+}
+
+function _hideLoadBar() {
+  _finishLoadBar('dmChatLoadBar', 'dmChatLoadFill');
+  const msgsEl = document.getElementById('dmChatMessages');
+  if (msgsEl) {
+    msgsEl.classList.remove('dm-loading');
+    requestAnimationFrame(() => { msgsEl.scrollTop = msgsEl.scrollHeight; });
+  }
 }
 
 function prependLoadMoreIndicator(container, mode) {
@@ -5949,7 +6078,7 @@ async function openFsChat(id) {
   const fsUsernameEl = document.getElementById('dmFsUsername');
   if (fsUsernameEl) {
     const real = contact.realName || contact.name;
-    fsUsernameEl.textContent = contact.nickname ? real : '';
+    fsUsernameEl.textContent = real;
   }
   resetPresenceDots(); updatePresenceDots();
   const msgsEl = document.getElementById('dmFsMessages');
