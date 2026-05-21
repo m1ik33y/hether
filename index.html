@@ -5938,6 +5938,9 @@ async function openFsChat(id) {
   chatView.style.display = 'flex'; chatView.style.flexDirection = 'column'; chatView.style.height = '100%';
   document.getElementById('dmFsInput').focus();
   markConversationSeen(id);
+  // Load and subscribe to chat theme for this conversation
+  loadChatThemeFromSupabase(id);
+  subscribeToChatTheme(id);
 }
 
 function dmFsBack() {
@@ -8480,6 +8483,8 @@ async function subscribeToChatTheme(otherUserId) {
     _chatThemeChannel = null;
   }
 
+  // Supabase postgres_changes only supports one column per filter,
+  // so we filter by user1_id and verify user2_id client-side.
   _chatThemeChannel = supabaseClient
     .channel(`chat_theme:${u1}:${u2}`)
     .on(
@@ -8491,14 +8496,19 @@ async function subscribeToChatTheme(otherUserId) {
         filter: `user1_id=eq.${u1}`,
       },
       (payload) => {
-        if (payload.new?.user2_id === u2 || payload.new?.user1_id === u1) {
-          const newTheme = payload.new?.theme || 'default';
+        const row = payload.new || payload.old;
+        if (row && row.user1_id === u1 && row.user2_id === u2) {
+          const newTheme = row.theme || 'default';
           applyChatTheme(newTheme);
           if (_themePickerOpen) renderThemePicker();
         }
       }
     )
-    .subscribe();
+    .subscribe((status, err) => {
+      if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+        console.warn('Chat theme channel error:', status, err);
+      }
+    });
 }
 
 // ── REAL-TIME SEEN: mark conversation seen when user returns to tab/window ──
