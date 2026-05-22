@@ -1007,27 +1007,27 @@ body {
   --dm-recv-color: var(--text);
 }
 
-/* Override bubble colors per theme */
-[data-chat-theme="default"] .dm-msg-group.sent .dm-bubble   { background: #495cea !important; color: #fff !important; }
-[data-chat-theme="default"] .dm-msg-group.received .dm-bubble { background: var(--surface2) !important; color: var(--text) !important; }
+/* Override bubble colors per theme — emoji-only bubbles are always transparent */
+[data-chat-theme="default"] .dm-msg-group.sent .dm-bubble:not(.dm-bubble-emoji-only)   { background: #495cea !important; color: #fff !important; }
+[data-chat-theme="default"] .dm-msg-group.received .dm-bubble:not(.dm-bubble-emoji-only) { background: var(--surface2) !important; color: var(--text) !important; }
 
-[data-chat-theme="lovecore"] .dm-msg-group.sent .dm-bubble   { background: #e8265a !important; color: #fff !important; }
-[data-chat-theme="lovecore"] .dm-msg-group.received .dm-bubble { background: #ffd6e0 !important; color: #7a1030 !important; }
+[data-chat-theme="lovecore"] .dm-msg-group.sent .dm-bubble:not(.dm-bubble-emoji-only)   { background: #e8265a !important; color: #fff !important; }
+[data-chat-theme="lovecore"] .dm-msg-group.received .dm-bubble:not(.dm-bubble-emoji-only) { background: #ffd6e0 !important; color: #7a1030 !important; }
 
-[data-chat-theme="solarized"] .dm-msg-group.sent .dm-bubble   { background: #1a1a1a !important; color: #f0f0f0 !important; }
-[data-chat-theme="solarized"] .dm-msg-group.received .dm-bubble { background: #e8e8e8 !important; color: #1a1a1a !important; }
+[data-chat-theme="solarized"] .dm-msg-group.sent .dm-bubble:not(.dm-bubble-emoji-only)   { background: #1a1a1a !important; color: #f0f0f0 !important; }
+[data-chat-theme="solarized"] .dm-msg-group.received .dm-bubble:not(.dm-bubble-emoji-only) { background: #e8e8e8 !important; color: #1a1a1a !important; }
 
-[data-chat-theme="honey"] .dm-msg-group.sent .dm-bubble   { background: #e6a817 !important; color: #fff !important; }
-[data-chat-theme="honey"] .dm-msg-group.received .dm-bubble { background: #fff3c4 !important; color: #7a4f00 !important; }
+[data-chat-theme="honey"] .dm-msg-group.sent .dm-bubble:not(.dm-bubble-emoji-only)   { background: #e6a817 !important; color: #fff !important; }
+[data-chat-theme="honey"] .dm-msg-group.received .dm-bubble:not(.dm-bubble-emoji-only) { background: #fff3c4 !important; color: #7a4f00 !important; }
 
-[data-chat-theme="bluehaze"] .dm-msg-group.sent .dm-bubble   { background: #7ba7c2 !important; color: #fff !important; }
-[data-chat-theme="bluehaze"] .dm-msg-group.received .dm-bubble { background: #ddeaf4 !important; color: #2d4f6b !important; }
+[data-chat-theme="bluehaze"] .dm-msg-group.sent .dm-bubble:not(.dm-bubble-emoji-only)   { background: #7ba7c2 !important; color: #fff !important; }
+[data-chat-theme="bluehaze"] .dm-msg-group.received .dm-bubble:not(.dm-bubble-emoji-only) { background: #ddeaf4 !important; color: #2d4f6b !important; }
 
-[data-chat-theme="nightdrive"] .dm-msg-group.sent .dm-bubble   { background: #1a3a6e !important; color: #c8d8f8 !important; }
-[data-chat-theme="nightdrive"] .dm-msg-group.received .dm-bubble { background: #0d1f3c !important; color: #8aaee0 !important; }
+[data-chat-theme="nightdrive"] .dm-msg-group.sent .dm-bubble:not(.dm-bubble-emoji-only)   { background: #1a3a6e !important; color: #c8d8f8 !important; }
+[data-chat-theme="nightdrive"] .dm-msg-group.received .dm-bubble:not(.dm-bubble-emoji-only) { background: #0d1f3c !important; color: #8aaee0 !important; }
 
-[data-chat-theme="lagoon"] .dm-msg-group.sent .dm-bubble   { background: #e07c3a !important; color: #fff !important; }
-[data-chat-theme="lagoon"] .dm-msg-group.received .dm-bubble { background: #b2ede8 !important; color: #1a4f4a !important; }
+[data-chat-theme="lagoon"] .dm-msg-group.sent .dm-bubble:not(.dm-bubble-emoji-only)   { background: #e07c3a !important; color: #fff !important; }
+[data-chat-theme="lagoon"] .dm-msg-group.received .dm-bubble:not(.dm-bubble-emoji-only) { background: #b2ede8 !important; color: #1a4f4a !important; }
 
 /* ── THEME PICKER BUTTON ── */
 .dm-theme-toggle-btn {
@@ -1537,9 +1537,9 @@ body {
   vertical-align: top;
   position: relative;
 }
-.dm-bubble:hover { opacity: 0.92; }
-.dm-msg-group.sent .dm-bubble { background:#495cea; color: #fff; }
-.dm-msg-group.received .dm-bubble { background: var(--surface2); color: var(--text); border: none; }
+.dm-bubble:not(.dm-bubble-emoji-only):hover { opacity: 0.92; }
+.dm-msg-group.sent .dm-bubble:not(.dm-bubble-emoji-only) { background:#495cea; color: #fff; }
+.dm-msg-group.received .dm-bubble:not(.dm-bubble-emoji-only) { background: var(--surface2); color: var(--text); border: none; }
 
 /* ── INSTAGRAM/iMESSAGE-STYLE GROUPED BUBBLE CORNERS ── */
 /*
@@ -1777,13 +1777,21 @@ body {
 /* ── FULLSCREEN DM (mobile) ── */
 .dm-fullscreen {
   display: none;
-  position: fixed; inset: 0; z-index: 400;
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 400;
   flex-direction: column;
   background: var(--surface);
+  height: 100%;
+  overflow: hidden;
 }
 .dm-fs-header {
   padding: 14px 16px; border-bottom: 1px solid var(--border);
   display: flex; align-items: center; gap: 10px; background: var(--surface); flex-shrink: 0;
+  /* Truly fixed to top — never moves with scroll or keyboard */
+  position: sticky; top: 0; z-index: 10;
+  /* Prevent any touch-scroll from moving it */
+  touch-action: none;
 }
 .dm-fs-back {
   background: transparent; border: none; cursor: pointer; color: var(--text2);
@@ -1806,8 +1814,19 @@ body {
   flex: 1; overflow-y: auto; overflow-x: hidden;
   padding: 14px 14px; display: flex; flex-direction: column; gap: 2px;
   min-height: 0;
+  /* Prevent bounce/rubber-band scroll from causing layout issues */
+  overscroll-behavior: contain;
 }
-.dm-fs-input-area { padding: 10px 12px 14px; background: var(--surface); border-top: 1px solid var(--border); flex-shrink: 0; }
+.dm-fs-input-area { 
+  padding: 10px 12px 14px; 
+  padding-bottom: max(14px, calc(10px + env(safe-area-inset-bottom, 0px)));
+  background: var(--surface); 
+  border-top: 1px solid var(--border); 
+  flex-shrink: 0;
+  /* Never scroll, never bounce */
+  overscroll-behavior: none;
+  touch-action: manipulation;
+}
 .dm-fs-input-row { display: flex; gap: 6px; align-items: flex-end; background: var(--input-bg); border: 1px solid var(--border); border-radius: 22px; padding: 6px 8px 6px 6px; }
 #dmFsInput {
   flex: 1; background: transparent; border: none; outline: none;
@@ -2057,11 +2076,15 @@ body {
   .dm-msg-group-row { max-width: 85%; }
   .dm-fs-input-area {
     padding: 8px 10px;
-    padding-bottom: max(14px, calc(10px + env(safe-area-inset-bottom, 20px)));
+    padding-bottom: max(14px, calc(10px + env(safe-area-inset-bottom, 0px)));
   }
-  .dm-fullscreen { height: 100dvh; }
+  /* dvh handles keyboard resize — no height override needed */
   .sidebar-spacer { flex: 1; min-height: 8px; }
 }
+
+  /* Hide bottom nav when DM fullscreen chat is open — it lifts with keyboard otherwise */
+  .dm-fullscreen.show ~ .mobile-bottom-nav,
+  body:has(.dm-fullscreen.show) .mobile-bottom-nav { display: none !important; }
 
 @media (min-width: 641px) {
   .dm-fullscreen { display: none !important; }
@@ -3116,7 +3139,7 @@ body {
 
 <!-- ADMIN DM — MOBILE -->
 <div class="dm-fullscreen" id="dmFullscreen">
-  <div id="dmFsListView" style="display:flex;flex-direction:column;height:100%;">
+  <div id="dmFsListView" style="display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;">
     <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);flex-shrink:0;">
       <div style="font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px;">
         Messages <span class="dm-secure-badge">SECURE</span>
@@ -3133,7 +3156,7 @@ body {
     <div class="dm-sidebar-load-bar" id="dmFsSidebarLoadBar"><div class="dm-load-bar-fill" id="dmFsSidebarLoadFill"></div></div>
     <div class="dm-conv-list" id="dmFsConvList" style="flex:1;overflow-y:auto;padding:8px;"></div>
   </div>
-  <div id="dmFsChatView" style="display:none;flex-direction:column;height:100%;">
+  <div id="dmFsChatView" style="display:none;flex-direction:column;flex:1;min-height:0;overflow:hidden;">
     <div class="dm-fs-header">
       <button class="dm-fs-back" onclick="dmFsBack()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
@@ -4893,6 +4916,7 @@ async function openDesktopChat(id) {
   if (!contact) return;
   contact.unread = false;
   contact.unreadCount = 0;
+  document.getElementById('dmProfileTab')?.classList.remove('show');
   activeDmId = id;
 
   // Increment token — any in-flight loadMessages for a different id will bail
@@ -9052,6 +9076,61 @@ function mobRenderThemePicker() {
     <span>Settings</span>
   </button>
 </nav>
+
+<script>
+// ── MOBILE KEYBOARD: resize only the DM fullscreen chat, leave bottom nav alone ──
+// We do NOT use interactive-widget=resizes-content (that lifts all fixed elements).
+// Instead we use visualViewport to manually track keyboard height and adjust
+// only the dm-fullscreen container.
+(function() {
+  function getDmFs() { return document.getElementById('dmFullscreen'); }
+  function getChatView() { return document.getElementById('dmFsChatView'); }
+
+  function applyLayout() {
+    const fs = getDmFs();
+    if (!fs || !fs.classList.contains('show')) return;
+
+    const vv = window.visualViewport;
+    if (!vv) return;
+
+    // Position and size the fullscreen container to exactly the visual viewport
+    // This keeps it above the keyboard without affecting anything else
+    fs.style.top = vv.offsetTop + 'px';
+    fs.style.height = vv.height + 'px';
+
+    // Scroll messages to bottom when keyboard opens
+    const msgs = document.getElementById('dmFsMessages');
+    if (msgs) msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  function resetLayout() {
+    const fs = getDmFs();
+    if (!fs) return;
+    fs.style.top = '';
+    fs.style.height = '';
+  }
+
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', applyLayout);
+    window.visualViewport.addEventListener('scroll', applyLayout);
+  }
+
+  // Re-apply when DM opens
+  document.addEventListener('focusin', function(e) {
+    if (e.target && e.target.id === 'dmFsInput') {
+      setTimeout(applyLayout, 300);
+    }
+  });
+  document.addEventListener('focusout', function(e) {
+    if (e.target && e.target.id === 'dmFsInput') {
+      setTimeout(resetLayout, 100);
+    }
+  });
+
+  // Expose so openFsChat can trigger it
+  window._dmApplyKeyboardLayout = applyLayout;
+})();
+</script>
 
 </body>
 </html>
