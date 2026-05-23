@@ -2720,8 +2720,7 @@ body {
         <button class="hamburger" id="hamburger" onclick="toggleSidebarMobile()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
-        <div class="status-dot"></div>
-        hetherGPT
+        <span style="font-family:'Syne',sans-serif;font-weight:700;font-size:17px;letter-spacing:-0.3px;color:var(--text);">Hether <span style="color:var(--accent);">AI</span></span>
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
         <span style="font-size:12px;color:var(--text3);" class="hide-mobile">AI · Calculations &amp; Knowledge</span>
@@ -2949,6 +2948,17 @@ body {
           <div class="setting-sub">Restricted access — requires valid credentials</div>
         </div>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <h3>Notifications</h3>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Notifications</div>
+          <div class="setting-sub">Receive notifications about Hether updates.</div>
+        </div>
+        <button class="toggle" id="notificationsToggle" onclick="toggleNotifications()"></button>
       </div>
     </div>
 
@@ -4718,6 +4728,7 @@ async function openDM() {
   // Hide sidebar loading bar once contacts are ready
   _finishLoadBar('dmSidebarLoadBar', 'dmSidebarLoadFill');
   _finishLoadBar('dmFsSidebarLoadBar', 'dmFsSidebarLoadFill');
+  if (typeof _updateTitleUnreadBadge === 'function') _updateTitleUnreadBadge();
   // Global listener: catch new messages for any DM not currently open
   try {
     const { data: { user } } = await supabaseClient.auth.getUser();
@@ -7151,6 +7162,7 @@ async function loadUserProfile() {
   if (data) { profile = { name: data.username, username: '@' + data.username, email: user.email, avatarUrl: data.avatar_url }; }
   renderProfileEverywhere();
   loadGhostMode();
+  loadNotifications();
 }
 
 window.addEventListener('load', async function() {
@@ -8792,6 +8804,79 @@ async function toggleGhostMode() {
     _ghostModeEnabled = !_ghostModeEnabled;
     _syncGhostToggleUI();
   }
+}
+
+// ── NOTIFICATIONS (admin unread title badge) ──
+let _notificationsEnabled = false; // default off (mirrors DB default=false)
+
+async function loadNotifications() {
+  try {
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if (!user) return;
+    const { data } = await supabaseClient.from('profiles').select('notifications').eq('id', user.id).single();
+    _notificationsEnabled = data?.notifications === true;
+    _syncNotificationsToggleUI();
+  } catch(e) {}
+}
+
+function _syncNotificationsToggleUI() {
+  const btn = document.getElementById('notificationsToggle');
+  if (btn) btn.classList.toggle('on', _notificationsEnabled);
+  if (!_notificationsEnabled) document.title = 'Hether - Coding Platform';
+}
+
+async function toggleNotifications() {
+  _notificationsEnabled = !_notificationsEnabled;
+  _syncNotificationsToggleUI();
+  try {
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if (!user) return;
+    await supabaseClient.from('profiles').update({ notifications: _notificationsEnabled }).eq('id', user.id);
+  } catch(e) {
+    _notificationsEnabled = !_notificationsEnabled;
+    _syncNotificationsToggleUI();
+  }
+}
+
+function _isDMPanelOpen() {
+  const dmOv = document.getElementById('dmOverlay');
+  const dmFs = document.getElementById('dmFullscreen');
+  return (dmOv && dmOv.classList.contains('show'))
+      || (dmFs && dmFs.classList.contains('show'));
+}
+
+function _updateTitleUnreadBadge() {
+  if (!_notificationsEnabled || !_isDMPanelOpen()) {
+    document.title = 'Hether - Coding Platform';
+    return;
+  }
+  const totalUnread = (typeof dmContacts !== 'undefined')
+    ? dmContacts.reduce((sum, c) => sum + (c.unread && c.id !== activeDmId ? (c.unreadCount || 0) : 0), 0)
+    : 0;
+  if (totalUnread <= 0) {
+    document.title = 'Hether - Coding Platform';
+  } else {
+    const capped = Math.min(totalUnread, 4);
+    document.title = `(${capped}) Hether - Coding Platform`;
+  }
+}
+
+(function _patchBuildDMConvListForNotifications() {
+  const _originalBuild = window.buildDMConvList;
+  if (typeof _originalBuild === 'function') {
+    window.buildDMConvList = function() {
+      _originalBuild.apply(this, arguments);
+      _updateTitleUnreadBadge();
+    };
+  }
+})();
+
+const _originalCloseDM = window.closeDM;
+if (typeof _originalCloseDM === 'function') {
+  window.closeDM = async function() {
+    await _originalCloseDM.apply(this, arguments);
+    document.title = 'Hether - Coding Platform';
+  };
 }
 
 
