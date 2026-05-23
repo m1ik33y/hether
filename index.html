@@ -8849,14 +8849,13 @@ function _updateTitleUnreadBadge() {
     document.title = 'Hether - Coding Platform';
     return;
   }
-  const totalUnread = (typeof dmContacts !== 'undefined')
-    ? dmContacts.reduce((sum, c) => sum + (c.unread && c.id !== activeDmId ? (c.unreadCount || 0) : 0), 0)
+  const unreadUsers = (typeof dmContacts !== 'undefined')
+    ? dmContacts.filter(c => c.unread && c.id !== activeDmId).length
     : 0;
-  if (totalUnread <= 0) {
+  if (unreadUsers <= 0) {
     document.title = 'Hether - Coding Platform';
   } else {
-    const capped = Math.min(totalUnread, 4);
-    document.title = `(${capped}) Hether - Coding Platform`;
+    document.title = `(${unreadUsers}) Hether - Coding Platform`;
   }
 }
 
