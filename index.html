@@ -5985,7 +5985,7 @@ function applyReactionsToWrap(bWrap, reactions, currentUserId) {
     reactionEl.className = 'dm-reaction';
     reactionEl.dataset.emoji = emoji;
     reactionEl.textContent = emoji + (count > 1 ? count : '');
-    reactionEl.style.opacity = (myEmoji === emoji) ? '1' : '0.75';
+    reactionEl.style.opacity = '1';
     reactionEl.onclick = () => addReaction(bWrap, emoji);
     bWrap.appendChild(reactionEl);
   }
