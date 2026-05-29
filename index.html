@@ -1709,7 +1709,7 @@ body {
   background: transparent !important;
   border: none !important;
   padding: 0 !important;
-  border-radius: 0 !important;
+  border-radius: 12px !important;
 }
 .dm-bubble-media-only img, .dm-bubble-media-only video {
   max-width: 220px; max-height: 180px; border-radius: 12px; display: block; cursor: pointer;
@@ -2158,9 +2158,128 @@ body {
 .pd-add-acc { display: flex; align-items: center; gap: 9px; padding: 7px 10px; border-radius: 7px; cursor: pointer; font-size: 12.5px; color: var(--text3); transition: all var(--t); border: 1px dashed var(--border); background: transparent; width: 100%; font-family: 'DM Sans', sans-serif; margin-top: 4px; }
 .pd-add-acc:hover { border-color: var(--accent); color: var(--accent); }
 
-.lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 999; align-items: center; justify-content: center; cursor: zoom-out; }
+.lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 999; align-items: center; justify-content: center; flex-direction: column; gap: 12px; }
 .lightbox.show { display: flex; }
-.lightbox img { max-width: 92vw; max-height: 92vh; border-radius: 10px; box-shadow: 0 24px 60px rgba(0,0,0,0.4); }
+.lightbox img { max-width: 92vw; max-height: 82vh; border-radius: 10px; box-shadow: 0 24px 60px rgba(0,0,0,0.4); object-fit: contain; cursor: default; }
+.lightbox-close { position: absolute; top: 18px; right: 22px; background: rgba(255,255,255,0.12); border: none; color: #fff; font-size: 22px; width: 38px; height: 38px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; z-index: 2; }
+.lightbox-close:hover { background: rgba(255,255,255,0.22); }
+.lightbox-delete-btn { position: absolute; top: 18px; left: 22px; background: rgba(239,68,68,0.18); border: 1px solid rgba(239,68,68,0.4); color: #ff6b6b; font-size: 13px; font-weight: 500; font-family: 'DM Sans', sans-serif; padding: 0 14px; height: 38px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 7px; transition: background 0.15s; z-index: 2; }
+.lightbox-delete-btn:hover { background: rgba(239,68,68,0.32); color: #fff; }
+.lightbox-nav { display: flex; align-items: center; gap: 16px; }
+.lightbox-nav-btn { background: rgba(255,255,255,0.12); border: none; color: #fff; font-size: 20px; width: 42px; height: 42px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; flex-shrink: 0; }
+.lightbox-nav-btn:hover { background: rgba(255,255,255,0.24); }
+.lightbox-nav-btn:disabled { opacity: 0.25; cursor: default; }
+.lightbox-counter { color: rgba(255,255,255,0.7); font-size: 13px; min-width: 48px; text-align: center; }
+.lightbox-strip { display: flex; gap: 6px; max-width: 92vw; overflow-x: auto; padding: 4px 0; }
+.lightbox-strip::-webkit-scrollbar { height: 0; }
+.lightbox-thumb { width: 48px; height: 48px; border-radius: 7px; object-fit: cover; cursor: pointer; opacity: 0.55; border: 2px solid transparent; transition: opacity 0.15s, border-color 0.15s; flex-shrink: 0; }
+.lightbox-thumb.active { opacity: 1; border-color: #fff; }
+
+/* ── MEDIA COLLAGE ── */
+/* The collage IS the bubble — no extra dm-bubble wrapper around it */
+.dm-media-collage {
+  display: grid;
+  gap: 2px;
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+  width: 260px;
+  background: var(--border); /* gap colour = separator lines */
+  border: 2px solid var(--border);
+  box-sizing: border-box;
+}
+/* 2 images: side by side */
+.dm-media-collage.count-2 {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 160px;
+}
+/* 3 images: tall left, 2 stacked right */
+.dm-media-collage.count-3 {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 80px 80px;
+}
+.dm-media-collage.count-3 .collage-cell:first-child {
+  grid-row: 1 / 3; /* spans both rows */
+}
+/* 4 images: 2×2 grid */
+.dm-media-collage.count-4 {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 130px 130px;
+}
+/* 5+ images: 2 on top, 3 on bottom */
+.dm-media-collage.count-5up {
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 130px 130px;
+}
+.dm-media-collage.count-5up .collage-cell:nth-child(1),
+.dm-media-collage.count-5up .collage-cell:nth-child(2) {
+  /* top row cells span 1.5 cols each: use a sub-row trick via a wrapper */
+}
+/* Use sub-rows for 5up: top row = 2 cells each 1.5 wide, bottom = 3 cells 1 wide */
+/* Achieved with nested grid rows */
+.dm-media-collage.count-5up {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 130px 130px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 260px;
+}
+.collage-row-top {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  height: 130px;
+  flex-shrink: 0;
+}
+.collage-row-bottom {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 2px;
+  height: 130px;
+  flex-shrink: 0;
+}
+.collage-cell {
+  position: relative;
+  overflow: hidden;
+  min-height: 0;
+}
+.collage-cell img,
+.collage-cell video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.2s ease;
+}
+.collage-cell:hover img,
+.collage-cell:hover video {
+  transform: scale(1.04);
+}
+.collage-more-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.52);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  pointer-events: none;
+}
+
+/* Collage acting as a standalone bubble — no extra dm-bubble padding/bg */
+.dm-bubble-collage-wrap {
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  display: inline-block;
+  max-width: 100%;
+}
+
 
 /* ── AUTH PAGE ── */
 .auth-page {
@@ -3284,8 +3403,19 @@ body {
 </div>
 
 <!-- IMAGE LIGHTBOX -->
-<div class="lightbox" id="lightbox" onclick="closeLightbox()">
-  <img id="lightboxImg" src="" alt="">
+<div class="lightbox" id="lightbox" onclick="if(event.target===this)closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">&#x2715;</button>
+  <button class="lightbox-delete-btn" id="lightboxDeleteBtn" onclick="lightboxDeleteCurrentImage()" style="display:none;" title="Delete this image">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+    Delete
+  </button>
+  <img id="lightboxImg" src="" alt="" style="cursor:default;">
+  <div class="lightbox-nav" id="lightboxNav" style="display:none;">
+    <button class="lightbox-nav-btn" id="lightboxPrev" onclick="lightboxStep(-1)">&#8592;</button>
+    <span class="lightbox-counter" id="lightboxCounter"></span>
+    <button class="lightbox-nav-btn" id="lightboxNext" onclick="lightboxStep(1)">&#8594;</button>
+  </div>
+  <div class="lightbox-strip" id="lightboxStrip" style="display:none;"></div>
 </div>
 
 <!-- EMOJI PICKER -->
@@ -4305,7 +4435,7 @@ function appendMediaMessage(role, dataUrl, isVideo, caption) {
   if (isVideo) {
     mediaBubble.innerHTML = `<video class="chat-media-vid" controls src="${dataUrl}"></video>`;
   } else {
-    mediaBubble.innerHTML = `<img class="chat-media-img" src="${dataUrl}" alt="media" onclick="openLightbox(this.src)">`;
+    mediaBubble.innerHTML = `<img class="chat-media-img" src="${dataUrl}" alt="media" onclick="openLightbox(this.src, [this.src])">`;
   }
   mediaDiv.appendChild(av1);
   mediaDiv.appendChild(mediaBubble);
@@ -4979,7 +5109,11 @@ async function openDesktopChat(id) {
   document.getElementById('dmEmptyState').style.display = 'none';
   document.getElementById('dmActiveChatWrap').style.display = 'flex';
 
-  // Show the loading bar and hide messages until load completes
+  // Kick off theme fetch immediately in parallel — no blocking yet
+  const themePromise = loadChatThemeFromSupabase(id);
+  subscribeToChatTheme(id);
+
+  // Show the loading bar and hide messages right away
   _startLoadBar('dmChatLoadBar', 'dmChatLoadFill');
   _startLoadBar('dmFsChatLoadBar', 'dmFsChatLoadFill');
   const fsMsgsEl = document.getElementById('dmFsMessages');
@@ -4995,6 +5129,10 @@ async function openDesktopChat(id) {
   if (user) await setupTypingChannel(user.id, id);
   if (_dmLoadToken !== myToken) return;
 
+  // Await theme before messages render so bubbles already have the right color
+  await themePromise;
+  if (_dmLoadToken !== myToken) return;
+
   await loadMessages(id, myToken);
 
   cancelReply();
@@ -5002,9 +5140,6 @@ async function openDesktopChat(id) {
   clearDmStaging();
   document.getElementById('dmInput').focus();
   markConversationSeen(id);
-  // Load and subscribe to chat theme for this conversation
-  loadChatThemeFromSupabase(id);
-  subscribeToChatTheme(id);
 }
 
 async function openNicknamePanel() {
@@ -5190,6 +5325,14 @@ function msgMinuteKey(rawTs, senderId) {
   return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()} ${d.getHours()}:${d.getMinutes()} ${senderId}`;
 }
 
+function _isMsgMediaOnly(msg) {
+  return !!(msg.media_url && !msg.is_video && !(msg.content && msg.content.trim()));
+}
+
+// Max gap (ms) within which consecutive image-only messages from the same sender
+// are merged into the same group to form a gallery collage (5 minutes).
+const MEDIA_GROUP_GAP_MS = 5 * 60 * 1000;
+
 function groupMessages(messages) {
   const groups = [];
   let currentGroup = null;
@@ -5214,21 +5357,81 @@ function groupMessages(messages) {
     }
 
     const mKey = msgMinuteKey(rawTs, msg.sender_id);
-    if (currentGroup && currentGroup.minuteKey === mKey) {
-      currentGroup.messages.push(msg);
-      currentGroup.time = formatMsgTime(d);
-      currentGroup.lastTs = rawTs;
-      currentGroup.groupKey = ts;
-    } else {
-      currentGroup = {
-        type: 'group', groupKey: ts, sender_id: msg.sender_id,
-        minuteKey: mKey, firstTs: rawTs, lastTs: rawTs,
-        messages: [msg], time: formatMsgTime(d)
-      };
-      groups.push(currentGroup);
+    const isMediaOnly = _isMsgMediaOnly(msg);
+
+    // Check if this message can join the current group
+    if (currentGroup && currentGroup.sender_id === msg.sender_id) {
+      const lastMsg = currentGroup.messages[currentGroup.messages.length - 1];
+      const lastRawTs = lastMsg.created_at || lastMsg.ts || null;
+      const lastD = parseSupabaseDate(lastRawTs);
+      const gap = ts - lastD.getTime();
+      const sameMinute = currentGroup.minuteKey === mKey;
+
+      // Same-minute: always merge (existing behaviour)
+      // Consecutive image-only from same sender within 5 min: also merge into same group
+      const canMergeAsMedia = isMediaOnly && _isMsgMediaOnly(lastMsg) && gap <= MEDIA_GROUP_GAP_MS;
+
+      if (sameMinute || canMergeAsMedia) {
+        if (isMediaOnly && _isMsgMediaOnly(lastMsg)) {
+          if (!currentGroup.mediaGroupStart) {
+            currentGroup.mediaGroupStart = currentGroup.messages.length - 1;
+          }
+        } else {
+          currentGroup.mediaGroupStart = undefined;
+        }
+        currentGroup.messages.push(msg);
+        currentGroup.time = formatMsgTime(d);
+        currentGroup.lastTs = rawTs;
+        currentGroup.groupKey = ts;
+        // Keep minuteKey pointing at latest bubble so mergeAdjacentGroups works
+        if (sameMinute) currentGroup.minuteKey = mKey;
+        return;
+      }
     }
+
+    currentGroup = {
+      type: 'group', groupKey: ts, sender_id: msg.sender_id,
+      minuteKey: mKey, firstTs: rawTs, lastTs: rawTs,
+      messages: [msg], time: formatMsgTime(d)
+    };
+    groups.push(currentGroup);
   });
   return groups;
+}
+
+// Given a group's messages array, collapse consecutive image-only messages into
+// mediaGroup pseudo-messages so renderGroupedMessages can render them as collages.
+function collapseMediaGroups(messages) {
+  const result = [];
+  let i = 0;
+  while (i < messages.length) {
+    const msg = messages[i];
+    if (_isMsgMediaOnly(msg)) {
+      // Collect consecutive image-only messages
+      const run = [msg];
+      while (i + 1 < messages.length && _isMsgMediaOnly(messages[i + 1])) {
+        i++;
+        run.push(messages[i]);
+      }
+      if (run.length >= 2) {
+        // Bundle into a mediaGroup pseudo-message
+        result.push({
+          type: 'mediaGroup',
+          urls: run.map(m => m.media_url),
+          msgs: run,
+          id: run[0].id,
+          sender_id: run[0].sender_id,
+          created_at: run[0].created_at,
+        });
+      } else {
+        result.push(msg);
+      }
+    } else {
+      result.push(msg);
+    }
+    i++;
+  }
+  return result;
 }
 
 /* ────────────────────────────────────────────
@@ -5293,9 +5496,15 @@ function renderGroupedMessages(container, groups, currentUserId, contact) {
     const bubblesWrap = document.createElement('div');
     bubblesWrap.className = 'dm-msg-bubbles';
 
-    item.messages.forEach((msg) => {
-      if (msg.id) renderedMsgIds.add(msg.id);
-      bubblesWrap.appendChild(makeBubbleWrap(msg, isSent, contact, currentUserId));
+    const collapsed = collapseMediaGroups(item.messages);
+    collapsed.forEach((msg) => {
+      if (msg.type === 'mediaGroup') {
+        msg.msgs.forEach(m => { if (m.id) renderedMsgIds.add(m.id); });
+        bubblesWrap.appendChild(makeMediaCollageBubble(msg, isSent, contact, currentUserId));
+      } else {
+        if (msg.id) renderedMsgIds.add(msg.id);
+        bubblesWrap.appendChild(makeBubbleWrap(msg, isSent, contact, currentUserId));
+      }
     });
     applyBubbleGrouping(bubblesWrap);
 
@@ -5345,7 +5554,28 @@ function mergeAdjacentGroups(container) {
 
       const keyA = groupMinuteKey(a);
       const keyB = groupMinuteKey(b);
-      if (!keyA || !keyB || keyA !== keyB) continue;
+
+      // Check if the groups can be merged by same minute-key
+      const sameMinuteKey = keyA && keyB && keyA === keyB;
+
+      // Also allow merging if the tail of group A and head of group B are both image-only within 5 min
+      let canMergeAsMedia = false;
+      if (!sameMinuteKey) {
+        const aTs = parseInt(a.dataset.groupTs || '0', 10);
+        const bTs = parseInt(b.dataset.groupTs || '0', 10);
+        const gap = bTs - aTs;
+        if (gap <= MEDIA_GROUP_GAP_MS) {
+          const aBubblesCheck = a.querySelector('.dm-msg-bubbles');
+          const bBubblesCheck = b.querySelector('.dm-msg-bubbles');
+          const aLastChild = aBubblesCheck ? aBubblesCheck.lastElementChild : null;
+          const bFirstChild = bBubblesCheck ? bBubblesCheck.firstElementChild : null;
+          const aLastIsMedia = aLastChild && (aLastChild.querySelector('.dm-bubble-media-only') !== null || aLastChild.querySelector('.dm-media-collage') !== null);
+          const bFirstIsMedia = bFirstChild && (bFirstChild.querySelector('.dm-bubble-media-only') !== null || bFirstChild.querySelector('.dm-media-collage') !== null);
+          if (aLastIsMedia && bFirstIsMedia) canMergeAsMedia = true;
+        }
+      }
+
+      if (!sameMinuteKey && !canMergeAsMedia) continue;
 
       const aBubbles = a.querySelector('.dm-msg-bubbles');
       const bBubbles = b.querySelector('.dm-msg-bubbles');
@@ -5360,6 +5590,9 @@ function mergeAdjacentGroups(container) {
         const aTime = a.querySelector('.dm-group-time');
         if (bTime && aTime) aTime.textContent = bTime.textContent;
         b.remove();
+        // Re-collapse any newly adjacent image-only bubbles after the merge
+        const isSent = a.classList.contains('sent');
+        _recollapseMediaInBubbles(aBubbles, isSent, null, null);
         changed = true;
         break;
       }
@@ -5378,7 +5611,7 @@ function applyBubbleGrouping(bubblesWrap) {
   const total = children.length;
   children.forEach((child, i) => {
     const bubble = child.querySelector('.dm-bubble');
-    if (!bubble) return;
+    if (!bubble) return; // collage-only bWrap (no dm-bubble) — skip corner styling
     // Skip emoji-only and media-only bubbles (keep fully round)
     if (bubble.classList.contains('dm-bubble-emoji-only') || bubble.classList.contains('dm-bubble-media-only')) {
       bubble.classList.remove('bubble-first','bubble-middle','bubble-last','bubble-solo');
@@ -5395,6 +5628,197 @@ function applyBubbleGrouping(bubblesWrap) {
       bubble.classList.add('bubble-middle');
     }
   });
+}
+
+function makeMediaCollageBubble(mediaGroup, isSent, contact, currentUserId) {
+  const urls = mediaGroup.urls;
+  const count = urls.length;
+
+  const bWrap = document.createElement('div');
+  bWrap.className = 'dm-bubble-wrap';
+  bWrap.dataset.msgId = mediaGroup.id || '';
+  bWrap.dataset.mediaUrls = urls.join('||');
+
+  // Collage is the visual — no dm-bubble padding/bg wrapper around it
+  const collage = document.createElement('div');
+  const countClass = count === 2 ? 'count-2' : count === 3 ? 'count-3' : count === 4 ? 'count-4' : 'count-5up';
+  collage.className = 'dm-media-collage ' + countClass;
+
+  // How many cells to render (max 5, with overlay on the 5th if more)
+  const renderCount = Math.min(count, 5);
+  const extra = count > 5 ? count - 5 : 0;
+
+  function makeCell(url, idx) {
+    const cell = document.createElement('div');
+    cell.className = 'collage-cell';
+    const img = document.createElement('img');
+    img.src = url;
+    img.loading = 'lazy';
+    img.alt = '';
+    cell.appendChild(img);
+    // Show "+N" overlay on the 5th cell if there are more than 5 total
+    if (count > 5 && idx === 4) {
+      const ov = document.createElement('div');
+      ov.className = 'collage-more-overlay';
+      ov.textContent = '+' + (extra + 1);
+      cell.appendChild(ov);
+    }
+    cell.onclick = () => openLightbox(url, urls, bWrap, mediaGroup, isSent, contact, currentUserId);
+    return cell;
+  }
+
+  if (count <= 4) {
+    // 2: side-by-side | 3: tall-left + 2-right | 4: 2×2
+    for (let i = 0; i < renderCount; i++) {
+      collage.appendChild(makeCell(urls[i], i));
+    }
+  } else {
+    // 5+: 2 on top row, 3 on bottom row
+    const top = document.createElement('div');
+    top.className = 'collage-row-top';
+    urls.slice(0, 2).forEach((url, i) => top.appendChild(makeCell(url, i)));
+
+    const bottom = document.createElement('div');
+    bottom.className = 'collage-row-bottom';
+    urls.slice(2, 5).forEach((url, i) => bottom.appendChild(makeCell(url, i + 2)));
+
+    collage.appendChild(top);
+    collage.appendChild(bottom);
+  }
+
+  // Reply / more buttons (outside collage, floating on hover)
+  const replyBtn = document.createElement('button');
+  replyBtn.className = 'dm-reply-btn'; replyBtn.title = 'Reply';
+  replyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>`;
+  replyBtn.onclick = (e) => { e.stopPropagation(); startReply('[media]', isSent ? 'You' : (contact ? contact.name : 'User')); };
+
+  const moreBtn = document.createElement('button');
+  moreBtn.className = 'dm-more-btn'; moreBtn.title = 'More options';
+  moreBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>`;
+  moreBtn.onclick = (e) => {
+    e.stopPropagation();
+    showCollageActionMenu(e, bWrap, mediaGroup, isSent);
+  };
+
+  if (isSent) { bWrap.appendChild(moreBtn); bWrap.appendChild(replyBtn); bWrap.appendChild(collage); }
+  else { bWrap.appendChild(collage); bWrap.appendChild(replyBtn); bWrap.appendChild(moreBtn); }
+
+  const bOuter = document.createElement('div');
+  bOuter.className = 'dm-bubble-outer';
+  if (isSent) bOuter.dataset.msgId = mediaGroup.id || '';
+  bOuter.appendChild(bWrap);
+  return bOuter;
+}
+
+// Re-collapse any consecutive image-only bubble-outers in bubblesWrap into collages.
+// Called after appending a new image-only bubble to an existing group.
+function _recollapseMediaInBubbles(bubblesWrap, isSent, contact, currentUserId) {
+  // Collect all current children as message descriptors
+  const children = Array.from(bubblesWrap.children);
+  const msgs = [];
+  let hasNewMedia = false;
+  children.forEach(child => {
+    const bWrap = child.classList.contains('dm-bubble-wrap') ? child : child.querySelector('.dm-bubble-wrap');
+    if (!bWrap) return;
+    const collage = bWrap.querySelector('.dm-media-collage');
+    if (collage) {
+      // Existing collage — extract stored URLs
+      const storedUrls = bWrap.dataset.mediaUrls ? bWrap.dataset.mediaUrls.split('||') : [];
+      storedUrls.forEach(url => msgs.push({ _url: url, _el: child }));
+      return;
+    }
+    const mediaBubble = bWrap.querySelector('.dm-bubble-media-only');
+    if (mediaBubble) {
+      const imgEl = mediaBubble.querySelector('img');
+      if (imgEl) { msgs.push({ _url: imgEl.src, _el: child }); hasNewMedia = true; }
+      return;
+    }
+    msgs.push({ _text: true, _el: child });
+  });
+  if (!hasNewMedia) return;
+
+  // Now rebuild: collapse consecutive image msgs into collages
+  bubblesWrap.innerHTML = '';
+  let i = 0;
+  while (i < msgs.length) {
+    const m = msgs[i];
+    if (m._url) {
+      const run = [m._url];
+      while (i + 1 < msgs.length && msgs[i + 1]._url) { i++; run.push(msgs[i]._url); }
+      if (run.length >= 2) {
+        const fakeGroup = { urls: run, id: '', sender_id: '' };
+        const collageEl = makeMediaCollageBubble(fakeGroup, isSent, contact, currentUserId);
+        // Store URLs on the bubble-wrap for future merges
+        const bw = collageEl.querySelector('.dm-bubble-wrap') || collageEl;
+        bw.dataset.mediaUrls = run.join('||');
+        bubblesWrap.appendChild(collageEl);
+      } else {
+        // Single image — put back or append as normal bubble
+        // Reconstruct a simple media bubble
+        const singleBWrap = document.createElement('div');
+        singleBWrap.className = 'dm-bubble-wrap';
+        singleBWrap.dataset.mediaUrls = run[0];
+        const bubble = document.createElement('div');
+        bubble.className = 'dm-bubble dm-bubble-media-only';
+        bubble.innerHTML = `<img src="${run[0]}" style="max-width:220px;border-radius:10px;cursor:pointer;" onclick="openLightbox(this.src,[this.src])">`;
+        const replyBtn = document.createElement('button');
+        replyBtn.className = 'dm-reply-btn'; replyBtn.title = 'Reply';
+        replyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>`;
+        if (isSent) { singleBWrap.appendChild(bubble); } else { singleBWrap.appendChild(bubble); }
+        const bOuter = document.createElement('div'); bOuter.className = 'dm-bubble-outer';
+        bOuter.appendChild(singleBWrap);
+        bubblesWrap.appendChild(bOuter);
+      }
+    } else {
+      bubblesWrap.appendChild(m._el);
+    }
+    i++;
+  }
+}
+
+// Append a single image-only message to an existing bubblesWrap by merging it
+// into the last media collage (or upgrading a single image into a collage).
+function _appendMediaToGroup(bubblesWrap, msg, isSent, contact, currentUserId) {
+  if (!msg.media_url) return;
+  const newUrl = msg.media_url;
+  const children = Array.from(bubblesWrap.children);
+  // Walk backwards to find the last media element
+  for (let i = children.length - 1; i >= 0; i--) {
+    const child = children[i];
+    const bWrap = child.classList.contains('dm-bubble-wrap') ? child : child.querySelector('.dm-bubble-wrap');
+    if (!bWrap) continue;
+
+    // Case 1: existing collage — add URL and rebuild
+    const collage = bWrap.querySelector('.dm-media-collage');
+    if (collage) {
+      const existingUrls = bWrap.dataset.mediaUrls ? bWrap.dataset.mediaUrls.split('||') : [];
+      existingUrls.push(newUrl);
+      const fakeGroup = { urls: existingUrls, id: bWrap.dataset.msgId || '', sender_id: '' };
+      const newCollageEl = makeMediaCollageBubble(fakeGroup, isSent, contact, currentUserId);
+      const newBWrap = newCollageEl.querySelector('.dm-bubble-wrap') || newCollageEl;
+      newBWrap.dataset.mediaUrls = existingUrls.join('||');
+      child.replaceWith(newCollageEl);
+      return;
+    }
+
+    // Case 2: single-image bubble — upgrade to 2-image collage
+    const mediaBubble = bWrap.querySelector('.dm-bubble.dm-bubble-media-only');
+    if (mediaBubble) {
+      const imgEl = mediaBubble.querySelector('img');
+      if (imgEl) {
+        const urls = [imgEl.src, newUrl];
+        const fakeGroup = { urls, id: bWrap.dataset.msgId || '', sender_id: '' };
+        const newCollageEl = makeMediaCollageBubble(fakeGroup, isSent, contact, currentUserId);
+        const newBWrap = newCollageEl.querySelector('.dm-bubble-wrap') || newCollageEl;
+        newBWrap.dataset.mediaUrls = urls.join('||');
+        child.replaceWith(newCollageEl);
+        return;
+      }
+    }
+    break; // last element wasn't media — don't merge
+  }
+  // Fallback: just append as normal bubble
+  bubblesWrap.appendChild(makeBubbleWrap(msg, isSent, contact, currentUserId));
 }
 
 function makeBubbleWrap(msg, isSent, contact, currentUserId) {
@@ -5440,13 +5864,13 @@ function makeBubbleWrap(msg, isSent, contact, currentUserId) {
     if (msg.is_video) {
       bubble.innerHTML = `<video controls src="${msg.media_url}" style="max-width:220px;border-radius:10px;"></video>`;
     } else {
-      bubble.innerHTML = `<img src="${msg.media_url}" style="max-width:220px;border-radius:10px;cursor:pointer;" onclick="openLightbox(this.src)">`;
+      bubble.innerHTML = `<img src="${msg.media_url}" style="max-width:220px;border-radius:10px;cursor:pointer;" onclick="openLightbox(this.src, [this.src])">`;
     }
   } else if (msg.media_url && msg.content) {
     if (msg.is_video) {
       bubble.innerHTML += `<video controls src="${msg.media_url}" style="max-width:220px;border-radius:10px;margin-bottom:6px;display:block;"></video>`;
     } else {
-      bubble.innerHTML += `<img src="${msg.media_url}" style="max-width:220px;border-radius:10px;margin-bottom:6px;display:block;cursor:pointer;" onclick="openLightbox(this.src)">`;
+      bubble.innerHTML += `<img src="${msg.media_url}" style="max-width:220px;border-radius:10px;margin-bottom:6px;display:block;cursor:pointer;" onclick="openLightbox(this.src, [this.src])">`;
     }
     if (msg.content && msg.content.trim()) {
       const textNode = document.createElement('div');
@@ -5650,6 +6074,104 @@ function deleteMessage(msg, bWrap) {
   bWrap.remove();
   if (parentGroup && parentGroup.querySelectorAll('.dm-bubble-wrap').length === 0) parentGroup.remove();
   if (msg && msg.id) supabaseClient.from('messages').delete().eq('id', msg.id).then(() => {});
+}
+
+// Show action menu for a media collage (3-dot button)
+function showCollageActionMenu(e, bWrap, mediaGroup, isSent) {
+  e.stopPropagation();
+  const menu = document.getElementById('dmMsgActionMenu');
+  menu.innerHTML = '';
+
+  if (isSent) {
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'dm-msg-action-item danger';
+    deleteBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg> Delete group`;
+    deleteBtn.onclick = (ev) => {
+      ev.stopPropagation();
+      closeMsgActionMenu();
+      showConfirm('Delete media group?', 'All images in this group will be removed.', 'Delete', () => {
+        deleteMediaGroup(bWrap, mediaGroup);
+      });
+    };
+    menu.appendChild(deleteBtn);
+  }
+
+  const btn = e.currentTarget || e.target;
+  const rect = btn.getBoundingClientRect ? btn.getBoundingClientRect() : { left: e.clientX, top: e.clientY, width: 0, height: 0 };
+  let left = rect.left;
+  menu.style.display = 'block';
+  menu.classList.add('show');
+  _actionMenuOpen = true;
+  requestAnimationFrame(() => {
+    const mw = menu.offsetWidth, mh = menu.offsetHeight;
+    if (left + mw > window.innerWidth - 8) left = window.innerWidth - mw - 8;
+    if (left < 8) left = 8;
+    let top = rect.top - mh - 4;
+    if (top < 8) top = rect.bottom + 4;
+    menu.style.left = left + 'px';
+    menu.style.top = top + 'px';
+  });
+}
+
+// Delete all messages in a collage group from DOM and DB
+function deleteMediaGroup(bWrap, mediaGroup) {
+  const bOuter = bWrap.closest('.dm-bubble-outer') || bWrap;
+  const parentGroup = bWrap.closest('.dm-msg-group');
+  bOuter.remove();
+  if (parentGroup && parentGroup.querySelectorAll('.dm-bubble-wrap').length === 0) parentGroup.remove();
+  // Delete all individual message IDs from DB
+  const ids = (mediaGroup.msgs || []).map(m => m.id).filter(Boolean);
+  if (ids.length > 0) {
+    supabaseClient.from('messages').delete().in('id', ids).then(() => {});
+  } else if (mediaGroup.id) {
+    supabaseClient.from('messages').delete().eq('id', mediaGroup.id).then(() => {});
+  }
+}
+
+// Delete a single image from a collage by its URL, rebuild collage or remove group if last
+async function deleteSingleCollageImage(bWrap, urlToDelete, mediaGroup, isSent, contact, currentUserId) {
+  const allUrls = bWrap.dataset.mediaUrls ? bWrap.dataset.mediaUrls.split('||') : (mediaGroup.urls || []);
+  const allMsgs = mediaGroup.msgs || [];
+
+  // Find the message with this URL and delete from DB
+  const targetMsg = allMsgs.find(m => m.media_url === urlToDelete);
+  if (targetMsg && targetMsg.id) {
+    await supabaseClient.from('messages').delete().eq('id', targetMsg.id);
+  }
+
+  const newUrls = allUrls.filter(u => u !== urlToDelete);
+  const newMsgs = allMsgs.filter(m => m.media_url !== urlToDelete);
+
+  const bOuter = bWrap.closest('.dm-bubble-outer') || bWrap;
+  const bubblesWrap = bOuter.parentElement;
+  const parentGroup = bWrap.closest('.dm-msg-group');
+
+  if (newUrls.length === 0) {
+    // Last image — remove whole group element
+    bOuter.remove();
+    if (parentGroup && parentGroup.querySelectorAll('.dm-bubble-wrap').length === 0) parentGroup.remove();
+    closeLightbox();
+    return;
+  }
+
+  // Rebuild collage with remaining URLs
+  const newMediaGroup = { urls: newUrls, msgs: newMsgs, id: mediaGroup.id || (newMsgs[0] && newMsgs[0].id) || '' };
+  const newCollageEl = makeMediaCollageBubble(newMediaGroup, isSent, contact, currentUserId);
+  const newBWrap = newCollageEl.querySelector('.dm-bubble-wrap') || newCollageEl;
+  newBWrap.dataset.mediaUrls = newUrls.join('||');
+  bOuter.replaceWith(newCollageEl);
+
+  // Update lightbox to show remaining images
+  const newIdx = Math.min(_lightboxIdx, newUrls.length - 1);
+  _lightboxUrls = newUrls;
+  _lightboxIdx = newIdx;
+  // Store reference to new bWrap for further deletes
+  _lightboxBWrap = newBWrap;
+  _lightboxMediaGroup = newMediaGroup;
+  _lightboxIsSent = isSent;
+  _lightboxContact = contact;
+  _lightboxCurrentUserId = currentUserId;
+  _renderLightbox();
 }
 
 function closeCtxMenu() { document.getElementById('dmCtxMenu').style.display = 'none'; }
@@ -6199,22 +6721,33 @@ function appendIncomingMessage(container, msg, currentUserId, contact) {
     }
   }
 
-  // Check last group — merge if same sender AND same minute-key
+  // Check last group — merge if same sender AND (same minute-key OR consecutive image-only within 5 min)
   const allGroups = container.querySelectorAll('.dm-msg-group');
   const lastGroup = allGroups[allGroups.length - 1];
   const msgCreatedAt = msg.created_at || null;
   const incomingMinuteKey = msgCreatedAt ? msgMinuteKey(msgCreatedAt, msg.sender_id) : null;
+  const isIncomingMediaOnly = _isMsgMediaOnly(msg);
 
-  if (lastGroup && lastGroup.dataset.senderId === msg.sender_id &&
-      incomingMinuteKey && lastGroup.dataset.minuteKey === incomingMinuteKey) {
+  if (lastGroup && lastGroup.dataset.senderId === msg.sender_id) {
+    const sameMinute = incomingMinuteKey && lastGroup.dataset.minuteKey === incomingMinuteKey;
     const bubblesWrap = lastGroup.querySelector('.dm-msg-bubbles');
-    if (bubblesWrap) {
-      bubblesWrap.appendChild(makeBubbleWrap(msg, isSent, contact, currentUserId));
+    const lastBubbleOuter = bubblesWrap ? bubblesWrap.lastElementChild : null;
+    const lastBubbleIsMedia = lastBubbleOuter && (lastBubbleOuter.querySelector('.dm-bubble-media-only') !== null || lastBubbleOuter.querySelector('.dm-media-collage') !== null);
+    const lastGroupTs = parseInt(lastGroup.dataset.groupTs || '0', 10);
+    const withinMediaGap = isIncomingMediaOnly && lastBubbleIsMedia && (ts - lastGroupTs) <= MEDIA_GROUP_GAP_MS;
+
+    if ((sameMinute || withinMediaGap) && bubblesWrap) {
+      if (withinMediaGap && !sameMinute) {
+        _appendMediaToGroup(bubblesWrap, msg, isSent, contact, currentUserId);
+      } else {
+        bubblesWrap.appendChild(makeBubbleWrap(msg, isSent, contact, currentUserId));
+        if (isIncomingMediaOnly) _recollapseMediaInBubbles(bubblesWrap, isSent, contact, currentUserId);
+      }
       applyBubbleGrouping(bubblesWrap);
       const timeEl = lastGroup.querySelector('.dm-group-time');
       if (timeEl) timeEl.textContent = formatMsgTime(d);
       lastGroup.dataset.groupTs = ts;
-      lastGroup.dataset.minuteKey = incomingMinuteKey;
+      if (incomingMinuteKey) lastGroup.dataset.minuteKey = incomingMinuteKey;
       lastGroup.dataset.createdAt = msgCreatedAt || lastGroup.dataset.createdAt;
       mergeAdjacentGroups(container);
       container.scrollTop = container.scrollHeight;
@@ -6291,21 +6824,30 @@ async function openFsChat(id) {
     fsUsernameEl.textContent = real;
   }
   resetPresenceDots(); updatePresenceDots();
-  const msgsEl = document.getElementById('dmFsMessages');
-  showSkeletonMessages(msgsEl);
-  const { data: { user } } = await supabaseClient.auth.getUser();
-  if (user) await setupTypingChannel(user.id, id);
-  loadFsMessages(id);
-  cancelReply('mobile'); clearDmFsStaging();
-  if (currentEditState) { currentEditState = null; document.getElementById('dmEditBar')?.classList.remove('show'); document.getElementById('dmFsEditBar')?.classList.remove('show'); }
+
+  // Kick off theme fetch immediately in parallel — no blocking yet
+  const themePromise = loadChatThemeFromSupabase(id);
+  subscribeToChatTheme(id);
+
+  // Switch to chat view immediately so user sees the transition right away
   document.getElementById('dmFsListView').style.display = 'none';
   const chatView = document.getElementById('dmFsChatView');
   chatView.style.display = 'flex'; chatView.style.flexDirection = 'column'; chatView.style.height = '100%';
+
+  const msgsEl = document.getElementById('dmFsMessages');
+  showSkeletonMessages(msgsEl);
+
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (user) await setupTypingChannel(user.id, id);
+
+  // Await theme before messages render so bubbles already have the right color
+  await themePromise;
+
+  loadFsMessages(id);
+  cancelReply('mobile'); clearDmFsStaging();
+  if (currentEditState) { currentEditState = null; document.getElementById('dmEditBar')?.classList.remove('show'); document.getElementById('dmFsEditBar')?.classList.remove('show'); }
   document.getElementById('dmFsInput').focus();
   markConversationSeen(id);
-  // Load and subscribe to chat theme for this conversation
-  loadChatThemeFromSupabase(id);
-  subscribeToChatTheme(id);
 }
 
 function dmFsBack() {
@@ -6559,7 +7101,7 @@ function appendDmMediaBubble(container, dataUrl, isVideo, currentUserId, contact
     const img = document.createElement('img');
     img.src = dataUrl;
     img.style.cssText = 'max-width:220px;max-height:180px;border-radius:12px;display:block;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,0.12);';
-    img.onclick = () => openLightbox(dataUrl);
+    img.onclick = () => openLightbox(dataUrl, [dataUrl]);
     mediaWrap.appendChild(img);
   }
   // Loading indicator below media
@@ -6577,8 +7119,91 @@ function appendDmMediaBubble(container, dataUrl, isVideo, currentUserId, contact
   return () => { loadingEl.remove(); };
 }
 
-function openLightbox(src) { document.getElementById('lightboxImg').src = src; document.getElementById('lightbox').classList.add('show'); }
-function closeLightbox() { document.getElementById('lightbox').classList.remove('show'); }
+let _lightboxUrls = [];
+let _lightboxIdx = 0;
+// Collage context — set when opening from a collage cell, enables per-image delete
+let _lightboxBWrap = null;
+let _lightboxMediaGroup = null;
+let _lightboxIsSent = false;
+let _lightboxContact = null;
+let _lightboxCurrentUserId = null;
+
+function openLightbox(src, allUrls, bWrap, mediaGroup, isSent, contact, currentUserId) {
+  _lightboxUrls = allUrls && allUrls.length > 1 ? allUrls : [src];
+  _lightboxIdx = _lightboxUrls.indexOf(src);
+  if (_lightboxIdx < 0) _lightboxIdx = 0;
+  _lightboxBWrap = bWrap || null;
+  _lightboxMediaGroup = mediaGroup || null;
+  _lightboxIsSent = isSent || false;
+  _lightboxContact = contact || null;
+  _lightboxCurrentUserId = currentUserId || null;
+  _renderLightbox();
+  document.getElementById('lightbox').classList.add('show');
+  document.addEventListener('keydown', _lightboxKey);
+}
+
+function _renderLightbox() {
+  const img = document.getElementById('lightboxImg');
+  const nav = document.getElementById('lightboxNav');
+  const strip = document.getElementById('lightboxStrip');
+  const counter = document.getElementById('lightboxCounter');
+  const prev = document.getElementById('lightboxPrev');
+  const next = document.getElementById('lightboxNext');
+  const delBtn = document.getElementById('lightboxDeleteBtn');
+  img.src = _lightboxUrls[_lightboxIdx];
+  if (_lightboxUrls.length > 1) {
+    nav.style.display = 'flex';
+    counter.textContent = (_lightboxIdx + 1) + ' / ' + _lightboxUrls.length;
+    prev.disabled = _lightboxIdx === 0;
+    next.disabled = _lightboxIdx === _lightboxUrls.length - 1;
+    strip.style.display = 'flex';
+    strip.innerHTML = '';
+    _lightboxUrls.forEach((u, i) => {
+      const t = document.createElement('img');
+      t.src = u; t.className = 'lightbox-thumb' + (i === _lightboxIdx ? ' active' : '');
+      t.onclick = (e) => { e.stopPropagation(); _lightboxIdx = i; _renderLightbox(); };
+      strip.appendChild(t);
+    });
+  } else {
+    nav.style.display = 'none';
+    strip.style.display = 'none';
+  }
+  // Show delete button only when collage context is available and sender is current user
+  if (delBtn) {
+    delBtn.style.display = (_lightboxBWrap && _lightboxIsSent) ? 'flex' : 'none';
+  }
+}
+
+function lightboxStep(dir) {
+  const next = _lightboxIdx + dir;
+  if (next < 0 || next >= _lightboxUrls.length) return;
+  _lightboxIdx = next;
+  _renderLightbox();
+}
+
+function _lightboxKey(e) {
+  if (e.key === 'ArrowRight') lightboxStep(1);
+  else if (e.key === 'ArrowLeft') lightboxStep(-1);
+  else if (e.key === 'Escape') closeLightbox();
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('show');
+  document.removeEventListener('keydown', _lightboxKey);
+  _lightboxUrls = []; _lightboxIdx = 0;
+  _lightboxBWrap = null; _lightboxMediaGroup = null;
+  _lightboxIsSent = false; _lightboxContact = null; _lightboxCurrentUserId = null;
+}
+
+function lightboxDeleteCurrentImage() {
+  if (!_lightboxBWrap || !_lightboxMediaGroup) return;
+  const urlToDelete = _lightboxUrls[_lightboxIdx];
+  deleteSingleCollageImage(
+    _lightboxBWrap, urlToDelete, _lightboxMediaGroup,
+    _lightboxIsSent, _lightboxContact, _lightboxCurrentUserId
+  );
+}
+
 
 // ── PROFILE DROPDOWN ──
 let profileDropdownOpen = false;
