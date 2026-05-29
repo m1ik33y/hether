@@ -1060,6 +1060,27 @@ body {
 [data-chat-theme="lagoon"] .dm-msg-group.sent .dm-bubble:not(.dm-bubble-emoji-only)   { background: #e07c3a !important; color: #fff !important; }
 [data-chat-theme="lagoon"] .dm-msg-group.received .dm-bubble:not(.dm-bubble-emoji-only) { background: #b2ede8 !important; color: #1a4f4a !important; }
 
+[data-chat-theme="tandem"] .dm-msg-group.sent .dm-bubble:not(.dm-bubble-emoji-only)   { background: #c96b8a !important; color: #fff !important; }
+[data-chat-theme="tandem"] .dm-msg-group.received .dm-bubble:not(.dm-bubble-emoji-only) { background: #e8d5dc !important; color: #6b2b42 !important; }
+
+[data-chat-theme="duskpact"] .dm-msg-group.sent .dm-bubble:not(.dm-bubble-emoji-only)   { background: #9b2335 !important; color: #fdf0e0 !important; }
+[data-chat-theme="duskpact"] .dm-msg-group.received .dm-bubble:not(.dm-bubble-emoji-only) { background: #c47c2b !important; color: #fdf0e0 !important; }
+
+[data-chat-theme="mintleaf"] .dm-msg-group.sent .dm-bubble:not(.dm-bubble-emoji-only)   { background: #2e9e72 !important; color: #fff !important; }
+[data-chat-theme="mintleaf"] .dm-msg-group.received .dm-bubble:not(.dm-bubble-emoji-only) { background: #d4f3e8 !important; color: #12503a !important; }
+
+[data-chat-theme="ember"] .dm-msg-group.sent .dm-bubble:not(.dm-bubble-emoji-only)   { background: #c94a1a !important; color: #fff4ee !important; }
+[data-chat-theme="ember"] .dm-msg-group.received .dm-bubble:not(.dm-bubble-emoji-only) { background: #2b2b2b !important; color: #f0c8b0 !important; }
+
+[data-chat-theme="arctic"] .dm-msg-group.sent .dm-bubble:not(.dm-bubble-emoji-only)   { background: #3a8fc2 !important; color: #fff !important; }
+[data-chat-theme="arctic"] .dm-msg-group.received .dm-bubble:not(.dm-bubble-emoji-only) { background: #e8f4fb !important; color: #1a4a6e !important; }
+
+[data-chat-theme="sakura"] .dm-msg-group.sent .dm-bubble:not(.dm-bubble-emoji-only)   { background: #e88faa !important; color: #fff !important; }
+[data-chat-theme="sakura"] .dm-msg-group.received .dm-bubble:not(.dm-bubble-emoji-only) { background: #d6ecd6 !important; color: #2c5a2c !important; }
+
+[data-chat-theme="obsidian"] .dm-msg-group.sent .dm-bubble:not(.dm-bubble-emoji-only)   { background: #7c3aed !important; color: #f0e6ff !important; }
+[data-chat-theme="obsidian"] .dm-msg-group.received .dm-bubble:not(.dm-bubble-emoji-only) { background: #1a1a2e !important; color: #c4a8ff !important; }
+
 /* ── THEME PICKER BUTTON ── */
 .dm-theme-toggle-btn {
   display: flex;
@@ -8698,6 +8719,73 @@ const CHAT_THEMES = [
     sentText: '#ffffff',
     recvText: '#1a4f4a',
   },
+  // ── Couples Themes ──
+  {
+    id: 'tandem',
+    label: 'Soft Rose & Slate',
+    tag: 'Tandem',
+    sub: 'Couples',
+    sent: '#c96b8a',
+    recv: '#e8d5dc',
+    sentText: '#ffffff',
+    recvText: '#6b2b42',
+  },
+  {
+    id: 'duskpact',
+    label: 'Crimson & Golden Brown',
+    tag: 'Golden Brown',
+    sub: 'Couples',
+    sent: '#9b2335',
+    recv: '#c47c2b',
+    sentText: '#fdf0e0',
+    recvText: '#fdf0e0',
+  },
+  // ── Other Themes ──
+  {
+    id: 'mintleaf',
+    label: 'Fresh Mint',
+    tag: 'Mint Leaf',
+    sent: '#2e9e72',
+    recv: '#d4f3e8',
+    sentText: '#ffffff',
+    recvText: '#12503a',
+  },
+  {
+    id: 'ember',
+    label: 'Deep Orange & Charcoal',
+    tag: 'Ember',
+    sent: '#c94a1a',
+    recv: '#2b2b2b',
+    sentText: '#fff4ee',
+    recvText: '#f0c8b0',
+  },
+  {
+    id: 'arctic',
+    label: 'Ice Blue & Silver',
+    tag: 'Arctic',
+    sent: '#3a8fc2',
+    recv: '#e8f4fb',
+    sentText: '#ffffff',
+    recvText: '#1a4a6e',
+  },
+  {
+    id: 'sakura',
+    label: 'Blush Pink & Sage',
+    tag: 'Sakura',
+    sent: '#e88faa',
+    recv: '#d6ecd6',
+    sentText: '#ffffff',
+    recvText: '#2c5a2c',
+  },
+  {
+    id: 'obsidian',
+    label: 'Dark Violet & Neon',
+    tag: 'Obsidian',
+    sent: '#7c3aed',
+    recv: '#1a1a2e',
+    sentText: '#f0e6ff',
+    recvText: '#c4a8ff',
+  },
 ];
 
 let _themePickerOpen = false;
@@ -8739,19 +8827,20 @@ function renderThemePicker() {
 
 function applyChatTheme(themeId) {
   _currentAppliedTheme = themeId || 'default';
+  // Desktop DM panel
   const chatWrap = document.getElementById('dmActiveChatWrap');
-  if (chatWrap) {
-    chatWrap.dataset.chatTheme = _currentAppliedTheme;
-  }
-  // Also apply to fullscreen mobile view
-  const fsChatWrap = document.getElementById('dmFsChatWrap') || document.getElementById('dmFsMessages');
-  if (fsChatWrap) {
-    let el = fsChatWrap;
-    while (el && !el.id?.startsWith('dm')) el = el.parentElement;
-    if (el) el.dataset.chatTheme = _currentAppliedTheme;
-  }
+  if (chatWrap) chatWrap.dataset.chatTheme = _currentAppliedTheme;
+  // Desktop overlay wrapper
   const dmOverlay = document.getElementById('dmOverlay');
   if (dmOverlay) dmOverlay.dataset.chatTheme = _currentAppliedTheme;
+  // Mobile fullscreen — set on the outer container so CSS selectors reach bubbles inside
+  const dmFullscreen = document.getElementById('dmFullscreen');
+  if (dmFullscreen) dmFullscreen.dataset.chatTheme = _currentAppliedTheme;
+  // Mobile chat view and messages container as fallbacks
+  const fsChatView = document.getElementById('dmFsChatView');
+  if (fsChatView) fsChatView.dataset.chatTheme = _currentAppliedTheme;
+  const fsMessages = document.getElementById('dmFsMessages');
+  if (fsMessages) fsMessages.dataset.chatTheme = _currentAppliedTheme;
 }
 
 async function selectChatTheme(themeId) {
