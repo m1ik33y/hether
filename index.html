@@ -712,28 +712,35 @@ body {
 
 /* ── DM TYPING INDICATOR ── */
 .dm-typing-indicator {
-  display: flex; align-items: center; gap: 8px;
-  padding: 6px 0 4px;
-  animation: msgIn 0.2s ease;
-  flex-shrink: 0;
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  padding: 12px 14px;
+  background: var(--surface);
+  border-radius: 20px 20px 20px 4px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+  animation: msgIn 0.15s ease;
+  margin-bottom: 2px;
 }
-.dm-typing-avatar {
-  width: 24px; height: 24px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 10px; font-weight: 700; color: #fff; flex-shrink: 0;
+[data-theme="dark"] .dm-typing-indicator {
+  box-shadow: 0 1px 6px rgba(0,0,0,0.35);
 }
 .dm-typing-bubble {
-  background: none; border: none;
-  border-radius: 18px; padding: 4px 0;
-  display: flex; gap: 4px; align-items: center;
+  display: flex; gap: 5px; align-items: center;
 }
 .dm-typing-bubble span {
-  width: 5px; height: 5px; border-radius: 50%;
-  background: var(--text3); animation: bounce 1.2s infinite;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--text2);
   display: inline-block;
+  animation: typingWave 1.4s ease-in-out infinite;
 }
-.dm-typing-bubble span:nth-child(2) { animation-delay: 0.2s; }
-.dm-typing-bubble span:nth-child(3) { animation-delay: 0.4s; }
+.dm-typing-bubble span:nth-child(1) { animation-delay: 0s; }
+.dm-typing-bubble span:nth-child(2) { animation-delay: 0.18s; }
+.dm-typing-bubble span:nth-child(3) { animation-delay: 0.36s; }
+@keyframes typingWave {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30%            { transform: translateY(-4px); opacity: 1; }
+}
 
 /* ── DM TOPBAR PRESENCE DOT ── */
 .dm-presence-dot {
@@ -1454,7 +1461,7 @@ body {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 16px 18px 26px;
+  padding: 16px 18px 10px;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -1871,7 +1878,7 @@ body {
 
 .dm-fs-messages {
   flex: 1; overflow-y: auto; overflow-x: hidden;
-  padding: 14px 14px; display: flex; flex-direction: column; gap: 2px;
+  padding: 14px 14px 10px; display: flex; flex-direction: column; gap: 2px;
   min-height: 0;
   /* Prevent bounce/rubber-band scroll from causing layout issues */
   overscroll-behavior: contain;
@@ -3251,14 +3258,12 @@ body {
             <button class="dm-reply-cancel" onclick="cancelReply()">×</button>
           </div>
 
-          <div id="dmTypingSlot" style="display:none;padding:4px 18px 0;background:var(--surface);flex-shrink:0;"></div>
-
           <div class="dm-chat-input-area">
             <div class="dm-input-row">
               <button class="emoji-btn" id="dmEmojiBtn" onclick="toggleEmojiPicker('dm')">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></svg>
               </button>
-              <textarea id="dmInput" placeholder="Message…" oninput="onDmInputChange('desktop'); autoResizeDm(this)" onkeydown="dmHandleKey(event,'desktop')" onpaste="handleDmPaste(event,'desktop')" rows="1"></textarea>
+              <textarea id="dmInput" placeholder="Message…" oninput="onDmInputChange('desktop'); autoResizeDm(this)" onfocus="onDmInputFocus('desktop')" onblur="onDmInputBlur('desktop')" onkeydown="onDmKeypress('desktop'); dmHandleKey(event,'desktop')" onpaste="handleDmPaste(event,'desktop')" rows="1"></textarea>
               <label class="emoji-btn" id="dmMediaBtn" for="dmMediaUpload" title="Send media">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
               </label>
@@ -3382,7 +3387,6 @@ body {
       <button class="dm-reply-cancel" onclick="cancelReply('mobile')">×</button>
     </div>
 
-    <div id="dmFsTypingSlot" style="display:none;padding:4px 14px 0;background:var(--surface);flex-shrink:0;"></div>
 
     <div class="dm-fs-input-area">
       <div class="dm-fs-input-row">
@@ -3393,7 +3397,7 @@ body {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
         </label>
         <input type="file" id="dmFsMediaUpload" accept="image/*,video/*" style="display:none" onchange="stageDmMedia(event,'mobile')">
-        <textarea id="dmFsInput" placeholder="Message…" oninput="onDmInputChange('mobile'); toggleDmFsSendBtn(); autoResizeDm(this)" onkeydown="dmHandleKey(event,'mobile')" onpaste="handleDmPaste(event,'mobile')" rows="1"></textarea>
+        <textarea id="dmFsInput" placeholder="Message…" oninput="onDmInputChange('mobile'); toggleDmFsSendBtn(); autoResizeDm(this)" onfocus="onDmInputFocus('mobile')" onblur="onDmInputBlur('mobile')" onkeydown="onDmKeypress('mobile'); dmHandleKey(event,'mobile')" onpaste="handleDmPaste(event,'mobile')" rows="1"></textarea>
         <button class="dm-send-btn" id="dmFsSendBtn" onclick="dmSend('mobile')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
         </button>
@@ -3670,7 +3674,6 @@ function resetPresenceDots() {
 
 // ── TYPING INDICATOR ──
 let typingChannel = null;
-let typingTimer = null;
 let isCurrentlyTyping = false;
 let remoteTypingTimer = null;
 
@@ -3688,10 +3691,7 @@ async function setupTypingChannel(myUserId, otherUserId) {
       if (payload.userId === myUserId) return;
       if (payload.isTyping) {
         showRemoteTyping(otherUserId);
-        clearTimeout(remoteTypingTimer);
-        remoteTypingTimer = setTimeout(() => hideRemoteTyping(), 5000);
       } else {
-        clearTimeout(remoteTypingTimer);
         hideRemoteTyping();
       }
     })
@@ -3721,23 +3721,19 @@ async function setupTypingChannel(myUserId, otherUserId) {
 }
 
 function showRemoteTyping(userId) {
-  const contact = dmContacts.find(c => c.id === userId);
-  const avatarHtml = contact && contact.avatarUrl
-    ? `<img src="${contact.avatarUrl}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
-    : DEFAULT_AVATAR_SVG;
-  const indicatorHtml = `
-    <div class="dm-typing-indicator" style="padding:2px 0 4px;">
-      <div class="dm-typing-avatar default-avatar" style="width:22px;height:22px;border-radius:50%;overflow:hidden;position:relative;background:#e8e8ec;flex-shrink:0;">
-        ${avatarHtml}
-      </div>
-      <div class="dm-typing-bubble"><span></span><span></span><span></span></div>
-    </div>`;
+  const indicatorHtml = `<div class="dm-typing-bubble"><span></span><span></span><span></span></div>`;
 
-  [{ slotId: 'dmTypingSlot' }, { slotId: 'dmFsTypingSlot' }].forEach(({ slotId }) => {
-    const slot = document.getElementById(slotId);
-    if (!slot) return;
-    slot.innerHTML = indicatorHtml;
-    slot.style.display = 'block';
+  ['dmChatMessages', 'dmFsMessages'].forEach(msgsId => {
+    const msgs = document.getElementById(msgsId);
+    if (!msgs) return;
+    // Only inject if not already present — don't re-create, that kills the animation
+    if (msgs.querySelector('.dm-typing-indicator')) return;
+    const el = document.createElement('div');
+    el.className = 'dm-typing-indicator';
+    el.id = msgsId === 'dmChatMessages' ? 'dmTypingSlot' : 'dmFsTypingSlot';
+    el.innerHTML = indicatorHtml;
+    msgs.appendChild(el);
+    setTimeout(() => { msgs.scrollTop += el.offsetHeight + 8; }, 0);
   });
 
   // Show "Typing…" text in the DM conv list under the contact's name
@@ -3757,11 +3753,13 @@ function showRemoteTyping(userId) {
 }
 
 function hideRemoteTyping() {
-  ['dmTypingSlot', 'dmFsTypingSlot'].forEach(id => {
-    const slot = document.getElementById(id);
-    if (slot) { slot.innerHTML = ''; slot.style.display = 'none'; }
+  ['dmChatMessages', 'dmFsMessages'].forEach(msgsId => {
+    const msgs = document.getElementById(msgsId);
+    if (!msgs) return;
+    const el = msgs.querySelector('.dm-typing-indicator');
+    if (el) el.remove();
   });
-  // Also remove any old in-messages typing indicators (legacy cleanup)
+  // Also remove any old legacy typing indicators
   ['dmTypingDots', 'dmFsTypingDots'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.remove();
@@ -3792,18 +3790,33 @@ function broadcastTyping(isTyping) {
 
 function onDmInputChange(mode) {
   toggleDmSendBtn();
-  const val = document.getElementById('dmInput').value.trim();
-  if (val.length > 0) {
-    if (!isCurrentlyTyping) { isCurrentlyTyping = true; broadcastTyping(true); }
-    clearTimeout(typingTimer);
-    typingTimer = setTimeout(() => { isCurrentlyTyping = false; broadcastTyping(false); }, 4000);
-  } else {
-    if (isCurrentlyTyping) { isCurrentlyTyping = false; clearTimeout(typingTimer); broadcastTyping(false); }
+  const inputEl = document.getElementById(mode === 'mobile' ? 'dmFsInput' : 'dmInput');
+  const val = inputEl ? inputEl.value : '';
+  if (val.trim() === '' && isCurrentlyTyping) {
+    isCurrentlyTyping = false;
+    broadcastTyping(false);
+  }
+}
+
+function onDmInputFocus(mode) {}
+
+function onDmInputBlur(mode) {
+  if (isCurrentlyTyping) {
+    isCurrentlyTyping = false;
+    broadcastTyping(false);
+  }
+}
+
+function onDmKeypress(mode) {
+  if (!isCurrentlyTyping) {
+    isCurrentlyTyping = true;
+    broadcastTyping(true);
   }
 }
 
 function stopTypingBroadcast() {
-  isCurrentlyTyping = false; clearTimeout(typingTimer); broadcastTyping(false);
+  isCurrentlyTyping = false;
+  broadcastTyping(false);
 }
 
 // ── CLEAR CHAT UI ──
@@ -5985,7 +5998,7 @@ function applyReactionsToWrap(bWrap, reactions, currentUserId) {
     reactionEl.className = 'dm-reaction';
     reactionEl.dataset.emoji = emoji;
     reactionEl.textContent = emoji + (count > 1 ? count : '');
-    reactionEl.style.opacity = '1';
+    reactionEl.style.opacity = (myEmoji === emoji) ? '1' : '0.75';
     reactionEl.onclick = () => addReaction(bWrap, emoji);
     bWrap.appendChild(reactionEl);
   }
