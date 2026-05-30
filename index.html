@@ -1678,7 +1678,8 @@ body {
   margin-bottom: 14px;
 }
 
-.dm-bubble-wrap { overflow: visible !important; }
+.dm-bubble-wrap { overflow: visible !important; transition: transform 0.18s cubic-bezier(0.25,0.46,0.45,0.94); }
+.dm-bubble-wrap.swiping { transition: none; }
 .dm-msg-bubbles { overflow: visible !important; }
 .dm-msg-group { overflow: visible !important; }
 .dm-msg-group-row { overflow: visible !important; }
@@ -3398,7 +3399,7 @@ body {
         </label>
         <input type="file" id="dmFsMediaUpload" accept="image/*,video/*" style="display:none" onchange="stageDmMedia(event,'mobile')">
         <textarea id="dmFsInput" placeholder="Message…" oninput="onDmInputChange('mobile'); toggleDmFsSendBtn(); autoResizeDm(this)" onfocus="onDmInputFocus('mobile')" onblur="onDmInputBlur('mobile')" onkeydown="onDmKeypress('mobile'); dmHandleKey(event,'mobile')" onpaste="handleDmPaste(event,'mobile')" rows="1"></textarea>
-        <button class="dm-send-btn" id="dmFsSendBtn" onclick="dmSend('mobile')">
+        <button class="dm-send-btn" id="dmFsSendBtn" onmousedown="event.preventDefault()" ontouchend="event.preventDefault(); dmSend('mobile')" onclick="if(!('ontouchstart' in window)) dmSend('mobile')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
         </button>
       </div>
@@ -5834,6 +5835,64 @@ function _appendMediaToGroup(bubblesWrap, msg, isSent, contact, currentUserId) {
   bubblesWrap.appendChild(makeBubbleWrap(msg, isSent, contact, currentUserId));
 }
 
+// ── SWIPE-TO-REPLY (mobile) ──
+// Sent bubbles swipe LEFT, received bubbles swipe RIGHT — matching iMessage/WhatsApp.
+function addSwipeToReply(bWrap, isSent, onReply) {
+  const THRESHOLD = 52;   // px to trigger reply
+  const MAX_DRAG  = 72;   // px cap so it doesn't slide too far
+  let startX = 0, startY = 0, curX = 0, dragging = false, triggered = false, maybeSwipe = false;
+
+  bWrap.addEventListener('touchstart', (e) => {
+    if (e.touches.length !== 1) return;
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    curX = 0; triggered = false; maybeSwipe = false; dragging = false;
+  }, { passive: true });
+
+  bWrap.addEventListener('touchmove', (e) => {
+    if (e.touches.length !== 1) return;
+    const dx = e.touches[0].clientX - startX;
+    const dy = e.touches[0].clientY - startY;
+
+    // First move: decide if this is a horizontal or vertical gesture
+    if (!dragging && !maybeSwipe) {
+      if (Math.abs(dy) > Math.abs(dx) + 4) return; // vertical scroll — ignore
+      maybeSwipe = true;
+    }
+    if (!maybeSwipe) return;
+
+    // Correct direction: sent → swipe left (dx < 0), received → swipe right (dx > 0)
+    const correct = isSent ? dx < 0 : dx > 0;
+    if (!correct && !dragging) return;
+
+    dragging = true;
+    e.preventDefault(); // stop scroll while doing horizontal swipe
+
+    const clamped = isSent
+      ? Math.max(-MAX_DRAG, Math.min(0, dx))
+      : Math.min(MAX_DRAG, Math.max(0, dx));
+    curX = clamped;
+    bWrap.classList.add('swiping');
+    bWrap.style.transform = `translateX(${curX}px)`;
+
+    if (!triggered && Math.abs(curX) >= THRESHOLD) {
+      triggered = true;
+      if (navigator.vibrate) navigator.vibrate(30);
+    }
+  }, { passive: false });
+
+  function endSwipe() {
+    if (!dragging) { bWrap.classList.remove('swiping'); return; }
+    dragging = false; maybeSwipe = false;
+    bWrap.classList.remove('swiping');
+    bWrap.style.transform = '';
+    if (triggered) onReply();
+  }
+
+  bWrap.addEventListener('touchend',    endSwipe, { passive: true });
+  bWrap.addEventListener('touchcancel', endSwipe, { passive: true });
+}
+
 function makeBubbleWrap(msg, isSent, contact, currentUserId) {
   const bWrap = document.createElement('div');
   bWrap.className = 'dm-bubble-wrap';
@@ -5910,6 +5969,9 @@ function makeBubbleWrap(msg, isSent, contact, currentUserId) {
 
   if (isSent) { bWrap.appendChild(moreBtn); bWrap.appendChild(replyBtn); bWrap.appendChild(bubble); }
   else { bWrap.appendChild(bubble); bWrap.appendChild(replyBtn); bWrap.appendChild(moreBtn); }
+
+  // Mobile swipe-to-reply
+  addSwipeToReply(bWrap, isSent, () => startReply(msgText, msgSender));
 
   // Render existing reactions from DB data and seed the cache
   if (msg.reactions && Object.keys(msg.reactions).length > 0) {
@@ -6912,6 +6974,7 @@ async function dmSend(mode) {
   // Lock send button immediately — clear input right away so user knows it's queued
   if (sendBtn) { sendBtn.dataset.sending = '1'; sendBtn.style.opacity = '0.5'; sendBtn.disabled = true; }
   input.value = ''; input.style.height = 'auto';
+  if (mode === 'mobile') input.focus();
   if (mode === 'mobile') toggleDmFsSendBtn(); else toggleDmSendBtn();
 
   const { data: { user } } = await supabaseClient.auth.getUser();
@@ -6962,6 +7025,9 @@ async function dmSend(mode) {
   bubble.appendChild(spin);
 
   bWrap.appendChild(moreBtnOpt); bWrap.appendChild(replyBtnOpt); bWrap.appendChild(bubble);
+
+  // Mobile swipe-to-reply for optimistic bubble
+  addSwipeToReply(bWrap, true, () => startReply(text, 'You'));
 
   // Only show optimistic text bubble if there's actual text
   if (!text) {
@@ -7048,7 +7114,9 @@ async function dmSend(mode) {
   } finally {
     // Unlock send button
     if (sendBtn) { delete sendBtn.dataset.sending; sendBtn.style.opacity = ''; sendBtn.disabled = false; }
-    input.focus();
+    // On mobile, re-focus to keep keyboard up
+    if (mode === 'mobile') input.focus();
+    else input.focus();
   }
 }
 
@@ -7270,6 +7338,11 @@ function addAccount() { closeProfileDropdown(); alert('Add account flow — inte
 function logOut() { closeProfileDropdown(); document.getElementById('logoutOverlay').classList.add('show'); }
 function closeLogout() { document.getElementById('logoutOverlay').classList.remove('show'); }
 async function confirmLogout() {
+  // Wipe admin auth flags before anything else — no path leaves these true after logout
+  adminAuthenticated = false;
+  _adminSessionValid = false;
+  _dismissAdminOverlay();
+  if (dmOpen) await closeDM();
   await supabaseClient.auth.signOut();
   profile = { name: 'User', username: '@user', email: 'user@example.com', avatarUrl: null };
   renderProfileEverywhere();
