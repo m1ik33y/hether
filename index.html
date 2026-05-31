@@ -5025,7 +5025,8 @@ async function openDM() {
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages',
           filter: `receiver_id=eq.${user.id}` }, (payload) => {
           const msg = payload.new;
-          if (msg.sender_id === activeDmId) return; // already handled by per-chat channel
+          // Skip only if the per-chat channel will handle it AND the user can actually see it
+          if (msg.sender_id === activeDmId && _isChatVisibleFor(msg.sender_id)) return;
           const contact = dmContacts.find(c => c.id === msg.sender_id);
           if (contact) {
             contact.unread = true;
@@ -5124,8 +5125,8 @@ function dmOverlayClick(e) { if (e.target === document.getElementById('dmOverlay
 function buildDMConvList() {
   const withSentMessages = dmContacts.filter(c => c.sentByMe === true);
   const sorted = [...withSentMessages].sort((a, b) => {
-    const aUnread = a.unread && a.id !== activeDmId ? 1 : 0;
-    const bUnread = b.unread && b.id !== activeDmId ? 1 : 0;
+    const aUnread = a.unread && !(a.id === activeDmId && _isChatVisibleFor(a.id)) ? 1 : 0;
+    const bUnread = b.unread && !(b.id === activeDmId && _isChatVisibleFor(b.id)) ? 1 : 0;
     if (bUnread !== aUnread) return bUnread - aUnread;
     return (b.lastMessageTs || 0) - (a.lastMessageTs || 0);
   });
@@ -5149,7 +5150,7 @@ function buildDMConvList() {
       item.dataset.id = c.id;
       item.onclick = () => { isFsList ? openFsChat(c.id) : openDesktopChat(c.id); };
       const lastMsg = c.lastMessage;
-      const isUnread = c.unread && c.id !== activeDmId;
+      const isUnread = c.unread && !(c.id === activeDmId && _isChatVisibleFor(c.id));
       const unreadCount = isUnread ? (c.unreadCount || 0) : 0;
 
       // Build preview text
@@ -6549,8 +6550,19 @@ async function loadMessages(userId, loadToken) {
           appendIncomingMessage(msgsEl, newMsg, user.id, dmDesktopContact);
           updateContactLastMsg(userId, newMsg, user.id);
           buildDMConvList();
-          // Mark as seen since the chat is open — await so fixSeenLabels runs after DB update
-          markConversationSeen(userId).then(() => fixSeenLabels(msgsEl));
+          // Only mark as seen if the tab is actually visible & focused.
+          // If the user is in another tab, treat it like any other unread message.
+          if (_isChatVisibleFor(userId)) {
+            markConversationSeen(userId).then(() => fixSeenLabels(msgsEl));
+          } else {
+            // Treat as unread so the title badge and conv list update
+            const contact = dmContacts.find(c => c.id === userId);
+            if (contact) {
+              contact.unread = true;
+              contact.unreadCount = (contact.unreadCount || 0) + 1;
+            }
+            _updateTitleUnreadBadge();
+          }
         }
       })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages' }, (payload) => {
@@ -6792,8 +6804,17 @@ async function loadFsMessages(userId) {
           appendIncomingMessage(msgsEl, newMsg, user.id, dmMobileContact);
           updateContactLastMsg(userId, newMsg, user.id);
           buildDMConvList();
-          // Mark as seen since the chat is open — await so fixSeenLabels runs after DB update
-          markConversationSeen(userId).then(() => fixSeenLabels(msgsEl));
+          // Only mark as seen if the tab is actually visible & focused.
+          if (_isChatVisibleFor(userId)) {
+            markConversationSeen(userId).then(() => fixSeenLabels(msgsEl));
+          } else {
+            const contact = dmContacts.find(c => c.id === userId);
+            if (contact) {
+              contact.unread = true;
+              contact.unreadCount = (contact.unreadCount || 0) + 1;
+            }
+            _updateTitleUnreadBadge();
+          }
         } else {
           const c = dmContacts.find(c => c.id === userId);
           if (c) { updateContactLastMsg(userId, newMsg, user.id); buildDMConvList(); }
@@ -9867,6 +9888,11 @@ document.addEventListener('visibilitychange', () => {
   } else if (document.visibilityState === 'visible' && activeDmId) {
     markConversationSeen(activeDmId);
     if (_seenMyUserId) pollSeenStatus(_seenMyUserId);
+    // Clear unread state for the now-visible chat and update title
+    const contact = dmContacts ? dmContacts.find(c => c.id === activeDmId) : null;
+    if (contact) { contact.unread = false; contact.unreadCount = 0; }
+    _updateTitleUnreadBadge();
+    buildDMConvList();
   }
 });
 
@@ -9876,6 +9902,11 @@ window.addEventListener('focus', () => {
   if (activeDmId) {
     markConversationSeen(activeDmId);
     if (_seenMyUserId) pollSeenStatus(_seenMyUserId);
+    // Clear unread state for the now-focused chat and update title
+    const contact = dmContacts ? dmContacts.find(c => c.id === activeDmId) : null;
+    if (contact) { contact.unread = false; contact.unreadCount = 0; }
+    _updateTitleUnreadBadge();
+    buildDMConvList();
   }
 });
 
@@ -9948,13 +9979,26 @@ function _isDMPanelOpen() {
       || (dmFs && dmFs.classList.contains('show'));
 }
 
+// Returns true only if the chat with `userId` is open AND the tab is
+// currently focused/visible — i.e. the user can actually see the messages.
+function _isChatVisibleFor(userId) {
+  if (!userId || activeDmId !== userId) return false;
+  if (!_isDMPanelOpen()) return false;
+  return document.visibilityState === 'visible' && document.hasFocus();
+}
+
 function _updateTitleUnreadBadge() {
-  if (!_notificationsEnabled || !_isDMPanelOpen()) {
+  if (!_notificationsEnabled) {
     document.title = 'Hether - Coding Platform';
     return;
   }
   const unreadUsers = (typeof dmContacts !== 'undefined')
-    ? dmContacts.filter(c => c.unread && c.id !== activeDmId).length
+    ? dmContacts.filter(c => {
+        if (!c.unread) return false;
+        // Only exclude the active chat if user can actually see it right now
+        if (c.id === activeDmId && _isChatVisibleFor(c.id)) return false;
+        return true;
+      }).length
     : 0;
   if (unreadUsers <= 0) {
     document.title = 'Hether - Coding Platform';
