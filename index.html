@@ -3811,8 +3811,9 @@ function showRemoteTyping(userId) {
     el.className = 'dm-typing-indicator';
     el.id = msgsId === 'dmChatMessages' ? 'dmTypingSlot' : 'dmFsTypingSlot';
     el.innerHTML = indicatorHtml;
+    const wasAtBottom = msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight < 60;
     msgs.appendChild(el);
-    setTimeout(() => { msgs.scrollTop += el.offsetHeight + 8; }, 0);
+    if (wasAtBottom) setTimeout(() => { msgs.scrollTop = msgs.scrollHeight; }, 0);
   });
 
   // Show "Typing…" text in the DM conv list under the contact's name
@@ -3894,9 +3895,19 @@ function onDmInputChange(mode) {
   // Only act if the element that fired is actually the focused DM input
   if (!inputEl || document.activeElement !== inputEl) return;
   const val = inputEl.value;
-  if (val.trim() === '' && isCurrentlyTyping) {
-    isCurrentlyTyping = false;
-    broadcastTyping(false);
+  if (val.trim() === '') {
+    // Input is empty — stop typing
+    if (isCurrentlyTyping) {
+      isCurrentlyTyping = false;
+      broadcastTyping(false);
+    }
+  } else {
+    // Input has content — start typing if not already broadcasting
+    // This path fires reliably on mobile (oninput) unlike keypress/keydown
+    if (!isCurrentlyTyping) {
+      isCurrentlyTyping = true;
+      broadcastTyping(true);
+    }
   }
 }
 
@@ -3910,21 +3921,9 @@ function onDmInputBlur(mode) {
 }
 
 function onDmKeypress(e, mode) {
-  // Safety guard: only fire when the correct DM input is actually focused.
-  // This prevents the admin panel (or any other input) from accidentally
-  // triggering a typing broadcast when it receives keyboard events.
-  const expectedInputId = mode === 'mobile' ? 'dmFsInput' : 'dmInput';
-  if (document.activeElement?.id !== expectedInputId) return;
-
-  // Backspace is handled by onDmInputChange (stops typing when input becomes empty)
-  // Don't send isTyping=false here — that fires even on a focused empty input
-  if (e.key === 'Backspace' || e.key === 'Delete') return;
-  // Only trigger on printable characters (letters, symbols, space, etc.)
-  if (e.key.length !== 1) return;
-  if (!isCurrentlyTyping) {
-    isCurrentlyTyping = true;
-    broadcastTyping(true);
-  }
+  // Typing start/stop is now handled entirely in onDmInputChange (oninput),
+  // which fires reliably on both desktop and mobile (Android/iOS).
+  // This function is kept as a no-op to avoid breaking the onkeydown wiring.
 }
 
 function stopTypingBroadcast() {
@@ -6561,7 +6560,6 @@ async function loadMessages(userId, loadToken) {
               contact.unread = true;
               contact.unreadCount = (contact.unreadCount || 0) + 1;
             }
-            buildDMConvList(); // re-render now that unread flag is set
             _updateTitleUnreadBadge();
           }
         }
@@ -6814,7 +6812,6 @@ async function loadFsMessages(userId) {
               contact.unread = true;
               contact.unreadCount = (contact.unreadCount || 0) + 1;
             }
-            buildDMConvList(); // re-render now that unread flag is set
             _updateTitleUnreadBadge();
           }
         } else {
@@ -6941,7 +6938,8 @@ function appendIncomingMessage(container, msg, currentUserId, contact) {
   // System messages render as a centered pill, not a bubble
   if (msg.message_type === 'system') {
     const el = makeSystemMsgEl(msg.content || '');
-    const typingEl = document.getElementById('dmTypingDots') || document.getElementById('dmFsTypingDots');
+    const typingEl = document.getElementById('dmTypingSlot') || document.getElementById('dmFsTypingSlot')
+                  || document.getElementById('dmTypingDots') || document.getElementById('dmFsTypingDots');
     if (typingEl && typingEl.parentNode === container) container.insertBefore(el, typingEl);
     else container.appendChild(el);
     container.scrollTop = container.scrollHeight;
@@ -7051,7 +7049,8 @@ function appendIncomingMessage(container, msg, currentUserId, contact) {
   groupEl.appendChild(timeEl);
 
   // Insert before typing indicator if present
-  const typingEl = document.getElementById('dmTypingDots') || document.getElementById('dmFsTypingDots');
+  const typingEl = document.getElementById('dmTypingSlot') || document.getElementById('dmFsTypingSlot')
+                || document.getElementById('dmTypingDots') || document.getElementById('dmFsTypingDots');
   if (typingEl && typingEl.parentNode === container) {
     container.insertBefore(groupEl, typingEl);
   } else {
