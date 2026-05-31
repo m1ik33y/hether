@@ -6561,6 +6561,7 @@ async function loadMessages(userId, loadToken) {
               contact.unread = true;
               contact.unreadCount = (contact.unreadCount || 0) + 1;
             }
+            buildDMConvList(); // re-render now that unread flag is set
             _updateTitleUnreadBadge();
           }
         }
@@ -6813,6 +6814,7 @@ async function loadFsMessages(userId) {
               contact.unread = true;
               contact.unreadCount = (contact.unreadCount || 0) + 1;
             }
+            buildDMConvList(); // re-render now that unread flag is set
             _updateTitleUnreadBadge();
           }
         } else {
