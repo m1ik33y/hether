@@ -7260,7 +7260,9 @@ async function dmSend(mode) {
       optimisticGroup.appendChild(rowEl);
       const timeEl = document.createElement('div'); timeEl.className = 'dm-group-time'; timeEl.textContent = formatMsgTime(now);
       optimisticGroup.appendChild(timeEl);
-      msgsEl.appendChild(optimisticGroup);
+      // Insert before typing indicator so it stays at the bottom
+      const _typSlot = msgsEl.querySelector(".dm-typing-indicator");
+      if (_typSlot) { msgsEl.insertBefore(optimisticGroup, _typSlot); } else { msgsEl.appendChild(optimisticGroup); }
     }
   }
 
@@ -7392,7 +7394,10 @@ function appendDmMediaBubble(container, dataUrl, isVideo, currentUserId, contact
   bubblesWrap.appendChild(bWrap); rowEl.appendChild(bubblesWrap); groupEl.appendChild(rowEl);
   const timeEl = document.createElement('div'); timeEl.className = 'dm-group-time'; timeEl.textContent = formatMsgTime(now);
   groupEl.appendChild(timeEl);
-  container.appendChild(groupEl); container.scrollTop = container.scrollHeight;
+  // Insert before typing indicator so it stays at the bottom
+  const _typSlotMedia = container.querySelector('.dm-typing-indicator');
+  if (_typSlotMedia) { container.insertBefore(groupEl, _typSlotMedia); } else { container.appendChild(groupEl); }
+  container.scrollTop = container.scrollHeight;
   // Return a function to remove the loading indicator once upload completes
   return () => { loadingEl.remove(); };
 }
