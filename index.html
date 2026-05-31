@@ -3895,19 +3895,9 @@ function onDmInputChange(mode) {
   // Only act if the element that fired is actually the focused DM input
   if (!inputEl || document.activeElement !== inputEl) return;
   const val = inputEl.value;
-  if (val.trim() === '') {
-    // Input is empty — stop typing
-    if (isCurrentlyTyping) {
-      isCurrentlyTyping = false;
-      broadcastTyping(false);
-    }
-  } else {
-    // Input has content — start typing if not already broadcasting
-    // This path fires reliably on mobile (oninput) unlike keypress/keydown
-    if (!isCurrentlyTyping) {
-      isCurrentlyTyping = true;
-      broadcastTyping(true);
-    }
+  if (val.trim() === '' && isCurrentlyTyping) {
+    isCurrentlyTyping = false;
+    broadcastTyping(false);
   }
 }
 
@@ -3921,9 +3911,21 @@ function onDmInputBlur(mode) {
 }
 
 function onDmKeypress(e, mode) {
-  // Typing start/stop is now handled entirely in onDmInputChange (oninput),
-  // which fires reliably on both desktop and mobile (Android/iOS).
-  // This function is kept as a no-op to avoid breaking the onkeydown wiring.
+  // Safety guard: only fire when the correct DM input is actually focused.
+  // This prevents the admin panel (or any other input) from accidentally
+  // triggering a typing broadcast when it receives keyboard events.
+  const expectedInputId = mode === 'mobile' ? 'dmFsInput' : 'dmInput';
+  if (document.activeElement?.id !== expectedInputId) return;
+
+  // Backspace is handled by onDmInputChange (stops typing when input becomes empty)
+  // Don't send isTyping=false here — that fires even on a focused empty input
+  if (e.key === 'Backspace' || e.key === 'Delete') return;
+  // Only trigger on printable characters (letters, symbols, space, etc.)
+  if (e.key.length !== 1) return;
+  if (!isCurrentlyTyping) {
+    isCurrentlyTyping = true;
+    broadcastTyping(true);
+  }
 }
 
 function stopTypingBroadcast() {
