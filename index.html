@@ -499,7 +499,7 @@ body {
   font-size: 14px; font-weight: 500; color: var(--text);
   display: flex; align-items: center; gap: 8px;
 }
-.status-dot { width: 7px; height: 7px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 0 2px rgba(34,197,94,0.2); }
+.status-dot { width: 5px; height: 5px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 0 2px rgba(34,197,94,0.2); }
 
 .messages { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 32px 0; scroll-behavior: smooth; display: flex; flex-direction: column; width: 100%; min-width: 0; }
 .messages::-webkit-scrollbar { width: 4px; }
@@ -715,23 +715,49 @@ body {
   display: inline-flex;
   align-self: flex-start;
   align-items: center;
-  padding: 12px 14px;
-  background: var(--surface);
-  border-radius: 20px 20px 20px 4px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+  gap: 8px;
   animation: msgIn 0.15s ease;
+  margin-top: auto;
   margin-bottom: 2px;
 }
-[data-theme="dark"] .dm-typing-indicator {
+.dm-typing-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: #e8e8ec;
+  flex-shrink: 0;
+  overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 600; color: #9b9ba8;
+  align-self: flex-end;
+  margin-bottom: 1px;
+  position: relative;
+}
+[data-theme="dark"] .dm-typing-avatar { background: #2a2a32; color: #5a5a6e; }
+.dm-typing-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.dm-typing-avatar svg {
+  width: 100%; height: 100%; display: block; flex-shrink: 0;
+  position: absolute; bottom: -8%; left: 0;
+}
+.dm-typing-bubble-wrap {
+  position: relative;
+  padding: 14px 16px;
+  background: var(--surface);
+  border-radius: 16px 16px 16px 4px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+  display: inline-flex; align-items: center;
+  width: fit-content;
+}
+[data-theme="dark"] .dm-typing-bubble-wrap {
   box-shadow: 0 1px 6px rgba(0,0,0,0.35);
 }
+
 .dm-typing-bubble {
   display: flex; gap: 5px; align-items: center;
 }
 .dm-typing-bubble span {
-  width: 6px; height: 6px; border-radius: 50%;
+  width: 5px; height: 5px; border-radius: 50%;
   background: var(--text2);
   display: inline-block;
+  flex-shrink: 0;
   animation: typingWave 1.4s ease-in-out infinite;
 }
 .dm-typing-bubble span:nth-child(1) { animation-delay: 0s; }
@@ -1448,6 +1474,49 @@ body {
   visibility: hidden;
 }
 
+/* ── CLEAR CHAT LOADING OVERLAY ── */
+.dm-clearing-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: var(--surface);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+}
+.dm-clearing-overlay.show {
+  opacity: 1;
+  pointer-events: all;
+}
+.dm-clearing-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text2);
+  letter-spacing: 0.01em;
+}
+.dm-clearing-bar-wrap {
+  width: 140px;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.18);
+  overflow: hidden;
+}
+.dm-clearing-bar-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 2px;
+  transition: width 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+}
+[data-theme="light"] .dm-clearing-bar-fill,
+[data-theme="dark"] .dm-clearing-bar-fill {
+  background: rgba(255, 255, 255, 0.9);
+}
+
 .dm-delete-chat-btn {
   background: transparent; border: none; cursor: pointer;
   color: var(--text3); width: 32px; height: 32px; border-radius: 8px;
@@ -1683,10 +1752,7 @@ body {
 .dm-msg-bubbles { overflow: visible !important; }
 .dm-msg-group { overflow: visible !important; }
 .dm-msg-group-row { overflow: visible !important; }
-.dm-chat-messages { overflow-y: auto; overflow-x: hidden;background:var(--surface) }
-[data-theme="dark"] .dm-chat-messages { background: none; }
-.dm-fs-messages { overflow-y: auto; overflow-x: hidden; }
-
+.dm-chat-messages { overflow-y: auto; overflow-x: hidden; background: none }
 /* WhatsApp-style message highlight on reply-tap */
 @keyframes msgHighlight {
   0%   { background-color: rgba(102,100,194,0.32); }
@@ -1826,20 +1892,30 @@ body {
 
 .emoji-picker {
   position: fixed; background: var(--surface);
-  height:300px;
-  overflow-y:auto;
-  border: 1px solid var(--border); border-radius: 12px; padding: 12px;
+  height: 300px;
+  overflow-y: auto;
+  border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px 12px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.2); z-index: 10000;
-  display: none; grid-template-columns: repeat(8, 1fr); gap: 6px;
-  max-width: 340px; animation: slideUp 0.2s ease;
+  display: none; flex-direction: column; gap: 0;
+  max-width: 340px; width: 320px; animation: slideUp 0.2s ease;
 }
-.emoji-picker.show { display: grid; }
+.emoji-picker.show { display: flex; }
 @keyframes slideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-.emoji-item { width: 32px; height: 32px; border: none; background: var(--surface2);
-  border-radius: 6px; cursor: pointer; font-size: 18px; transition: all var(--t);
-  display: flex; align-items: center; justify-content: center;
+.emoji-section-label {
+  font-size: 10.5px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.7px; color: var(--text3);
+  padding: 6px 2px 4px; flex-shrink: 0;
 }
-.emoji-item:hover { background: var(--accent); transform: scale(1.15); }
+.emoji-grid {
+  display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px;
+  margin-bottom: 4px;
+}
+.emoji-item {
+  width: 34px; height: 34px; border: none; background: transparent;
+  border-radius: 6px; cursor: pointer; font-size: 21px; transition: background var(--t), transform 0.1s ease;
+  display: flex; align-items: center; justify-content: center; padding: 0;
+}
+.emoji-item:hover { background: var(--surface2); transform: scale(1.18); }
 
 /* ── FULLSCREEN DM (mobile) ── */
 .dm-fullscreen {
@@ -3211,7 +3287,14 @@ body {
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
           <p>Select a conversation</p>
         </div>
-        <div id="dmActiveChatWrap" style="display:none;">
+        <div id="dmActiveChatWrap" style="display:none;position:relative;">
+          <!-- Clear chat loading overlay -->
+          <div class="dm-clearing-overlay" id="dmClearingOverlay">
+            <div class="dm-clearing-label">Getting things done…</div>
+            <div class="dm-clearing-bar-wrap">
+              <div class="dm-clearing-bar-fill" id="dmClearingBarFill"></div>
+            </div>
+          </div>
           <div class="dm-chat-topbar" id="dmChatTopbar">
             <div style="position:relative;flex-shrink:0;cursor:pointer;" onclick="openNicknamePanel()">
               <div class="dm-chat-topbar-avatar" id="dmTopbarAvatar"></div>
@@ -3338,7 +3421,14 @@ body {
     <div class="dm-sidebar-load-bar" id="dmFsSidebarLoadBar"><div class="dm-load-bar-fill" id="dmFsSidebarLoadFill"></div></div>
     <div class="dm-conv-list" id="dmFsConvList" style="flex:1;overflow-y:auto;padding:8px;"></div>
   </div>
-  <div id="dmFsChatView" style="display:none;flex-direction:column;flex:1;min-height:0;overflow:hidden;">
+  <div id="dmFsChatView" style="display:none;flex-direction:column;flex:1;min-height:0;overflow:hidden;position:relative;">
+    <!-- Clear chat loading overlay -->
+    <div class="dm-clearing-overlay" id="dmFsClearingOverlay">
+      <div class="dm-clearing-label">Getting things done…</div>
+      <div class="dm-clearing-bar-wrap">
+        <div class="dm-clearing-bar-fill" id="dmFsClearingBarFill"></div>
+      </div>
+    </div>
     <div class="dm-fs-header">
       <button class="dm-fs-back" onclick="dmFsBack()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
@@ -3791,6 +3881,17 @@ async function setupTypingChannel(myUserId, otherUserId) {
     });
 }
 
+
+// ── Always keep the typing indicator pinned to the very bottom of its container ──
+function pinTypingIndicator(container) {
+  if (!container) return;
+  const el = container.querySelector('.dm-typing-indicator');
+  if (!el) return;
+  if (container.lastElementChild !== el) {
+    container.appendChild(el); // moves it to end without re-creating (preserves animation)
+  }
+}
+
 function showRemoteTyping(userId) {
   // Reset the auto-clear timer on every typing event so it only fires
   // if the remote side stops sending heartbeats (e.g. goes offline, closes panel)
@@ -3800,7 +3901,15 @@ function showRemoteTyping(userId) {
     remoteTypingTimer = null;
   }, 4000);
 
-  const indicatorHtml = `<div class="dm-typing-bubble"><span></span><span></span><span></span></div>`;
+  // Build avatar html for the typing partner
+  const _typingContact = dmContacts.find(c => c.id === userId);
+  let _avatarHtml;
+  if (_typingContact && _typingContact.avatarUrl) {
+    _avatarHtml = `<div class="dm-typing-avatar"><img src="${_typingContact.avatarUrl}" alt=""></div>`;
+  } else {
+    _avatarHtml = `<div class="dm-typing-avatar default-avatar"><svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="18" cy="13" r="6" fill="currentColor" opacity="0.55"/><path d="M6 30c0-6.627 5.373-12 12-12s12 5.373 12 12" fill="currentColor" opacity="0.38"/></svg></div>`;
+  }
+  const indicatorHtml = _avatarHtml + `<div class="dm-typing-bubble-wrap"><div class="dm-typing-bubble"><span></span><span></span><span></span></div></div>`;
 
   ['dmChatMessages', 'dmFsMessages'].forEach(msgsId => {
     const msgs = document.getElementById(msgsId);
@@ -3957,9 +4066,89 @@ async function confirmClearChat() {
   if (!activeDmId) return;
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (!user) return;
+
+  const targetId = activeDmId;
+
+  // Show overlay and lock in the clearing state
+  _clearingChatForUserId = targetId;
+  _showClearingOverlay();
+
   const { error } = await supabaseClient.from('messages').delete()
-    .or(`and(sender_id.eq.${user.id},receiver_id.eq.${activeDmId}),and(sender_id.eq.${activeDmId},receiver_id.eq.${user.id})`);
-  if (error) alert('Failed to clear chat: ' + error.message);
+    .or(`and(sender_id.eq.${user.id},receiver_id.eq.${targetId}),and(sender_id.eq.${targetId},receiver_id.eq.${user.id})`);
+
+  if (error) {
+    _clearingChatForUserId = null;
+    _hideClearingOverlay();
+    alert('Failed to clear chat: ' + error.message);
+    return;
+  }
+
+  // Poll until the backend confirms 0 messages remain, then update UI
+  const MAX_POLLS = 12;
+  const POLL_MS = 300;
+  for (let i = 0; i < MAX_POLLS; i++) {
+    await new Promise(r => setTimeout(r, POLL_MS));
+    const { count } = await supabaseClient.from('messages').select('*', { count: 'exact', head: true })
+      .or(`and(sender_id.eq.${user.id},receiver_id.eq.${targetId}),and(sender_id.eq.${targetId},receiver_id.eq.${user.id})`);
+    if (count === 0) break;
+  }
+
+  clearChatUI();
+  _clearingChatForUserId = null;
+  _hideClearingOverlay();
+}
+
+function _showClearingOverlay() {
+  // Desktop
+  const ov = document.getElementById('dmClearingOverlay');
+  const fill = document.getElementById('dmClearingBarFill');
+  // Mobile
+  const ovFs = document.getElementById('dmFsClearingOverlay');
+  const fillFs = document.getElementById('dmFsClearingBarFill');
+
+  [fill, fillFs].forEach(f => {
+    if (!f) return;
+    f.style.transition = 'none';
+    f.style.width = '0%';
+  });
+  [ov, ovFs].forEach(o => { if (o) o.classList.add('show'); });
+  // Animate bar: fast to 70%, then slow crawl
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      [fill, fillFs].forEach(f => {
+        if (!f) return;
+        f.style.transition = 'width 0.6s cubic-bezier(0.25, 1, 0.5, 1)';
+        f.style.width = '70%';
+        setTimeout(() => {
+          f.style.transition = 'width 3s cubic-bezier(0.1, 0.9, 0.3, 1)';
+          f.style.width = '88%';
+        }, 640);
+      });
+    });
+  });
+}
+
+function _hideClearingOverlay() {
+  const ov = document.getElementById('dmClearingOverlay');
+  const fill = document.getElementById('dmClearingBarFill');
+  const ovFs = document.getElementById('dmFsClearingOverlay');
+  const fillFs = document.getElementById('dmFsClearingBarFill');
+
+  [fill, fillFs].forEach(f => {
+    if (!f) return;
+    f.style.transition = 'width 0.2s ease';
+    f.style.width = '100%';
+  });
+  setTimeout(() => {
+    [ov, ovFs].forEach(o => { if (o) o.classList.remove('show'); });
+    setTimeout(() => {
+      [fill, fillFs].forEach(f => {
+        if (!f) return;
+        f.style.transition = 'none';
+        f.style.width = '0%';
+      });
+    }, 200);
+  }, 220);
 }
 
 document.getElementById('clearChatOverlay').addEventListener('keydown', function(e) {
@@ -3991,6 +4180,8 @@ let dmFsStagedMedia = null;
 let aiStagedMedia = null;
 
 const renderedMsgIds = new Set();
+
+let _clearingChatForUserId = null; // set during bulk clear to suppress per-delete re-renders
 
 let profile = JSON.parse(localStorage.getItem('hether_profile') || 'null') || {
   name: 'User', username: '@user', email: 'user@example.com', avatarUrl: null
@@ -5704,6 +5895,7 @@ function renderGroupedMessages(container, groups, currentUserId, contact) {
   });
 
   mergeAdjacentGroups(container);
+  pinTypingIndicator(container);
   container.scrollTop = container.scrollHeight;
 }
 function fixSeenLabels(container) { /* seen UI removed */ }
@@ -6591,6 +6783,8 @@ async function loadMessages(userId, loadToken) {
       })
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' }, async (payload) => {
         if (activeDmId !== userId) return;
+        // During a bulk clear, confirmClearChat handles the UI — skip per-delete re-renders
+        if (_clearingChatForUserId === userId) return;
         const { data: remaining } = await supabaseClient.from('messages').select('*')
           .or(`and(sender_id.eq.${user.id},receiver_id.eq.${userId}),and(sender_id.eq.${userId},receiver_id.eq.${user.id})`)
           .order('created_at', { ascending: true });
@@ -6844,6 +7038,8 @@ async function loadFsMessages(userId) {
       })
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' }, async (payload) => {
         if (activeDmId !== userId) return;
+        // During a bulk clear, confirmClearChat handles the UI — skip per-delete re-renders
+        if (_clearingChatForUserId === userId) return;
         const { data: remaining } = await supabaseClient.from('messages').select('*')
           .or(`and(sender_id.eq.${user.id},receiver_id.eq.${userId}),and(sender_id.eq.${userId},receiver_id.eq.${user.id})`)
           .order('created_at', { ascending: true });
@@ -7019,6 +7215,7 @@ function appendIncomingMessage(container, msg, currentUserId, contact) {
       if (incomingMinuteKey) lastGroup.dataset.minuteKey = incomingMinuteKey;
       lastGroup.dataset.createdAt = msgCreatedAt || lastGroup.dataset.createdAt;
       mergeAdjacentGroups(container);
+      pinTypingIndicator(container);
       container.scrollTop = container.scrollHeight;
       return;
     }
@@ -7057,6 +7254,7 @@ function appendIncomingMessage(container, msg, currentUserId, contact) {
     container.appendChild(groupEl);
   }
   mergeAdjacentGroups(container);
+  pinTypingIndicator(container);
   container.scrollTop = container.scrollHeight;
 }
 
@@ -7263,6 +7461,7 @@ async function dmSend(mode) {
       // Insert before typing indicator so it stays at the bottom
       const _typSlot = msgsEl.querySelector(".dm-typing-indicator");
       if (_typSlot) { msgsEl.insertBefore(optimisticGroup, _typSlot); } else { msgsEl.appendChild(optimisticGroup); }
+      pinTypingIndicator(msgsEl);
     }
   }
 
@@ -7397,6 +7596,7 @@ function appendDmMediaBubble(container, dataUrl, isVideo, currentUserId, contact
   // Insert before typing indicator so it stays at the bottom
   const _typSlotMedia = container.querySelector('.dm-typing-indicator');
   if (_typSlotMedia) { container.insertBefore(groupEl, _typSlotMedia); } else { container.appendChild(groupEl); }
+  pinTypingIndicator(container);
   container.scrollTop = container.scrollHeight;
   // Return a function to remove the loading indicator once upload completes
   return () => { loadingEl.remove(); };
@@ -7953,16 +8153,52 @@ const emojis = ['😀','😁','😂','🤣','😃','😄','😅','😆','😉','
 '🤧','🥳','🥸','😇','🤠','🤡','💀','👻','👽','🤖','🎃','😺','😸','😹','😻','😼',
 '🙈','🙉','🙊','❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞',
 '💓','💗','💖','💘','💝','🔥','✨','🌟','💫','🎉','🎊','🚀','💯','👍','👎','👌',
-'👏','🙌','💪','🤝','🙏','👀','🧠','🫶','🥹'];
+'👏','🙌','💪','🤝','🙏','👀','🧠','🫶','🥹','🥀','👑','👽','💩'];
 
-function initEmojiPicker() {
-  const picker = document.getElementById('emojiPicker');
-  emojis.forEach(emoji => {
+const EMOJI_RECENT_KEY = 'hether_recent_emojis';
+const EMOJI_RECENT_MAX = 16;
+
+function getRecentEmojis() {
+  try { return JSON.parse(localStorage.getItem(EMOJI_RECENT_KEY) || '[]'); } catch { return []; }
+}
+function recordRecentEmoji(emoji) {
+  let recent = getRecentEmojis();
+  recent = [emoji, ...recent.filter(e => e !== emoji)].slice(0, EMOJI_RECENT_MAX);
+  try { localStorage.setItem(EMOJI_RECENT_KEY, JSON.stringify(recent)); } catch {}
+}
+
+function buildEmojiGrid(emojisArr, picker) {
+  const grid = document.createElement('div');
+  grid.className = 'emoji-grid';
+  emojisArr.forEach(emoji => {
     const btn = document.createElement('button');
     btn.className = 'emoji-item'; btn.textContent = emoji;
-    btn.onclick = (e) => { e.stopPropagation(); insertEmoji(emoji); closeEmojiPicker(); };
-    picker.appendChild(btn);
+    btn.onclick = (e) => { e.stopPropagation(); insertEmoji(emoji); renderEmojiPicker(); };
+    grid.appendChild(btn);
   });
+  return grid;
+}
+
+function initEmojiPicker() {
+  renderEmojiPicker();
+}
+
+function renderEmojiPicker() {
+  const picker = document.getElementById('emojiPicker');
+  picker.innerHTML = '';
+
+  const recent = getRecentEmojis();
+  if (recent.length > 0) {
+    const label = document.createElement('div');
+    label.className = 'emoji-section-label'; label.textContent = 'Recently Used';
+    picker.appendChild(label);
+    picker.appendChild(buildEmojiGrid(recent, picker));
+  }
+
+  const allLabel = document.createElement('div');
+  allLabel.className = 'emoji-section-label'; allLabel.textContent = recent.length > 0 ? 'All Emojis' : '';
+  if (recent.length > 0) picker.appendChild(allLabel);
+  picker.appendChild(buildEmojiGrid(emojis, picker));
 }
 
 let emojiPickerMode = null;
@@ -7981,6 +8217,7 @@ function toggleEmojiPicker(mode = 'chat') {
     picker.style.left = Math.max(8, rect.left - 10) + 'px';
     picker.style.top = 'auto'; picker.style.right = 'auto';
   }
+  renderEmojiPicker();
   overlay.classList.add('show'); picker.classList.add('show');
 }
 
@@ -7991,6 +8228,7 @@ function closeEmojiPicker() {
 }
 
 function insertEmoji(emoji) {
+  recordRecentEmoji(emoji);
   let input;
   if (emojiPickerMode === 'dm') input = document.getElementById('dmInput');
   else if (emojiPickerMode === 'mobile') input = document.getElementById('dmFsInput');
