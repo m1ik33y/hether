@@ -480,6 +480,219 @@ body {
   display: flex; gap: 8px; align-items: center;
 }
 
+/* ── AI COMPANION POPUP ── */
+.companion-popup {
+  display: none;
+  position: fixed;
+  top: 70px;
+  right: 20px;
+  width: 340px;
+  height: min(520px, calc(100vh - 100px));
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.18);
+  z-index: 350;
+  flex-direction: column;
+  overflow: hidden;
+  animation: companionIn 0.18s cubic-bezier(0.4,0,0.2,1);
+}
+.companion-popup.show { display: flex; }
+@keyframes companionIn {
+  from { opacity: 0; transform: translateY(-8px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)  scale(1); }
+}
+
+/* Background pattern */
+.companion-popup::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url('images/chat_bg_pc.svg');
+  background-repeat: repeat;
+  background-size: 480px auto;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.05;
+  border-radius: 12px;
+}
+[data-theme="dark"] .companion-popup::before {
+  filter: invert(1);
+  opacity: 0.06;
+}
+.companion-popup > * { position: relative; z-index: 1; }
+
+/* Titlebar */
+.companion-titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0 0 14px;
+  height: 31px;
+  min-height: 31px;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  user-select: none;
+  border-radius: 12px 12px 0 0;
+  z-index: 2;
+}
+.companion-titlebar-label {
+  font-family: sans-serif;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text2);
+}
+.companion-titlebar-close {
+  width: 46px;
+  height: 31px;
+  border-radius: 0 12px 0 0;
+  border: none;
+  background: transparent;
+  color: var(--text2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 24px;
+  padding-top: 1px;
+  line-height: 1;
+  transition: background var(--t), color var(--t);
+  flex-shrink: 0;
+}
+.companion-titlebar-close:hover { background: #c42b1c; color: #fff; }
+
+/* Chat header inside popup */
+.companion-chat-header {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 14px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  z-index: 2;
+  position: relative;
+}
+
+/* Messages area */
+.companion-messages {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 14px 14px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  scroll-behavior: smooth;
+  background: none;
+}
+.companion-messages::-webkit-scrollbar { width: 3px; }
+.companion-messages::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 2px; }
+
+.companion-msg {
+  display: flex;
+  gap: 8px;
+  animation: msgIn 0.18s ease;
+  max-width: 88%;
+}
+.companion-msg.user { flex-direction: row-reverse; margin-left: auto; }
+.companion-msg.ai   { margin-right: auto; }
+
+.companion-avatar {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--accent); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 700; flex-shrink: 0; margin-top: 2px;
+}
+.companion-avatar.user-av {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text2);
+}
+
+.companion-bubble {
+  padding: 8px 12px;
+  border-radius: 16px;
+  font-size: 13px;
+  line-height: 1.6;
+  word-break: break-word;
+  max-width: 100%;
+}
+.companion-msg.user .companion-bubble {
+  background: var(--accent);
+  color: #fff;
+  border-radius: 16px 16px 4px 16px;
+}
+.companion-msg.ai .companion-bubble {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 16px 16px 16px 4px;
+}
+
+.companion-typing {
+  display: flex; gap: 5px; padding: 4px 2px;
+}
+.companion-typing span {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--text2);
+  animation: typingWave 1.4s ease-in-out infinite;
+}
+.companion-typing span:nth-child(2) { animation-delay: 0.18s; }
+.companion-typing span:nth-child(3) { animation-delay: 0.36s; }
+
+/* Input area */
+.companion-input-area {
+  padding: 10px 14px 10px;
+  background: transparent;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+.companion-input-row {
+  display: flex; gap: 6px; align-items: center;
+  background: var(--surface); border: 1px solid rgb(168,168,168);
+  border-radius: 22px; padding: 6px 8px 6px 6px;
+  transition: border-color var(--t);
+}
+[data-theme="dark"] .companion-input-row { border-color: var(--border); }
+.companion-input-row:focus-within { border-color: rgb(43,43,43); }
+[data-theme="dark"] .companion-input-row:focus-within { border-color: var(--text2); }
+#companionInput {
+  flex: 1; background: transparent; border: none; outline: none;
+  color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13.5px;
+  resize: none; min-height: 32px; max-height: 100px; line-height: 1.55;
+  padding: 5px 6px; overflow-y: auto;
+  display: block; vertical-align: middle;
+}
+#companionInput::placeholder { color: var(--text3); }
+.companion-send-btn {
+  width: 38px; height: 32px; border-radius: 80px; border: none;
+  background: var(--accent); color: #fff; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background var(--t), transform var(--t), opacity var(--t); flex-shrink: 0;
+}
+.companion-send-btn:hover { background: var(--accent-hover); transform: scale(1.05); }
+.companion-send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.companion-send-btn svg { width: 12px; height: 12px; }
+
+@media (max-width: 768px) {
+  .companion-popup {
+    top: auto;
+    bottom: 70px;
+    right: 10px;
+    left: 10px;
+    width: auto;
+    height: min(480px, calc(100vh - 140px));
+    border-radius: 12px;
+  }
+  .companion-titlebar { border-radius: 12px 12px 0 0; }
+  .companion-titlebar-close { border-radius: 0 12px 0 0; }
+  .companion-popup::before { border-radius: 12px; }
+}
+
 /* ── MAIN ── */
 .main {
   flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative;
@@ -853,10 +1066,246 @@ body {
   border-radius: 8px;
   box-shadow: 0 32px 80px rgba(0,0,0,0.28);
   display: flex;
+  flex-direction: column;
   overflow: hidden;
   animation: popIn 0.2s ease;
   position: relative;
 }
+
+/* ── ADMIN POPUP TITLE BAR ── */
+.dm-titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0 0 14px;
+  height: 31px;
+  min-height: 31px;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.dm-titlebar-label {
+  font-family: sans-serif;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text2);
+  letter-spacing: 0.1px;
+}
+
+.dm-titlebar-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 31px;
+}
+
+/* AI circle button */
+.dm-titlebar-ai-btn {
+  width: 31px;
+  height: 31px;
+  border-radius: 0;
+  border: none;
+  background: transparent;
+  color: var(--text3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: color var(--t);
+  flex-shrink: 0;
+}
+.dm-titlebar-ai-btn:hover {
+  color: var(--text);
+  background: transparent;
+}
+.dm-titlebar-ai-btn.active {
+  color: var(--accent);
+  background: transparent;
+}
+.dm-titlebar-ai-btn svg { width: 15px; height: 15px; }
+
+/* Close button */
+.dm-titlebar-close {
+  width: 46px;
+  height: 31px;
+  border-radius: 0;
+  border: none;
+  background: transparent;
+  color: var(--text2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 24px;
+  padding-top: 1px;
+  line-height: 1;
+  transition: background var(--t), color var(--t);
+  flex-shrink: 0;
+}
+.dm-titlebar-close:hover { background: #c42b1c; color: #fff; }
+
+/* ── DM BODY (sidebar + chat panel, below titlebar) ── */
+.dm-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ── AI CHAT PANEL (full panel, replaces sidebar+chat when active) ── */
+.dm-ai-panel {
+  display: none;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  background: var(--bg);
+  position: absolute;
+  top: 31px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+}
+.dm-ai-panel.show { display: flex; }
+
+/* Chat background pattern — same as dmActiveChatWrap */
+.dm-ai-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url('images/chat_bg_pc.svg');
+  background-repeat: repeat;
+  background-size: 480px auto;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.05;
+}
+[data-theme="dark"] .dm-ai-panel::before {
+  filter: invert(1);
+  opacity: 0.06;
+}
+
+/* All children above the bg */
+.dm-ai-panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Header sits on solid surface */
+.dm-ai-panel > .dm-chat-topbar {
+  background: var(--surface);
+  z-index: 2;
+}
+
+.dm-ai-messages {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 20px 20px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  min-height: 0;
+  scroll-behavior: smooth;
+  background: none;
+}
+.dm-ai-messages::-webkit-scrollbar { width: 3px; }
+.dm-ai-messages::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 2px; }
+
+.dm-ai-msg {
+  display: flex;
+  gap: 10px;
+  animation: msgIn 0.18s ease;
+  max-width: 620px;
+  width: 100%;
+  align-self: center;
+}
+.dm-ai-msg.user { flex-direction: row-reverse; }
+.dm-ai-msg.ai { }
+
+.dm-ai-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--accent); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700; flex-shrink: 0;
+  margin-top: 2px;
+}
+.dm-ai-avatar.user-av {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text2);
+}
+
+.dm-ai-bubble {
+  padding: 9px 13px;
+  border-radius: 16px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  word-break: break-word;
+  max-width: 100%;
+}
+.dm-ai-msg.user .dm-ai-bubble {
+  background: var(--accent);
+  color: #fff;
+  border-radius: 16px 16px 4px 16px;
+}
+.dm-ai-msg.ai .dm-ai-bubble {
+  background: none;
+  color: var(--text);
+  border: none;
+  border-radius: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+.dm-ai-msg.ai .dm-ai-avatar { display: none; }
+
+.dm-ai-typing {
+  display: flex; gap: 5px; padding: 4px 2px;
+}
+.dm-ai-typing span {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--text2);
+  animation: typingWave 1.4s ease-in-out infinite;
+}
+.dm-ai-typing span:nth-child(2) { animation-delay: 0.18s; }
+.dm-ai-typing span:nth-child(3) { animation-delay: 0.36s; }
+
+/* AI input area — exact same as .dm-chat-input-area */
+.dm-ai-input-area {
+  padding: 10px 14px 10px;
+  background: transparent;
+  flex-shrink: 0;
+}
+.dm-ai-input-row {
+  display: flex; gap: 6px; align-items: center;
+  background: var(--surface); border: 1px solid rgb(168, 168, 168);
+  border-radius: 22px; padding: 6px 8px 6px 6px;
+  transition: border-color var(--t);
+}
+[data-theme="dark"] .dm-ai-input-row { border-color: var(--border); }
+.dm-ai-input-row:focus-within { border-color: rgb(43, 43, 43); }
+[data-theme="dark"] .dm-ai-input-row:focus-within { border-color: var(--text2); }
+#dmAiInput {
+  flex: 1; background: transparent; border: none; outline: none;
+  color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13.5px;
+  resize: none; min-height: 32px; max-height: 120px; line-height: 1.55;
+  padding: 5px 6px; overflow-y: auto;
+  display: block; vertical-align: middle;
+}
+#dmAiInput::placeholder { color: var(--text3); }
+.dm-ai-send-btn {
+  width: 38px; height: 32px; border-radius: 80px; border: none;
+  background: var(--accent); color: #fff; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background var(--t), transform var(--t), opacity var(--t); flex-shrink: 0;
+}
+.dm-ai-send-btn:hover { background: var(--accent-hover); transform: scale(1.05); }
+.dm-ai-send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.dm-ai-send-btn svg { width: 12px; height: 12px; }
 
 .dm-chat-panel {
   display: flex;
@@ -1420,6 +1869,8 @@ body {
   background: var(--surface);
   display: flex; align-items: center; gap: 12px;
   flex-shrink: 0;
+  position: relative;
+  z-index: 2;
 }
 .dm-chat-topbar-avatar {
   width: 34px; height: 34px; border-radius: 50%;
@@ -1793,7 +2244,7 @@ body {
 .dm-reply-bar {
   display: none;
   padding: 8px 14px;
-  background: var(--surface);
+  background: transparent;
   border-top: 1px solid var(--border);
   font-size: 12.5px;
   align-items: center;
@@ -1809,14 +2260,13 @@ body {
 
 .dm-chat-input-area {
   padding: 10px 14px 10px;
-  background: var(--surface);
+  background: transparent;
   flex-shrink: 0;
 }
-[data-theme="dark"] .dm-chat-input-area { background: none; }
 
 .dm-media-staging-wrap {
   display: none; padding: 8px 14px;
-  background: var(--surface);
+  background: transparent;
   border-top: 1px solid var(--border);
   flex-shrink: 0;
   align-items: center;
@@ -1842,18 +2292,21 @@ body {
 .dm-media-staging-remove:hover { background: #ef4444; }
 
 .dm-input-row {
-  display: flex; gap: 6px; align-items: flex-end;
-  background: none; border: 1px solid rgb(168, 168, 168);
+  display: flex; gap: 6px; align-items: center;
+  background: var(--surface); border: 1px solid rgb(168, 168, 168);
   border-radius: 22px; padding: 6px 8px 6px 6px;
   transition: border-color var(--t);
 }
+[data-theme="dark"] .dm-input-row { border-color: var(--border); }
 .dm-input-row:focus-within { border-color: rgb(43, 43, 43); }
+[data-theme="dark"] .dm-input-row:focus-within { border-color: var(--text2); }
 
 #dmInput {
   flex: 1; background: transparent; border: none; outline: none;
   color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13.5px;
-  resize: none; min-height: 22px; max-height: 120px; line-height: 1.55;
-  padding: 2px 6px; overflow-y: auto;
+  resize: none; min-height: 32px; max-height: 120px; line-height: 1.55;
+  padding: 5px 6px; overflow-y: auto;
+  display: block; vertical-align: middle;
 }
 #dmInput::placeholder { color: var(--text3); }
 
@@ -1970,12 +2423,12 @@ body {
   overscroll-behavior: none;
   touch-action: manipulation;
 }
-.dm-fs-input-row { display: flex; gap: 6px; align-items: flex-end; background: var(--input-bg); border: 1px solid var(--border); border-radius: 22px; padding: 6px 8px 6px 6px; }
+.dm-fs-input-row { display: flex; gap: 6px; align-items: center; background: var(--input-bg); border: 1px solid var(--border); border-radius: 22px; padding: 6px 8px 6px 6px; }
 #dmFsInput {
   flex: 1; background: transparent; border: none; outline: none;
   color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13.5px;
-  resize: none; min-height: 22px; max-height: 100px; line-height: 1.55;
-  padding: 2px 6px; overflow-y: auto;
+  resize: none; min-height: 32px; max-height: 100px; line-height: 1.55;
+  padding: 5px 6px; overflow-y: auto;
 }
 #dmFsInput::placeholder { color: var(--text3); }
 
@@ -2522,6 +2975,42 @@ body {
   flex: 1;
   overflow: hidden;
   min-height: 0;
+  position: relative;
+}
+
+/* Chat background pattern — only on the messages+input area, not topbar */
+#dmActiveChatWrap::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url('images/chat_bg_pc.svg');
+  background-repeat: repeat;
+  background-size: 480px auto;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.05;
+}
+[data-theme="dark"] #dmActiveChatWrap::before {
+  filter: invert(1);
+  opacity: 0.06;
+}
+@media (max-width: 768px) {
+  #dmActiveChatWrap::before {
+    background-image: url('images/chat_bg.svg');
+    background-size: 320px auto;
+  }
+}
+
+/* All direct children sit above the pseudo bg — but don't override absolute-positioned ones */
+#dmActiveChatWrap > *:not(.dm-clearing-overlay) {
+  position: relative;
+  z-index: 1;
+}
+
+/* Topbar gets its own solid bg so it's fully opaque over the pattern */
+#dmActiveChatWrap .dm-chat-topbar {
+  background: var(--surface);
+  z-index: 2;
 }
 
 .dm-skeleton-msg {
@@ -2772,7 +3261,7 @@ body {
 .dm-edit-bar {
   display: none;
   padding: 7px 14px;
-  background: var(--surface);
+  background: transparent;
   border-top: 1px solid var(--border);
   font-size: 12.5px;
   align-items: center;
@@ -2985,6 +3474,9 @@ body {
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
         <span style="font-size:12px;color:var(--text3);" class="hide-mobile">AI · Code Companion</span>
+        <button id="companionBtn" onclick="toggleCompanion()" title="Hether AI Companion" style="width:30px;height:30px;border-radius:50%;border:none;background:transparent;color:var(--text3);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:color 0.15s ease;flex-shrink:0;" onmouseenter="this.style.color='var(--text)'" onmouseleave="this.style.color=this.classList.contains('active')?'var(--accent)':'var(--text3)'">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>
+        </button>
         <button id="mobileProfileBtn" onclick="toggleProfileDropdownMobile()" title="Profile" style="display:none;width:30px;height:30px;border-radius:50%;border:none;background:transparent;cursor:pointer;padding:0;flex-shrink:0;overflow:hidden;position:relative;" class="default-avatar profile-avatar">
         </button>
       </div>
@@ -3257,30 +3749,78 @@ body {
 
 </main>
 
+<!-- COMPANION AI POPUP -->
+<div class="companion-popup" id="companionPopup">
+  <!-- Titlebar -->
+  <div class="companion-titlebar">
+    <span class="companion-titlebar-label">Hether — AI Companion</span>
+    <button class="companion-titlebar-close" onclick="closeCompanion()" title="Close">×</button>
+  </div>
+  <!-- Chat header -->
+  <div class="companion-chat-header">
+    <div style="width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>
+    </div>
+    <div>
+      <div style="font-size:13.5px;font-weight:600;color:var(--text);line-height:1.2;">Hether AI</div>
+      <div style="font-size:11px;color:var(--text3);line-height:1.2;">AI Companion</div>
+    </div>
+  </div>
+  <!-- Messages -->
+  <div class="companion-messages" id="companionMessages"></div>
+  <!-- Input -->
+  <div class="companion-input-area">
+    <div class="companion-input-row">
+      <button class="emoji-btn" style="flex-shrink:0;opacity:0.5;cursor:default;" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></svg>
+      </button>
+      <textarea id="companionInput" placeholder="Message…" rows="1"
+        oninput="autoResizeCompanion(this)"
+        onkeydown="companionHandleKey(event)"></textarea>
+      <button class="companion-send-btn" id="companionSendBtn" onclick="sendCompanionMessage()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- ADMIN DM — DESKTOP -->
 <div class="dm-overlay" id="dmOverlay" onclick="dmOverlayClick(event)">
   <div class="dm-popup" id="dmPopup">
-    <div class="dm-sidebar">
-      <div class="dm-sidebar-header">
-        <div class="dm-sidebar-title">
-          Messages
-          <span class="dm-secure-badge">SECURE</span>
-        </div>
-        <button class="dm-close-btn" onclick="closeDM()" title="Close">×</button>
+
+    <!-- Title bar -->
+    <div class="dm-titlebar">
+      <span class="dm-titlebar-label">Hether — Admin</span>
+      <div class="dm-titlebar-controls">
+        <button class="dm-titlebar-ai-btn" id="dmAiToggleBtn" onclick="toggleDmAiPanel()" title="AI Assistant">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>
+        </button>
+        <button class="dm-titlebar-close" onclick="closeDM()" title="Close">×</button>
       </div>
-
-      <div class="dm-search-wrap">
-        <div class="dm-search-input-row">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" id="dmSearchInput" placeholder="Search users..." oninput="onDmSearch(this.value)" autocomplete="off">
-        </div>
-        <div class="dm-search-dropdown" id="dmSearchDropdown"></div>
-      </div>
-
-      <div class="dm-sidebar-load-bar" id="dmSidebarLoadBar"><div class="dm-load-bar-fill" id="dmSidebarLoadFill"></div></div>
-
-      <div class="dm-conv-list" id="dmConvList"></div>
     </div>
+
+    <!-- Body: sidebar + right panel -->
+    <div class="dm-body">
+      <div class="dm-sidebar">
+        <div class="dm-sidebar-header">
+          <div class="dm-sidebar-title">
+            Messages
+            <span class="dm-secure-badge">SECURE</span>
+          </div>
+        </div>
+
+        <div class="dm-search-wrap">
+          <div class="dm-search-input-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="dmSearchInput" placeholder="Search users..." oninput="onDmSearch(this.value)" autocomplete="off">
+          </div>
+          <div class="dm-search-dropdown" id="dmSearchDropdown"></div>
+        </div>
+
+        <div class="dm-sidebar-load-bar" id="dmSidebarLoadBar"><div class="dm-load-bar-fill" id="dmSidebarLoadFill"></div></div>
+
+        <div class="dm-conv-list" id="dmConvList"></div>
+      </div>
     <div class="dm-chat-panel" id="dmChatPanel">
       <div class="dm-chat-content">
         <div class="dm-empty-state" id="dmEmptyState">
@@ -3399,6 +3939,41 @@ body {
         </div>
 
       </div><!-- /dm-profile-tab -->
+
+    </div><!-- /dm-body -->
+
+    <!-- AI Chat Panel (full panel, absolute over dm-body) -->
+    <div class="dm-ai-panel" id="dmAiPanel">
+      <div class="dm-chat-topbar" style="border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface);position:relative;z-index:2;">
+        <div style="display:flex;align-items:center;gap:8px;flex:1;">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>
+          </div>
+          <div>
+            <div style="font-size:13.5px;font-weight:600;color:var(--text);line-height:1.2;">Hether AI</div>
+            <div style="font-size:11px;color:var(--text3);line-height:1.2;">AI Assistant</div>
+          </div>
+        </div>
+        <button onclick="newDmAiChat()" title="New chat" style="background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;color:var(--text2);display:flex;align-items:center;justify-content:center;transition:background 0.15s;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 18V5"/><path d="M15 13a4.17 4.17 0 0 1-3-4 4.17 4.17 0 0 1-3 4"/><path d="M17.598 6.5A3 3 0 1 0 12 5a3 3 0 1 0-5.598 1.5"/><path d="M17.997 5.125a4 4 0 0 1 2.526 5.77"/><path d="M18 18a4 4 0 0 0 2-7.464"/><path d="M19.967 17.483A4 4 0 1 1 12 18a4 4 0 1 1-7.967-.517"/><path d="M6 18a4 4 0 0 1-2-7.464"/><path d="M6.003 5.125a4 4 0 0 0-2.526 5.77"/></svg>
+        </button>
+      </div>
+      <div class="dm-ai-messages" id="dmAiMessages"></div>
+      <div class="dm-ai-input-area">
+        <div class="dm-ai-input-row">
+          <button class="emoji-btn" style="flex-shrink:0;" disabled title="Emoji">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></svg>
+          </button>
+          <textarea id="dmAiInput" placeholder="Message…" rows="1"
+            oninput="autoResizeDmAi(this)"
+            onkeydown="dmAiHandleKey(event)"></textarea>
+          <button class="dm-send-btn" id="dmAiSendBtn" onclick="sendDmAiMessage()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
   </div><!-- /dm-popup -->
 </div><!-- /dm-overlay -->
 
@@ -5301,6 +5876,14 @@ async function closeDM() {
   document.getElementById('dmOverlay').classList.remove('show');
   document.getElementById('dmFullscreen').classList.remove('show');
   document.getElementById('dmProfileTab')?.classList.remove('show');
+  // Reset AI panel
+  _dmAiOpen = false;
+  const _aiPanel = document.getElementById('dmAiPanel');
+  if (_aiPanel) _aiPanel.classList.remove('show');
+  const _aiBtn = document.getElementById('dmAiToggleBtn');
+  if (_aiBtn) _aiBtn.classList.remove('active');
+  const _chatPanel = document.getElementById('dmChatPanel');
+  if (_chatPanel) _chatPanel.style.display = '';
   closeMsgActionMenu(); hideRemoteTyping(); stopTypingBroadcast(); resetPresenceDots();
   if (typingChannel) { await supabaseClient.removeChannel(typingChannel); typingChannel = null; }
   if (window._dmGlobalChannel) { await supabaseClient.removeChannel(window._dmGlobalChannel); window._dmGlobalChannel = null; }
@@ -5310,6 +5893,257 @@ async function closeDM() {
 }
 
 function dmOverlayClick(e) { if (e.target === document.getElementById('dmOverlay')) closeDM(); }
+
+// ── ADMIN AI PANEL ──
+let _dmAiOpen = false;
+let _dmAiHistory = [];
+let _dmAiTyping = false;
+
+function newDmAiChat() {
+  _dmAiHistory = [];
+  const container = document.getElementById('dmAiMessages');
+  if (container) container.innerHTML = '';
+  _appendDmAiMsg('ai', 'Hi! I\'m hetherGPT. How can I help you?');
+}
+
+function toggleDmAiPanel() {
+  _dmAiOpen = !_dmAiOpen;
+  const panel = document.getElementById('dmAiPanel');
+  const chatPanel = document.getElementById('dmChatPanel');
+  const profileTab = document.getElementById('dmProfileTab');
+  const btn = document.getElementById('dmAiToggleBtn');
+  if (_dmAiOpen) {
+    panel.classList.add('show');
+    chatPanel.style.display = 'none';
+    if (profileTab) profileTab.classList.remove('show');
+    btn.classList.add('active');
+    // Greet on first open
+    if (_dmAiHistory.length === 0) {
+      _appendDmAiMsg('ai', 'Hi! I\'m hetherGPT. How can I help you?');
+    }
+    setTimeout(() => {
+      const inp = document.getElementById('dmAiInput');
+      if (inp) inp.focus();
+    }, 80);
+  } else {
+    panel.classList.remove('show');
+    chatPanel.style.display = '';
+    btn.classList.remove('active');
+  }
+}
+
+function _appendDmAiMsg(role, text) {
+  const container = document.getElementById('dmAiMessages');
+  if (!container) return;
+  const wrap = document.createElement('div');
+  wrap.className = `dm-ai-msg ${role}`;
+  const av = document.createElement('div');
+  av.className = `dm-ai-avatar${role === 'user' ? ' user-av' : ''}`;
+  av.textContent = role === 'ai' ? 'AI' : '';
+  if (role === 'user') {
+    // Use profile avatar if available
+    if (typeof profile !== 'undefined' && profile.avatarUrl) {
+      av.innerHTML = `<img src="${profile.avatarUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    } else {
+      av.innerHTML = typeof DEFAULT_AVATAR_SVG !== 'undefined' ? DEFAULT_AVATAR_SVG : '';
+    }
+  }
+  const bubble = document.createElement('div');
+  bubble.className = 'dm-ai-bubble';
+  bubble.innerHTML = typeof formatText === 'function' ? formatText(text) : text.replace(/\n/g, '<br>');
+  wrap.appendChild(av);
+  wrap.appendChild(bubble);
+  container.appendChild(wrap);
+  container.scrollTop = container.scrollHeight;
+  return wrap;
+}
+
+function _removeDmAiTyping(el) {
+  if (el && el.parentNode) el.parentNode.removeChild(el);
+}
+
+function _appendDmAiTyping() {
+  const container = document.getElementById('dmAiMessages');
+  if (!container) return null;
+  const wrap = document.createElement('div');
+  wrap.className = 'dm-ai-msg ai';
+  const av = document.createElement('div');
+  av.className = 'dm-ai-avatar';
+  av.textContent = 'AI';
+  const bubble = document.createElement('div');
+  bubble.className = 'dm-ai-bubble';
+  bubble.innerHTML = '<div class="dm-ai-typing"><span></span><span></span><span></span></div>';
+  wrap.appendChild(av);
+  wrap.appendChild(bubble);
+  container.appendChild(wrap);
+  container.scrollTop = container.scrollHeight;
+  return wrap;
+}
+
+async function sendDmAiMessage() {
+  const input = document.getElementById('dmAiInput');
+  const btn = document.getElementById('dmAiSendBtn');
+  if (!input) return;
+  const text = input.value.trim();
+  if (!text || _dmAiTyping) return;
+  _appendDmAiMsg('user', text);
+  _dmAiHistory.push({ role: 'user', content: text });
+  input.value = '';
+  input.style.height = 'auto';
+  btn.disabled = true;
+  _dmAiTyping = true;
+  const typingEl = _appendDmAiTyping();
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: _dmAiHistory })
+    });
+    const data = await res.json();
+    _removeDmAiTyping(typingEl);
+    if (data.error) throw new Error(data.error);
+    const reply = data.reply || 'No response received.';
+    _appendDmAiMsg('ai', reply);
+    _dmAiHistory.push({ role: 'ai', content: reply });
+  } catch (err) {
+    _removeDmAiTyping(typingEl);
+    _appendDmAiMsg('ai', `Error: ${err.message}`);
+  }
+  _dmAiTyping = false;
+  btn.disabled = false;
+}
+
+function dmAiHandleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendDmAiMessage(); }
+}
+
+function autoResizeDmAi(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+// ── AI COMPANION POPUP ──
+let _companionOpen = false;
+let _companionHistory = [];
+let _companionTyping = false;
+
+function toggleCompanion() {
+  _companionOpen ? closeCompanion() : openCompanion();
+}
+
+function openCompanion() {
+  _companionOpen = true;
+  const popup = document.getElementById('companionPopup');
+  const btn = document.getElementById('companionBtn');
+  popup.classList.add('show');
+  btn.classList.add('active');
+  btn.style.color = 'var(--accent)';
+  if (_companionHistory.length === 0) {
+    _appendCompanionMsg('ai', 'Hi! I\'m Hether AI. How can I help you today?');
+  }
+  setTimeout(() => {
+    const inp = document.getElementById('companionInput');
+    if (inp) inp.focus();
+  }, 80);
+}
+
+function closeCompanion() {
+  _companionOpen = false;
+  const popup = document.getElementById('companionPopup');
+  const btn = document.getElementById('companionBtn');
+  popup.classList.remove('show');
+  btn.classList.remove('active');
+  btn.style.color = 'var(--text3)';
+}
+
+function _appendCompanionMsg(role, text) {
+  const container = document.getElementById('companionMessages');
+  if (!container) return;
+  const wrap = document.createElement('div');
+  wrap.className = `companion-msg ${role}`;
+  const av = document.createElement('div');
+  av.className = `companion-avatar${role === 'user' ? ' user-av' : ''}`;
+  if (role === 'ai') {
+    av.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>';
+  } else {
+    if (typeof profile !== 'undefined' && profile.avatarUrl) {
+      av.innerHTML = `<img src="${profile.avatarUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    } else {
+      av.innerHTML = typeof DEFAULT_AVATAR_SVG !== 'undefined' ? DEFAULT_AVATAR_SVG : '';
+    }
+  }
+  const bubble = document.createElement('div');
+  bubble.className = 'companion-bubble';
+  bubble.innerHTML = typeof formatText === 'function' ? formatText(text) : text.replace(/\n/g, '<br>');
+  wrap.appendChild(av);
+  wrap.appendChild(bubble);
+  container.appendChild(wrap);
+  container.scrollTop = container.scrollHeight;
+  return wrap;
+}
+
+function _appendCompanionTyping() {
+  const container = document.getElementById('companionMessages');
+  if (!container) return null;
+  const wrap = document.createElement('div');
+  wrap.className = 'companion-msg ai';
+  const av = document.createElement('div');
+  av.className = 'companion-avatar';
+  av.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>';
+  const bubble = document.createElement('div');
+  bubble.className = 'companion-bubble';
+  bubble.innerHTML = '<div class="companion-typing"><span></span><span></span><span></span></div>';
+  wrap.appendChild(av);
+  wrap.appendChild(bubble);
+  container.appendChild(wrap);
+  container.scrollTop = container.scrollHeight;
+  return wrap;
+}
+
+async function sendCompanionMessage() {
+  const input = document.getElementById('companionInput');
+  const btn = document.getElementById('companionSendBtn');
+  if (!input) return;
+  const text = input.value.trim();
+  if (!text || _companionTyping) return;
+  _appendCompanionMsg('user', text);
+  _companionHistory.push({ role: 'user', content: text });
+  input.value = '';
+  input.style.height = 'auto';
+  btn.disabled = true;
+  _companionTyping = true;
+  const typingEl = _appendCompanionTyping();
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: _companionHistory })
+    });
+    const data = await res.json();
+    if (typingEl && typingEl.parentNode) typingEl.parentNode.removeChild(typingEl);
+    if (data.error) throw new Error(data.error);
+    const reply = data.reply || 'No response received.';
+    _appendCompanionMsg('ai', reply);
+    _companionHistory.push({ role: 'ai', content: reply });
+  } catch (err) {
+    if (typingEl && typingEl.parentNode) typingEl.parentNode.removeChild(typingEl);
+    _appendCompanionMsg('ai', `Error: ${err.message}`);
+  }
+  _companionTyping = false;
+  btn.disabled = false;
+}
+
+function companionHandleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendCompanionMessage(); }
+  if (e.key === 'Escape') { closeCompanion(); }
+}
+
+function autoResizeCompanion(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+}
+
+
 
 // ── BUILD DM CONV LIST ──
 function buildDMConvList() {
