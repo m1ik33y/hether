@@ -2381,6 +2381,31 @@ body {
   height: 100%;
   overflow: hidden;
 }
+/* Chat body + input share one bg layer — header and list excluded */
+.dm-fs-body {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+.dm-fs-body::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url('images/chat_bg.svg');
+  background-repeat: repeat;
+  background-size: 480px auto;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.055;
+}
+[data-theme="dark"] .dm-fs-body::before {
+  filter: invert(1);
+  opacity: 0.045;
+}
+.dm-fs-body > * { position: relative; z-index: 1; }
 .dm-fs-header {
   padding: 14px 16px; border-bottom: 1px solid var(--border);
   display: flex; align-items: center; gap: 10px; background: var(--surface); flex-shrink: 0;
@@ -2416,8 +2441,7 @@ body {
 .dm-fs-input-area { 
   padding: 10px 12px 14px; 
   padding-bottom: max(14px, calc(10px + env(safe-area-inset-bottom, 0px)));
-  background: var(--surface); 
-  border-top: 1px solid var(--border); 
+  background: transparent; 
   flex-shrink: 0;
   /* Never scroll, never bounce */
   overscroll-behavior: none;
@@ -4021,6 +4045,7 @@ body {
       </button>
     </div>
 
+    <div class="dm-fs-body">
     <div class="dm-chat-load-bar" id="dmFsChatLoadBar"><div class="dm-load-bar-fill" id="dmFsChatLoadFill"></div></div>
     <div class="dm-fs-messages" id="dmFsMessages"></div>
 
@@ -4069,6 +4094,7 @@ body {
         </button>
       </div>
     </div>
+    </div><!-- /.dm-fs-body -->
   </div>
 </div>
 
@@ -5361,7 +5387,8 @@ function appendMessage(role, text) {
   div.className = `message ${role}`;
   const bubble = document.createElement('div');
   bubble.className = 'bubble';
-  bubble.innerHTML = formatText(text);
+  const processed = role === 'user' ? text.replace(/(?<![a-zA-Z])[Tt]-[Tt](?![a-zA-Z])/g, '😭') : text;
+  bubble.innerHTML = formatText(processed);
   div.appendChild(bubble);
   msgs.appendChild(div);
   const bubbleHeight = (div.querySelector('.bubble')?.offsetHeight) || div.offsetHeight || 0;
@@ -7104,7 +7131,9 @@ function makeBubbleWrap(msg, isSent, contact, currentUserId) {
   bWrap.dataset.ts = rawTs;
   bWrap.dataset.minuteKey = rawTs ? msgMinuteKey(rawTs, msg.sender_id) : '';
 
-  const msgText = msg.content || msg.text || '';
+  const rawContent = msg.content || msg.text || '';
+  const msgText = rawContent.replace(/(?<![a-zA-Z])[Tt]-[Tt](?![a-zA-Z])/g, '😭');
+  if (msg.content) msg.content = msg.content.replace(/(?<![a-zA-Z])[Tt]-[Tt](?![a-zA-Z])/g, '😭');
   const msgSender = isSent ? 'You' : (contact ? contact.name : 'User');
 
   const replyBtn = document.createElement('button');
@@ -8237,8 +8266,9 @@ async function dmSend(mode) {
   moreBtnOpt.className = 'dm-more-btn'; moreBtnOpt.title = 'More options';
   moreBtnOpt.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>`;
 
+  const displayText = text ? text.replace(/(?<![a-zA-Z])[Tt]-[Tt](?![a-zA-Z])/g, '😭') : text;
   const bubble = document.createElement('div');
-  const optimisticEmojiOnly = isEmojiOnly(text) && !staged;
+  const optimisticEmojiOnly = isEmojiOnly(displayText) && !staged;
   bubble.className = 'dm-bubble' + (optimisticEmojiOnly ? ' dm-bubble-emoji-only' : '') + ' sending';
 
   if (msgReplyTo) {
@@ -8248,7 +8278,7 @@ async function dmSend(mode) {
     bubble.prepend(rp);
   }
 
-  if (text) { const textNode = document.createElement('div'); textNode.textContent = text; bubble.appendChild(textNode); }
+  if (displayText) { const textNode = document.createElement('div'); textNode.textContent = displayText; bubble.appendChild(textNode); }
   const spin = document.createElement('span');
   spin.className = 'dm-sending-icon'; spin.innerHTML = `<div class="dm-sending-spinner"></div>`;
   bubble.appendChild(spin);
