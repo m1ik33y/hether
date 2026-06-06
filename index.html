@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
-    <link rel="icon" type="image/png" href="hether_logo.png">
-  <link rel="icon" type="image/png" href="hether_logo.png">
+    <link rel="icon" type="image/png" href="faviconl.png">
+  <link rel="icon" type="image/png" href="faviconl.png">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hether - Coding Platform </title>
@@ -5182,7 +5182,7 @@ kbd {
       </div>
     </div>
     <div class="pe-field"><div class="pe-label">Display Name</div><input type="text" class="pe-input" id="peDisplayName" placeholder="Your name"></div>
-    <div class="pe-field"><div class="pe-label">Username</div><input type="text" class="pe-input" id="peUsername" placeholder="@username"></div>
+    <div class="pe-field"><div class="pe-label">Username</div><input type="text" class="pe-input" id="peUsername" placeholder="@username" readonly style="cursor:not-allowed;user-select:none;" title="Username cannot be changed"></div>
     <div class="pe-field"><div class="pe-label">Email</div><input type="email" class="pe-input" id="peEmail" placeholder="you@example.com"></div>
     <div class="popup-btns" style="margin-top:4px;">
       <button class="btn-cancel" onclick="closeProfileEdit()">Cancel</button>
@@ -6001,11 +6001,9 @@ document.addEventListener('click', (e) => {
 // ── PROFILE ──
 async function saveProfile() {
   const name = document.getElementById('peDisplayName').value.trim();
-  const username = document.getElementById('peUsername').value.replace('@', '').trim();
   const { data: { user } } = await supabaseClient.auth.getUser();
-  await supabaseClient.from('profiles').update({ username }).eq('id', user.id);
+  await supabaseClient.from('profiles').update({ display_name: name }).eq('id', user.id);
   profile.name = name;
-  profile.username = '@' + username;
   renderProfileEverywhere();
   closeProfileEdit();
 }
@@ -8690,20 +8688,24 @@ async function loadMessages(userId, loadToken) {
       })
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' }, async (payload) => {
         if (activeDmId !== userId) return;
-        // During a bulk clear, confirmClearChat handles the UI — skip per-delete re-renders
         if (_clearingChatForUserId === userId) return;
-        const { data: remaining } = await supabaseClient.from('messages').select('*')
-          .or(`and(sender_id.eq.${user.id},receiver_id.eq.${userId}),and(sender_id.eq.${userId},receiver_id.eq.${user.id})`)
-          .order('created_at', { ascending: true });
-        if (!remaining || remaining.length === 0) { clearChatUI(); }
-        else {
-          remaining.forEach(m => { if (m.id) renderedMsgIds.add(m.id); });
-          const groups = groupMessages(remaining.map(m => ({ ...m, ts: m.created_at })));
-          renderGroupedMessages(msgsEl, groups, user.id, dmDesktopContact);
-          const last = remaining[remaining.length - 1];
-          updateContactLastMsg(userId, last, user.id);
-          buildDMConvList();
+        // Surgically remove just the deleted bubble — no full re-render needed.
+        const deletedId = payload.old?.id;
+        if (deletedId) {
+          const bWrap = msgsEl.querySelector(`.dm-bubble-wrap[data-msg-id="${deletedId}"]`);
+          if (bWrap) {
+            const parentGroup = bWrap.closest('.dm-msg-group');
+            bWrap.remove();
+            if (parentGroup && parentGroup.querySelectorAll('.dm-bubble-wrap').length === 0) parentGroup.remove();
+          }
+          // Already removed optimistically by deleteMessage() — nothing left to do in DOM.
         }
+        // Update the conversation list preview to reflect the new last message.
+        const { data: lastMsg } = await supabaseClient.from('messages').select('*')
+          .or(`and(sender_id.eq.${user.id},receiver_id.eq.${userId}),and(sender_id.eq.${userId},receiver_id.eq.${user.id})`)
+          .order('created_at', { ascending: false }).limit(1).single();
+        if (lastMsg) { updateContactLastMsg(userId, lastMsg, user.id); }
+        else { buildDMConvList(); }
       })
       .subscribe();
     await subscriptionManager.replaceSubscription(channel);
@@ -8945,20 +8947,24 @@ async function loadFsMessages(userId) {
       })
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' }, async (payload) => {
         if (activeDmId !== userId) return;
-        // During a bulk clear, confirmClearChat handles the UI — skip per-delete re-renders
         if (_clearingChatForUserId === userId) return;
-        const { data: remaining } = await supabaseClient.from('messages').select('*')
-          .or(`and(sender_id.eq.${user.id},receiver_id.eq.${userId}),and(sender_id.eq.${userId},receiver_id.eq.${user.id})`)
-          .order('created_at', { ascending: true });
-        if (!remaining || remaining.length === 0) { clearChatUI(); }
-        else {
-          remaining.forEach(m => { if (m.id) renderedMsgIds.add(m.id); });
-          const groups = groupMessages(remaining.map(m => ({ ...m, ts: m.created_at })));
-          renderGroupedMessages(msgsEl, groups, user.id, dmMobileContact);
-          const last = remaining[remaining.length - 1];
-          updateContactLastMsg(userId, last, user.id);
-          buildDMConvList();
+        // Surgically remove just the deleted bubble — no full re-render needed.
+        const deletedId = payload.old?.id;
+        if (deletedId) {
+          const bWrap = msgsEl.querySelector(`.dm-bubble-wrap[data-msg-id="${deletedId}"]`);
+          if (bWrap) {
+            const parentGroup = bWrap.closest('.dm-msg-group');
+            bWrap.remove();
+            if (parentGroup && parentGroup.querySelectorAll('.dm-bubble-wrap').length === 0) parentGroup.remove();
+          }
+          // Already removed optimistically by deleteMessage() — nothing left to do in DOM.
         }
+        // Update the conversation list preview to reflect the new last message.
+        const { data: lastMsg } = await supabaseClient.from('messages').select('*')
+          .or(`and(sender_id.eq.${user.id},receiver_id.eq.${userId}),and(sender_id.eq.${userId},receiver_id.eq.${user.id})`)
+          .order('created_at', { ascending: false }).limit(1).single();
+        if (lastMsg) { updateContactLastMsg(userId, lastMsg, user.id); }
+        else { buildDMConvList(); }
       })
       .subscribe();
     await subscriptionManager.replaceSubscription(channel);
@@ -9270,7 +9276,7 @@ async function dmSend(mode) {
     if (mode === 'mobile') clearDmFsStaging(); else clearDmStaging();
   }
 
-  const text = input.value.trim();
+  const text = input.value.trim().replace(/(?<![a-zA-Z])[Tt]-[Tt](?![a-zA-Z])/g, '😭');
   if ((!text && !staged) || !activeDmId) { input.style.height = 'auto'; return; }
 
   // Lock send button immediately — clear input right away so user knows it's queued
@@ -9310,7 +9316,7 @@ async function dmSend(mode) {
   moreBtnOpt.className = 'dm-more-btn'; moreBtnOpt.title = 'More options';
   moreBtnOpt.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>`;
 
-  const displayText = text ? text.replace(/(?<![a-zA-Z])[Tt]-[Tt](?![a-zA-Z])/g, '😭') : text;
+  const displayText = text;
   const bubble = document.createElement('div');
   const optimisticEmojiOnly = isEmojiOnly(displayText) && !staged;
   bubble.className = 'dm-bubble' + (optimisticEmojiOnly ? ' dm-bubble-emoji-only' : '') + ' sending';
