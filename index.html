@@ -34,6 +34,22 @@
   --scrollbar: #d4d4db;
 }
 
+[data-theme="light"][data-solarized="on"] {
+  --bg: #fdf6e3;
+  --surface: #eee8d5;
+  --surface2: #e2dccb;
+  --border: #cdc7b4;
+  --text: #1a1a18;
+  --text2: #4a4a3e;
+  --text3: #7a7a6a;
+  --accent: #1a1a18;
+  --accent-hover: #333328;
+  --user-bubble: #dde8c0;
+  --ai-bubble: #e8e2d0;
+  --input-bg: #eee8d5;
+  --scrollbar: #cdc7b4;
+}
+
 [data-theme="dark"] {
   --bg: #0e0e10;
   --surface: #18181b;
@@ -520,6 +536,7 @@ body {
   filter: invert(1);
   opacity: 0.06;
 }
+
 .companion-popup > * { position: relative; z-index: 1; }
 
 /* Titlebar */
@@ -998,16 +1015,132 @@ body {
 }
 
 /* ── SETTINGS ── */
-.settings-view { display: none; flex: 1; overflow-y: auto; padding: 32px 40px; }
-.settings-view.show { display: block; }
-.settings-view h1 { font-size: 19px; font-weight: 600; margin-bottom: 24px; letter-spacing: -0.4px; }
-.settings-section { margin-bottom: 28px; }
-.settings-section h3 { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.9px; color: var(--text3); margin-bottom: 10px; }
-.setting-row { display: flex; align-items: center; justify-content: space-between; padding: 13px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 4px; transition: background var(--t); }
+/* ── SETTINGS VIEW ── */
+.settings-view { display: none; flex: 1; overflow: hidden; }
+.settings-view.show { display: flex; flex-direction: row; height: 100%; }
+
+.settings-topbar { display: none; }
+
+.settings-body { display: contents; }
+
+/* Left: category nav — ~30% */
+.settings-nav {
+  width: 28%; flex-shrink: 0;
+  padding: 36px 20px;
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  display: flex; flex-direction: column; gap: 3px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.settings-nav::-webkit-scrollbar { display: none; }
+.settings-nav { scrollbar-width: none; }
+
+.settings-nav-wrap { position: relative; width: 28%; flex-shrink: 0; display: flex; }
+.settings-nav-wrap .settings-nav { width: 100%; }
+.settings-scroll-thumb {
+  position: absolute;
+  right: 3px;
+  width: 3px;
+  height: 270px;
+  background: var(--border);
+  border-radius: 99px;
+  top: 0;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+  z-index: 5;
+}
+.settings-nav-wrap:hover .settings-scroll-thumb,
+.settings-nav-wrap.scrolling .settings-scroll-thumb { opacity: 1; }
+.settings-scroll-thumb:hover { background: var(--text3); }
+.settings-nav-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 13.5px 16px; border-radius: 10px;
+  border: none; background: transparent;
+  color: var(--text); font-family: 'DM Sans', sans-serif;
+  font-size: 14px; font-weight: 450;
+  cursor: pointer; transition: background var(--t), color var(--t);
+  text-align: left; width: 100%;
+}
+.settings-nav-item:hover { background: var(--surface2); color: var(--text); }
+.settings-nav-item.active { background: var(--surface2); color: var(--accent); font-weight: 600; }
+.settings-nav-item svg { width: 16px; height: 16px; flex-shrink: 0; opacity: 0.5; }
+.settings-nav-item:hover svg { opacity: 0.8; }
+.settings-nav-item.active svg { opacity: 1; stroke: var(--accent); }
+
+.settings-nav-title {
+  font-size: 20px; font-weight: 700; color: var(--text);
+  letter-spacing: -0.5px; margin-bottom: 22px; padding: 0 4px;
+}
+.settings-nav-group-label {
+  font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1px; color: var(--text2);
+  padding: 0 4px; margin: 22px 0 5px;
+}
+.settings-nav-group-label:first-of-type { margin-top: 0; }
+
+.settings-search-wrap {
+  position: relative; margin-bottom: 18px;
+}
+.settings-search-wrap svg {
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  width: 15px; height: 15px; pointer-events: none;
+  stroke: var(--text2);
+}
+.settings-search {
+  width: 100%; padding: 11px 14px 11px 36px;
+  border: 1.5px solid var(--border); border-radius: 10px;
+  background: var(--surface); color: var(--text);
+  font-family: 'DM Sans', sans-serif; font-size: 13.5px; font-weight: 450;
+  outline: none; transition: border-color var(--t), box-shadow var(--t);
+}
+.settings-search::placeholder { color: var(--text2); }
+.settings-search:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(102,100,194,0.12);
+}
+
+/* Right: content panel */
+.settings-panel {
+  flex: 1; overflow-y: auto; padding: 36px 48px;
+  display: none; background: var(--bg);
+}
+.settings-panel-inner {
+  max-width: 600px;
+  margin: 0 auto;
+}
+.settings-panel.active { display: block; }
+.settings-panel-title {
+  font-size: 22px; font-weight: 700; color: var(--text);
+  margin-bottom: 30px; letter-spacing: -0.5px;
+}
+.mob-settings-panel-header { display: none; }
+.mob-settings-back-btn { display: none; }
+
+/* Setting rows — clean, no boxing */
+.settings-section { margin-bottom: 34px; }
+.settings-section-label {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1px; color: var(--text2);
+  margin-bottom: 4px; padding: 0 4px;
+}
+.setting-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 15px 4px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0; transition: opacity var(--t);
+  background: transparent; border-radius: 0;
+  border-top: none; border-left: none; border-right: none;
+}
+.settings-section > .setting-row:first-of-type {
+  border-top: 1px solid var(--border);
+}
 .setting-row.clickable { cursor: pointer; }
-.setting-row.clickable:hover { background: var(--surface2); }
-.setting-label { font-size: 13.5px; font-weight: 500; }
-.setting-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+.setting-row.clickable:hover .setting-label { color: var(--accent); }
+.setting-row.clickable:hover svg { stroke: var(--accent); }
+.setting-label { font-size: 14px; font-weight: 500; color: var(--text); transition: color var(--t); }
+.setting-sub { font-size: 12.5px; color: var(--text2); margin-top: 3px; line-height: 1.5; }
 
 .toggle { width: 38px; height: 21px; background: var(--border); border-radius: 11px; position: relative; cursor: pointer; border: none; transition: background var(--t); flex-shrink: 0; }
 .toggle.on { background: var(--accent); }
@@ -1018,6 +1151,60 @@ body {
 .settings-btn:hover { border-color: var(--text2); background: var(--surface2); }
 .settings-btn.danger { border-color: #ef4444; color: #ef4444; }
 .settings-btn.danger:hover { background: rgba(239,68,68,0.07); }
+
+/* ── NEW SETTINGS ELEMENTS ── */
+.settings-select {
+  padding: 6px 28px 6px 10px; border-radius: var(--radius);
+  border: 1px solid var(--border); background: var(--surface2); color: var(--text);
+  font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer;
+  outline: none; transition: border-color var(--t);
+  appearance: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 8px center;
+}
+.settings-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(91,106,240,0.1); }
+[data-theme="dark"] .settings-select { background-color: var(--surface2); }
+
+.settings-textarea {
+  width: 100%; min-height: 80px; padding: 9px 12px;
+  border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--bg); color: var(--text);
+  font-family: 'DM Sans', sans-serif; font-size: 13px; line-height: 1.55;
+  outline: none; resize: vertical; transition: border-color var(--t);
+}
+.settings-textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(91,106,240,0.1); }
+
+.kbd-combo {
+  display: flex; align-items: center; gap: 3px; cursor: pointer; flex-shrink: 0;
+  padding: 3px 6px; border-radius: 6px; transition: background var(--t);
+}
+.kbd-combo:hover { background: var(--surface2); }
+.kbd-combo.rebinding { background: rgba(91,106,240,0.1); border: 1px dashed var(--accent); }
+kbd {
+  display: inline-block; padding: 3px 7px; border-radius: 5px;
+  background: var(--surface2); border: 1px solid var(--border);
+  font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text2);
+  white-space: nowrap; pointer-events: none;
+}
+
+/* High contrast mode */
+[data-high-contrast="on"] {
+  --border: #666;
+  --text2: #bbb;
+}
+[data-high-contrast="on"][data-theme="light"] {
+  --border: #444;
+  --text2: #333;
+}
+
+/* Reduce motion */
+[data-reduce-motion="on"] *, [data-reduce-motion="on"] *::before, [data-reduce-motion="on"] *::after {
+  animation-duration: 0.01ms !important;
+  transition-duration: 0.01ms !important;
+}
+
+/* Focus ring always visible */
+[data-focus-ring="on"] *:focus { outline: 2px solid var(--accent) !important; outline-offset: 2px !important; }
 
 /* ── OVERLAY / POPUP ── */
 .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; align-items: center; justify-content: center; backdrop-filter: blur(2px); animation: fadeIn 0.15s ease; }
@@ -1292,7 +1479,7 @@ body {
 #dmAiInput {
   flex: 1; background: transparent; border: none; outline: none;
   color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13.5px;
-  resize: none; min-height: 32px; max-height: 120px; line-height: 1.55;
+  resize: none; min-height: 32px; max-height: 270px; line-height: 1.55;
   padding: 5px 6px; overflow-y: auto;
   display: block; vertical-align: middle;
 }
@@ -2304,7 +2491,7 @@ body {
 #dmInput {
   flex: 1; background: transparent; border: none; outline: none;
   color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13.5px;
-  resize: none; min-height: 32px; max-height: 120px; line-height: 1.55;
+  resize: none; min-height: 32px; max-height: 270px; line-height: 1.55;
   padding: 5px 6px; overflow-y: auto;
   display: block; vertical-align: middle;
 }
@@ -2682,10 +2869,90 @@ body {
   }
   .messages { padding: 20px 0 8px; }
   .message { padding: 0 14px; }
-  .settings-view {
-    padding: 20px 16px;
+  .settings-view.show { flex-direction: column; position: relative; overflow: hidden; }
+  .settings-body { display: flex; flex-direction: column; width: 100%; height: 100%; overflow: hidden; position: relative; }
+
+  /* Nav: full-screen list */
+  .settings-nav-wrap { width: 100%; position: static; }
+  .settings-scroll-thumb { display: none; }
+  .settings-nav {
+    width: 100%; flex-direction: column; flex-wrap: nowrap; overflow-y: auto; overflow-x: hidden;
+    border-right: none; border-bottom: none;
+    padding: 0; gap: 0; flex-shrink: 0;
+    position: absolute; inset: 0;
+    background: var(--bg);
+    z-index: 1;
+    transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+  }
+  .settings-nav.mob-panel-open { transform: translateX(-100%); }
+  .settings-nav::-webkit-scrollbar { display: none; }
+  .settings-nav { scrollbar-width: none; }
+
+  /* Nav header */
+  .settings-nav-title {
+    display: block !important;
+    font-size: 17px; font-weight: 700; letter-spacing: -0.3px;
+    padding: 18px 18px 10px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0;
+  }
+  .settings-search-wrap { margin: 10px 14px 4px; }
+
+  /* Group labels */
+  .settings-nav-group-label {
+    display: block !important;
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.9px; color: var(--text3);
+    padding: 18px 18px 6px; margin: 0;
+  }
+
+  /* Nav items — full-width rows with chevron */
+  .settings-nav-item {
+    width: 100%; border-radius: 0; padding: 15px 18px;
+    font-size: 14.5px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 13px;
+    white-space: normal;
+    position: relative;
+  }
+
+  .settings-nav-item svg { display: inline-block !important; opacity: 0.55; width: 18px; height: 18px; }
+  .settings-nav-item.active { background: transparent; color: var(--text); font-weight: 500; }
+
+  /* Panel: slides in from right */
+  .settings-panel {
+    position: absolute; inset: 0;
+    background: var(--bg);
+    z-index: 2;
+    transform: translateX(100%);
+    transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+    display: block !important;
+    overflow-y: auto;
+    padding: 0;
     padding-bottom: max(80px, calc(60px + env(safe-area-inset-bottom, 20px)));
   }
+  .settings-panel.active { transform: translateX(0); }
+
+  /* Panel header with back button */
+  .mob-settings-panel-header {
+    display: flex; align-items: center; gap: 6px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    position: sticky; top: 0; z-index: 3;
+  }
+  .mob-settings-back-btn {
+    display: flex; align-items: center; justify-content: center;
+    background: transparent; border: none; cursor: pointer;
+    color: var(--accent); padding: 4px 6px 4px 2px; border-radius: 6px;
+    flex-shrink: 0;
+  }
+  .mob-settings-back-btn:active { background: var(--surface2); }
+  .mob-settings-back-btn svg { width: 22px; height: 22px; }
+  .mob-panel-title { font-size: 16px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
+  .settings-panel-inner { padding: 20px 16px; }
+  .settings-panel-title { display: none !important; }
+  .mob-settings-panel-header { display: flex !important; }
+  .mob-settings-back-btn { display: flex !important; }
   .suggestions { display: none; }
   .welcome-greeting { font-size: 22px !important; letter-spacing: -0.3px !important; }
   .welcome { margin-bottom: 16px; }
@@ -3017,6 +3284,12 @@ body {
 [data-theme="dark"] #dmActiveChatWrap::before {
   filter: invert(1);
   opacity: 0.06;
+}
+[data-theme="light"][data-solarized="on"] #dmActiveChatWrap::before {
+  opacity: 0.08;
+}
+[data-theme="light"][data-solarized="on"] #dmActiveChatWrap {
+  background: var(--surface);
 }
 @media (max-width: 768px) {
   #dmActiveChatWrap::before {
@@ -3643,121 +3916,819 @@ body {
 
   <!-- SETTINGS VIEW -->
   <div class="settings-view" id="settingsView">
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
-      <button class="hamburger" style="display:flex;" onclick="toggleSidebarMobile()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-      </button>
-      <h1 style="margin:0;">Settings</h1>
-    </div>
+    <div class="settings-body">
 
-    <div class="settings-section">
-      <h3>Appearance</h3>
-      <div class="setting-row">
-        <div>
-          <div class="setting-label">Dark Mode</div>
-          <div class="setting-sub">Switch between dark and light theme</div>
-        </div>
-        <button class="toggle" id="themeToggle" onclick="toggleTheme()"></button>
-      </div>
-    </div>
+      <!-- Left nav -->
+      <div class="settings-nav-wrap" id="settingsNavWrap"><nav class="settings-nav" id="settingsNav">
+        <div class="settings-nav-title">Settings</div>
 
-    <div class="settings-section">
-      <h3>Chat</h3>
-      <div class="setting-row">
-        <div>
-          <div class="setting-label">Clear history</div>
-          <div class="setting-sub">Remove all saved messages from this device</div>
+        <div class="settings-search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input class="settings-search" type="text" placeholder="Search settings…" oninput="filterSettingsNav(this.value)" autocomplete="off" spellcheck="false">
         </div>
-        <button class="settings-btn danger" onclick="clearHistory()">Clear</button>
-      </div>
-    </div>
 
-    <div class="settings-section">
-      <h3>Data &amp; Storage</h3>
-      <div class="setting-row">
-        <div>
-          <div class="setting-label">Local storage usage</div>
-          <div class="setting-sub" id="storageUsageText">Calculating…</div>
+        <div class="settings-nav-group-label">Preferences</div>
+        <button class="settings-nav-item active" onclick="showSettingsPanel('appearance', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+          Appearance
+        </button>
+        <button class="settings-nav-item" onclick="showSettingsPanel('notifications', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          Notifications
+        </button>
+        <button class="settings-nav-item" onclick="showSettingsPanel('accessibility', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="4" r="2"/><path d="m6.5 8 5.5 1 5.5-1M12 9v5M9 22l1.5-4M15 22l-1.5-4"/></svg>
+          Accessibility
+        </button>
+        <div class="settings-nav-group-label">AI &amp; Chat</div>
+        <button class="settings-nav-item" onclick="showSettingsPanel('chat', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Chat &amp; AI
+        </button>
+        <button class="settings-nav-item" onclick="showSettingsPanel('editor', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          Code Editor
+        </button>
+        <button class="settings-nav-item" onclick="showSettingsPanel('keybindings', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M7 16h10"/></svg>
+          Key Bindings
+        </button>
+        <button class="settings-nav-item" onclick="showSettingsPanel('snippets-settings', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/><line x1="12" y1="2" x2="12" y2="22" stroke-dasharray="3,2"/></svg>
+          Snippets
+        </button>
+
+        <div class="settings-nav-group-label">Hether AI</div>
+        <button class="settings-nav-item" onclick="showSettingsPanel('ai-behavior', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+          AI Behavior
+        </button>
+        <button class="settings-nav-item" onclick="showSettingsPanel('ai-persona', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          AI Persona
+        </button>
+        <button class="settings-nav-item" onclick="showSettingsPanel('ai-memory', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+          AI Memory
+        </button>
+
+        <div class="settings-nav-group-label">Privacy &amp; Data</div>
+        <button class="settings-nav-item" onclick="showSettingsPanel('privacy', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Privacy
+        </button>
+        <button class="settings-nav-item" onclick="showSettingsPanel('data', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+          Data &amp; Storage
+        </button>
+
+        <div class="settings-nav-group-label">Account</div>
+        <button class="settings-nav-item" onclick="showSettingsPanel('security', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Security
+        </button>
+        <button class="settings-nav-item" onclick="showSettingsPanel('sessions', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          Sessions &amp; Devices
+        </button>
+        <button class="settings-nav-item" onclick="showSettingsPanel('about', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          About
+        </button>
+
+        <div class="settings-nav-group-label">Advanced</div>
+        <button class="settings-nav-item" onclick="showSettingsPanel('performance', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Performance
+        </button>
+        <button class="settings-nav-item" onclick="showSettingsPanel('network', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="2" width="6" height="6" rx="1"/><rect x="16" y="16" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><path d="M12 8v3M5 16v-3a7 7 0 0 1 14 0v3"/></svg>
+          Network &amp; Sync
+        </button>
+      </nav><div class="settings-scroll-thumb" id="settingsScrollThumb"></div></div>
+
+      <!-- ── APPEARANCE ── -->
+      <div class="settings-panel active" id="panel-appearance">
+        <div class="mob-settings-panel-header">
+          <button class="mob-settings-back-btn" onclick="mobSettingsBack()" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+          <span class="mob-panel-title">Appearance</span>
         </div>
-        <button class="settings-btn" onclick="calcStorageUsage()">Refresh</button>
-      </div>
-      <div class="setting-row clickable" onclick="exportData()">
-        <div>
-          <div class="setting-label">Export my data</div>
-          <div class="setting-sub">Download notes and chat history as JSON</div>
-        </div>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-      </div>
-      <div class="setting-row">
-        <div>
-          <div class="setting-label">Clear all local data</div>
-          <div class="setting-sub">Wipes notes, history, and preferences from this device</div>
-        </div>
-        <button class="settings-btn danger" onclick="clearAllData()">Wipe</button>
-      </div>
-      <div class="setting-row">
-        <div>
-          <div class="setting-label">Ghost Mode
-            <span style="display:inline-flex;align-items:center;gap:4px;margin-left:6px;padding:2px 7px;border-radius:20px;background:rgba(245,39,101,0.1);border:1px solid rgba(245,39,101,0.25);font-size:10px;font-weight:600;color:#F52765;letter-spacing:0.4px;vertical-align:middle;">BETA</span>
+        <div class="settings-panel-inner">
+          <div class="settings-panel-title">Appearance</div>
+
+          <div class="settings-section">
+            <div class="settings-section-label">Theme</div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Dark Mode</div>
+                <div class="setting-sub">Switch between light and dark interface</div>
+              </div>
+              <button class="toggle" id="themeToggle" onclick="toggleTheme()"></button>
+            </div>
+            <div class="setting-row" id="solarizedRow">
+              <div>
+                <div class="setting-label" style="display:flex;align-items:center;gap:8px;">
+                  Solarized Light
+                  <span style="padding:2px 7px;border-radius:20px;background:rgba(101,163,13,0.1);border:1px solid rgba(101,163,13,0.3);font-size:10px;font-weight:600;color:#65a30d;letter-spacing:0.4px;">EYE CARE</span>
+                </div>
+                <div class="setting-sub" id="solarizedSub">Warm off-white palette — easier on the eyes during long sessions</div>
+              </div>
+              <button class="toggle" id="solarizedToggle" onclick="toggleSolarized()"></button>
+            </div>
           </div>
-          <div class="setting-sub" style="margin-top:3px;">Chats in HetherGPT are not stored permanently. Currently in development, and some features may not function.</div>
-        </div>
-        <button class="toggle" id="ghostModeToggle" onclick="toggleGhostMode()"></button>
-      </div>
-    </div>
 
-    <div class="settings-section">
-      <h3>Administration</h3>
-      <div class="setting-row clickable" onclick="openAdminPopup()">
-        <div>
-          <div class="setting-label">Admin Key <span style="font-size:12px;color:var(--text3);font-weight:400;">(Authorized Personnel Only)</span></div>
-          <div class="setting-sub">Restricted access — requires valid credentials</div>
+          <div class="settings-section">
+            <div class="settings-section-label">Layout</div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Compact Mode</div>
+                <div class="setting-sub">Reduce spacing and padding across the interface</div>
+              </div>
+              <button class="toggle" id="compactToggle" onclick="toggleSetting('compact')"></button>
+            </div>
+          </div>
         </div>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
-    </div>
 
-    <div class="settings-section">
-      <h3>Notifications</h3>
-      <div class="setting-row">
-        <div>
-          <div class="setting-label">Notifications</div>
-          <div class="setting-sub">Receive notifications about Hether updates.</div>
+      <!-- ── NOTIFICATIONS ── -->
+      <div class="settings-panel" id="panel-notifications">
+        <div class="mob-settings-panel-header">
+          <button class="mob-settings-back-btn" onclick="mobSettingsBack()" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+          <span class="mob-panel-title">Notifications</span>
         </div>
-        <button class="toggle" id="notificationsToggle" onclick="toggleNotifications()"></button>
-      </div>
-    </div>
+        <div class="settings-panel-inner">
+          <div class="settings-panel-title">Notifications</div>
 
-    <div class="settings-section">
-      <h3>About</h3>
-      <div class="setting-row">
-        <div>
-          <div class="setting-label">hether</div>
-          <div class="setting-sub">Version 1.0.0 — AI assistant &amp; messaging platform</div>
+          <div class="settings-section">
+            <div class="settings-section-label">Alerts</div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Push Notifications</div>
+                <div class="setting-sub">Receive notifications about Hether updates and activity</div>
+              </div>
+              <button class="toggle" id="notificationsToggle" onclick="toggleNotifications()"></button>
+            </div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Sound</div>
+                <div class="setting-sub">Play a sound for incoming messages and alerts</div>
+              </div>
+              <button class="toggle" id="soundToggle" onclick="toggleSound()"></button>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="setting-row clickable" onclick="showModal('privacy')">
-        <div>
-          <div class="setting-label">Privacy Policy</div>
-          <div class="setting-sub">How we handle your data</div>
+
+      <!-- ── CHAT & AI ── -->
+      <div class="settings-panel" id="panel-chat">
+        <div class="mob-settings-panel-header">
+          <button class="mob-settings-back-btn" onclick="mobSettingsBack()" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+          <span class="mob-panel-title">Chat &amp; AI</span>
         </div>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-      </div>
-      <div class="setting-row clickable" onclick="showModal('terms')">
-        <div>
-          <div class="setting-label">Terms of Service</div>
-          <div class="setting-sub">Rules and usage guidelines</div>
+        <div class="settings-panel-inner">
+          <div class="settings-panel-title">Chat &amp; AI</div>
+
+          <div class="settings-section">
+            <div class="settings-section-label">Behavior</div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Save chat history</div>
+                <div class="setting-sub">Store conversations locally on this device</div>
+              </div>
+              <button class="toggle" id="saveChatToggle" onclick="toggleSetting('saveChat')"></button>
+            </div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Send on Enter</div>
+                <div class="setting-sub">Press Enter to send; Shift+Enter for new line</div>
+              </div>
+              <button class="toggle" id="enterSendToggle" onclick="toggleSetting('enterSend')"></button>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-section-label">History</div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Clear chat history</div>
+                <div class="setting-sub">Remove all saved AI conversations from this device</div>
+              </div>
+              <button class="settings-btn danger" onclick="clearHistory()">Clear</button>
+            </div>
+          </div>
         </div>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
-      <div class="setting-row clickable" onclick="showModal('security')">
-        <div>
-          <div class="setting-label">Security Information</div>
-          <div class="setting-sub">How your data is protected</div>
+
+      <!-- ── CODE EDITOR ── -->
+      <div class="settings-panel" id="panel-editor">
+        <div class="mob-settings-panel-header">
+          <button class="mob-settings-back-btn" onclick="mobSettingsBack()" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+          <span class="mob-panel-title">Code Editor</span>
         </div>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        <div class="settings-panel-inner">
+          <div class="settings-panel-title">Code Editor</div>
+
+          <div class="settings-section">
+            <div class="settings-section-label">Preferences</div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Auto-save</div>
+                <div class="setting-sub">Automatically save editor content as you type</div>
+              </div>
+              <button class="toggle" id="autosaveToggle" onclick="toggleSetting('autosave')"></button>
+            </div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Line numbers</div>
+                <div class="setting-sub">Show line numbers in the code editor gutter</div>
+              </div>
+              <button class="toggle" id="lineNumbersToggle" onclick="toggleSetting('lineNumbers')"></button>
+            </div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Word wrap</div>
+                <div class="setting-sub">Wrap long lines instead of scrolling horizontally</div>
+              </div>
+              <button class="toggle" id="wordWrapToggle" onclick="toggleSetting('wordWrap')"></button>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+
+      <!-- ── PRIVACY ── -->
+      <div class="settings-panel" id="panel-privacy">
+        <div class="mob-settings-panel-header">
+          <button class="mob-settings-back-btn" onclick="mobSettingsBack()" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+          <span class="mob-panel-title">Privacy</span>
+        </div>
+        <div class="settings-panel-inner">
+          <div class="settings-panel-title">Privacy</div>
+
+          <div class="settings-section">
+            <div class="settings-section-label">Session</div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Ghost Mode
+                  <span style="display:inline-flex;align-items:center;gap:4px;margin-left:6px;padding:2px 7px;border-radius:20px;background:rgba(245,39,101,0.1);border:1px solid rgba(245,39,101,0.25);font-size:10px;font-weight:600;color:#F52765;letter-spacing:0.4px;vertical-align:middle;">BETA</span>
+                </div>
+                <div class="setting-sub">Chats in HetherGPT are not stored permanently. Some features may not function.</div>
+              </div>
+              <button class="toggle" id="ghostModeToggle" onclick="toggleGhostMode()"></button>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-section-label">Legal</div>
+            <div class="setting-row clickable" onclick="showModal('privacy')">
+              <div>
+                <div class="setting-label">Privacy Policy</div>
+                <div class="setting-sub">How we collect, use, and protect your data</div>
+              </div>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+            <div class="setting-row clickable" onclick="showModal('terms')">
+              <div>
+                <div class="setting-label">Terms of Service</div>
+                <div class="setting-sub">Rules and usage guidelines for Hether</div>
+              </div>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── DATA & STORAGE ── -->
+      <div class="settings-panel" id="panel-data">
+        <div class="mob-settings-panel-header">
+          <button class="mob-settings-back-btn" onclick="mobSettingsBack()" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+          <span class="mob-panel-title">Data &amp; Storage</span>
+        </div>
+        <div class="settings-panel-inner">
+          <div class="settings-panel-title">Data &amp; Storage</div>
+
+          <div class="settings-section">
+            <div class="settings-section-label">Usage</div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Local storage usage</div>
+                <div class="setting-sub" id="storageUsageText">Calculating…</div>
+              </div>
+              <button class="settings-btn" onclick="calcStorageUsage()">Refresh</button>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-section-label">Export</div>
+            <div class="setting-row clickable" onclick="exportData()">
+              <div>
+                <div class="setting-label">Export my data</div>
+                <div class="setting-sub">Download your notes and chat history as a JSON file</div>
+              </div>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-section-label">Danger Zone</div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Clear all local data</div>
+                <div class="setting-sub">Permanently wipe notes, history, and preferences from this device</div>
+              </div>
+              <button class="settings-btn danger" onclick="clearAllData()">Wipe</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SECURITY ── -->
+      <div class="settings-panel" id="panel-security">
+        <div class="mob-settings-panel-header">
+          <button class="mob-settings-back-btn" onclick="mobSettingsBack()" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+          <span class="mob-panel-title">Security</span>
+        </div>
+        <div class="settings-panel-inner">
+          <div class="settings-panel-title">Security</div>
+
+          <div class="settings-section">
+            <div class="settings-section-label">Access</div>
+            <div class="setting-row clickable" onclick="openAdminPopup()">
+              <div>
+                <div class="setting-label">Admin Key <span style="font-size:12px;color:var(--text3);font-weight:400;">(Authorized Personnel Only)</span></div>
+                <div class="setting-sub">Restricted access — requires valid credentials</div>
+              </div>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-section-label">Information</div>
+            <div class="setting-row clickable" onclick="showModal('security')">
+              <div>
+                <div class="setting-label">Security Information</div>
+                <div class="setting-sub">How your data is encrypted and protected</div>
+              </div>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ABOUT ── -->
+      <div class="settings-panel" id="panel-about">
+        <div class="mob-settings-panel-header">
+          <button class="mob-settings-back-btn" onclick="mobSettingsBack()" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+          <span class="mob-panel-title">About</span>
+        </div>
+        <div class="settings-panel-inner">
+          <div class="settings-panel-title">About</div>
+
+          <div class="settings-section">
+            <div class="settings-section-label">App</div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">hether</div>
+                <div class="setting-sub">Version 1.0.0 — AI assistant &amp; coding platform</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── KEY BINDINGS ── -->
+      <div class="settings-panel" id="panel-keybindings">
+        <div class="mob-settings-panel-header">
+          <button class="mob-settings-back-btn" onclick="mobSettingsBack()" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+          <span class="mob-panel-title">Key Bindings</span>
+        </div>
+        <div class="settings-panel-inner">
+          <div class="settings-panel-title">Key Bindings</div>
+
+          <div class="settings-section">
+            <div class="settings-section-label">Editor Actions</div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Run code</div>
+                <div class="setting-sub">Execute the current file or selection</div>
+              </div>
+              <div class="kbd-combo" id="kbRunDisplay" onclick="startRebind('kbRun', this)">
+                <kbd id="kbRunLabel">Ctrl+Enter</kbd>
+              </div>
+            </div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Format code</div>
+                <div class="setting-sub">Auto-indent and format the current file</div>
+              </div>
+              <div class="kbd-combo" id="kbFormatDisplay" onclick="startRebind('kbFormat', this)">
+                <kbd id="kbFormatLabel">Alt+Shift+F</kbd>
+              </div>
+            </div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Save file</div>
+                <div class="setting-sub">Save the current editor file</div>
+              </div>
+              <div class="kbd-combo" id="kbSaveDisplay" onclick="startRebind('kbSave', this)">
+                <kbd id="kbSaveLabel">Ctrl+S</kbd>
+              </div>
+            </div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Toggle comment</div>
+                <div class="setting-sub">Comment or uncomment the selected lines</div>
+              </div>
+              <div class="kbd-combo" id="kbCommentDisplay" onclick="startRebind('kbComment', this)">
+                <kbd id="kbCommentLabel">Ctrl+/</kbd>
+              </div>
+            </div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Find in file</div>
+                <div class="setting-sub">Open the in-editor search bar</div>
+              </div>
+              <div class="kbd-combo" id="kbFindDisplay" onclick="startRebind('kbFind', this)">
+                <kbd id="kbFindLabel">Ctrl+F</kbd>
+              </div>
+            </div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Duplicate line</div>
+                <div class="setting-sub">Copy the current line below</div>
+              </div>
+              <div class="kbd-combo" id="kbDupDisplay" onclick="startRebind('kbDup', this)">
+                <kbd id="kbDupLabel">Ctrl+D</kbd>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-section-label">Navigation</div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Go to line</div>
+                <div class="setting-sub">Jump to a specific line number</div>
+              </div>
+              <div class="kbd-combo" id="kbGotoDisplay" onclick="startRebind('kbGoto', this)">
+                <kbd id="kbGotoLabel">Ctrl+G</kbd>
+              </div>
+            </div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Switch view</div>
+                <div class="setting-sub">Cycle between editor, chat, and notes</div>
+              </div>
+              <div class="kbd-combo" id="kbSwitchDisplay" onclick="startRebind('kbSwitch', this)">
+                <kbd id="kbSwitchLabel">Ctrl+Tab</kbd>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-section-label">Reset</div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Reset all key bindings</div>
+                <div class="setting-sub">Restore all shortcuts to their default values</div>
+              </div>
+              <button class="settings-btn danger" onclick="resetKeybindings()">Reset</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SNIPPETS SETTINGS ── -->
+      <div class="settings-panel" id="panel-snippets-settings">
+        <div class="mob-settings-panel-header">
+          <button class="mob-settings-back-btn" onclick="mobSettingsBack()" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+          <span class="mob-panel-title">Snippets</span>
+        </div>
+        <div class="settings-panel-inner">
+          <div class="settings-panel-title">Snippets</div>
+
+          <div class="settings-section">
+            <div class="settings-section-label">Display</div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Show language badges</div>
+                <div class="setting-sub">Display the language tag on each snippet card</div>
+              </div>
+              <button class="toggle" id="snippetBadgesToggle" onclick="toggleSetting('snippetBadges')"></button>
+            </div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Syntax highlighting</div>
+                <div class="setting-sub">Apply color-coding inside snippet previews</div>
+              </div>
+              <button class="toggle" id="snippetHighlightToggle" onclick="toggleSetting('snippetHighlight')"></button>
+            </div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Compact snippet cards</div>
+                <div class="setting-sub">Reduce the preview height of each snippet</div>
+              </div>
+              <button class="toggle" id="snippetCompactToggle" onclick="toggleSetting('snippetCompact')"></button>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-section-label">Behavior</div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Copy on single click</div>
+                <div class="setting-sub">Click a snippet to instantly copy it to clipboard</div>
+              </div>
+              <button class="toggle" id="snippetClickCopyToggle" onclick="toggleSetting('snippetClickCopy')"></button>
+            </div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Open in editor on double-click</div>
+                <div class="setting-sub">Double-clicking a snippet loads it into the code editor</div>
+              </div>
+              <button class="toggle" id="snippetDoubleOpenToggle" onclick="toggleSetting('snippetDoubleOpen')"></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── AI BEHAVIOR ── -->
+      <div class="settings-panel" id="panel-ai-behavior">
+        <div class="mob-settings-panel-header">
+          <button class="mob-settings-back-btn" onclick="mobSettingsBack()" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+          <span class="mob-panel-title">AI Behavior</span>
+        </div>
+        <div class="settings-panel-inner">
+          <div class="settings-panel-title">AI Behavior</div>
+
+          <div class="settings-section">
+            <div class="settings-section-label">Chat</div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Save chat history</div>
+                <div class="setting-sub">Store conversations locally on this device</div>
+              </div>
+              <button class="toggle" id="saveChatToggle2" onclick="toggleSettingDup('saveChat', this)"></button>
+            </div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Send on Enter</div>
+                <div class="setting-sub">Press Enter to send; Shift+Enter for new line</div>
+              </div>
+              <button class="toggle" id="enterSendToggle2" onclick="toggleSettingDup('enterSend', this)"></button>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-section-label">History</div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Clear chat history</div>
+                <div class="setting-sub">Remove all saved AI conversations from this device</div>
+              </div>
+              <button class="settings-btn danger" onclick="clearHistory()">Clear</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── AI PERSONA ── -->
+      <div class="settings-panel" id="panel-ai-persona">
+        <div class="mob-settings-panel-header">
+          <button class="mob-settings-back-btn" onclick="mobSettingsBack()" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+          <span class="mob-panel-title">AI Persona</span>
+        </div>
+        <div class="settings-panel-inner">
+          <div class="settings-panel-title">AI Persona</div>
+
+          <div class="settings-section">
+            <div class="settings-section-label">Custom Instructions</div>
+            <div class="setting-row" style="flex-direction:column;align-items:flex-start;gap:8px;">
+              <div>
+                <div class="setting-label">System prompt</div>
+                <div class="setting-sub">Custom instructions saved locally — copy these into your AI messages manually or pass them to your backend</div>
+              </div>
+              <textarea class="settings-textarea" id="aiSystemPrompt" placeholder="e.g. Always respond in Python. Prefer functional style." oninput="saveTextareaSetting('aiSystemPrompt', this.value)"></textarea>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-section-label">Welcome Greeting</div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Personalized greeting</div>
+                <div class="setting-sub">Show your name in the welcome message on new chats</div>
+              </div>
+              <button class="toggle" id="personalGreetToggle" onclick="togglePersonalGreet()"></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── AI MEMORY ── -->
+      <div class="settings-panel" id="panel-ai-memory">
+        <div class="mob-settings-panel-header">
+          <button class="mob-settings-back-btn" onclick="mobSettingsBack()" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+          <span class="mob-panel-title">AI Memory</span>
+        </div>
+        <div class="settings-panel-inner">
+          <div class="settings-panel-title">AI Memory</div>
+
+          <div class="settings-section">
+            <div class="settings-section-label">Stored Memory</div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Memory entries</div>
+                <div class="setting-sub" id="aiMemoryCountText">Calculating…</div>
+              </div>
+              <button class="settings-btn" onclick="calcAiMemoryCount()">Refresh</button>
+            </div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Clear AI memory</div>
+                <div class="setting-sub">Erase everything Hether AI has remembered about you</div>
+              </div>
+              <button class="settings-btn danger" onclick="clearAiMemory()">Clear</button>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-section-label">Notes</div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Notes count</div>
+                <div class="setting-sub" id="aiNotesCountText">Calculating…</div>
+              </div>
+              <button class="settings-btn" onclick="calcNotesCount()">Refresh</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ACCESSIBILITY ── -->
+      <div class="settings-panel" id="panel-accessibility">
+        <div class="mob-settings-panel-header">
+          <button class="mob-settings-back-btn" onclick="mobSettingsBack()" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+          <span class="mob-panel-title">Accessibility</span>
+        </div>
+        <div class="settings-panel-inner">
+          <div class="settings-panel-title">Accessibility</div>
+
+          <div class="settings-section">
+            <div class="settings-section-label">Visual</div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Font size</div>
+                <div class="setting-sub">Adjust base text size across the interface</div>
+              </div>
+              <select class="settings-select" id="a11yFontSize" onchange="applyFontSize(this.value)">
+                <option value="13">Small (13px)</option>
+                <option value="14" selected>Default (14px)</option>
+                <option value="16">Large (16px)</option>
+                <option value="18">Extra Large (18px)</option>
+              </select>
+            </div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">High contrast mode</div>
+                <div class="setting-sub">Increase border and text contrast for readability</div>
+              </div>
+              <button class="toggle" id="highContrastToggle" onclick="toggleHighContrast()"></button>
+            </div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Reduce motion</div>
+                <div class="setting-sub">Disable animations and transitions throughout the app</div>
+              </div>
+              <button class="toggle" id="reduceMotionToggle" onclick="toggleReduceMotion()"></button>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-section-label">Input</div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Focus ring always visible</div>
+                <div class="setting-sub">Always show keyboard focus outlines on interactive elements</div>
+              </div>
+              <button class="toggle" id="focusRingToggle" onclick="toggleFocusRing()"></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SESSIONS & DEVICES ── -->
+      <div class="settings-panel" id="panel-sessions">
+        <div class="mob-settings-panel-header">
+          <button class="mob-settings-back-btn" onclick="mobSettingsBack()" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+          <span class="mob-panel-title">Sessions &amp; Devices</span>
+        </div>
+        <div class="settings-panel-inner">
+          <div class="settings-panel-title">Sessions &amp; Devices</div>
+
+          <div class="settings-section">
+            <div class="settings-section-label">Active Session</div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Current device</div>
+                <div class="setting-sub" id="sessionDeviceText">Detecting…</div>
+              </div>
+              <span style="font-size:11px;padding:3px 8px;border-radius:20px;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.3);color:#22c55e;font-weight:600;">Active</span>
+            </div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Session started</div>
+                <div class="setting-sub" id="sessionStartText">—</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-section-label">Sign Out</div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Sign out of this session</div>
+                <div class="setting-sub">End your current session on this device</div>
+              </div>
+              <button class="settings-btn danger" onclick="logOut()">Sign out</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PERFORMANCE ── -->
+      <div class="settings-panel" id="panel-performance">
+        <div class="mob-settings-panel-header">
+          <button class="mob-settings-back-btn" onclick="mobSettingsBack()" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+          <span class="mob-panel-title">Performance</span>
+        </div>
+        <div class="settings-panel-inner">
+          <div class="settings-panel-title">Performance</div>
+
+          <div class="settings-section">
+            <div class="settings-section-label">Rendering</div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Animate message bubbles</div>
+                <div class="setting-sub">Slide-in animation for new chat messages</div>
+              </div>
+              <button class="toggle" id="msgAnimToggle" onclick="toggleMsgAnim()"></button>
+            </div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Background blur effects</div>
+                <div class="setting-sub">Enable frosted-glass blur on overlays and popups</div>
+              </div>
+              <button class="toggle" id="blurEffectsToggle" onclick="toggleBlurEffects()"></button>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-section-label">Diagnostics</div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Memory usage</div>
+                <div class="setting-sub" id="perfMemText">Calculating…</div>
+              </div>
+              <button class="settings-btn" onclick="calcPerfStats()">Refresh</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── NETWORK & SYNC ── -->
+      <div class="settings-panel" id="panel-network">
+        <div class="mob-settings-panel-header">
+          <button class="mob-settings-back-btn" onclick="mobSettingsBack()" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+          <span class="mob-panel-title">Network &amp; Sync</span>
+        </div>
+        <div class="settings-panel-inner">
+          <div class="settings-panel-title">Network &amp; Sync</div>
+
+          <div class="settings-section">
+            <div class="settings-section-label">Connection</div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Connection status</div>
+                <div class="setting-sub" id="networkStatusText">Click Check to test</div>
+              </div>
+              <button class="settings-btn" onclick="checkNetworkStatus()">Check</button>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-section-label">Cache</div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Clear network cache</div>
+                <div class="setting-sub">Remove cached API responses and media thumbnails</div>
+              </div>
+              <button class="settings-btn" onclick="clearNetworkCache()">Clear</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end settings-body -->
   </div>
 
   <!-- MODAL for Privacy / Terms / Security -->
@@ -5088,6 +6059,14 @@ function initTheme() {
   document.documentElement.setAttribute('data-theme', saved);
   const t = document.getElementById('themeToggle');
   if (t) t.classList.toggle('on', saved === 'dark');
+  const isDark = saved === 'dark';
+  const solOn = localStorage.getItem('hether_solarized') === 'on';
+  if (solOn && !isDark) {
+    document.documentElement.setAttribute('data-solarized', 'on');
+  }
+  const sb = document.getElementById('solarizedToggle');
+  if (sb) sb.classList.toggle('on', solOn && !isDark);
+  _updateSolarizedRow(isDark);
 }
 function toggleTheme() {
   const html = document.documentElement;
@@ -5096,6 +6075,46 @@ function toggleTheme() {
   html.setAttribute('data-theme', next);
   localStorage.setItem('hether_theme', next);
   document.getElementById('themeToggle').classList.toggle('on', next === 'dark');
+  if (next === 'dark') {
+    html.removeAttribute('data-solarized');
+    const sb = document.getElementById('solarizedToggle');
+    if (sb) sb.classList.remove('on');
+  } else {
+    if (localStorage.getItem('hether_solarized') === 'on') {
+      html.setAttribute('data-solarized', 'on');
+      const sb = document.getElementById('solarizedToggle');
+      if (sb) sb.classList.add('on');
+    }
+  }
+  _updateSolarizedRow(next === 'dark');
+}
+function toggleSolarized() {
+  const html = document.documentElement;
+  if (html.getAttribute('data-theme') === 'dark') return;
+  const btn = document.getElementById('solarizedToggle');
+  const isOn = btn.classList.contains('on');
+  btn.classList.toggle('on', !isOn);
+  if (!isOn) {
+    html.setAttribute('data-solarized', 'on');
+    localStorage.setItem('hether_solarized', 'on');
+  } else {
+    html.removeAttribute('data-solarized');
+    localStorage.setItem('hether_solarized', 'off');
+  }
+}
+function _updateSolarizedRow(isDark) {
+  const row = document.getElementById('solarizedRow');
+  const sub = document.getElementById('solarizedSub');
+  if (!row) return;
+  if (isDark) {
+    row.style.opacity = '0.35';
+    row.style.pointerEvents = 'none';
+    if (sub) sub.textContent = 'Only available in light mode';
+  } else {
+    row.style.opacity = '';
+    row.style.pointerEvents = '';
+    if (sub) sub.textContent = 'Warm off-white palette — easier on the eyes during long sessions';
+  }
 }
 initTheme();
 
@@ -5194,6 +6213,7 @@ setupSidebarHover();
 
 // ── VIEWS ──
 function showView(view) {
+  const prevView = currentView;
   currentView = view;
   const views = ['chat','settings','notes','code','snippets','history'];
   views.forEach(v => {
@@ -5207,7 +6227,22 @@ function showView(view) {
   Object.entries(navMap).forEach(([v, id]) => { const el = document.getElementById(id); if (el) el.classList.toggle('active', view === v); });
   if (view === 'notes') renderNotesList();
   if (view === 'history') renderHistoryList();
-  if (view === 'settings') calcStorageUsage();
+  if (view === 'settings') {
+    calcStorageUsage();
+    const alreadyInSettings = prevView === 'settings';
+    if (!alreadyInSettings) {
+      if (window.innerWidth <= 768) {
+        // Mobile: reset to nav list view
+        const nav = document.getElementById('settingsNav');
+        if (nav) nav.classList.remove('mob-panel-open');
+        document.querySelectorAll('.settings-panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.settings-nav-item').forEach(b => b.classList.remove('active'));
+      } else {
+        // Desktop: default to appearance tab
+        showSettingsPanel('appearance', document.querySelector('.settings-nav-item[onclick*="appearance"]'));
+      }
+    }
+  }
   if (view === 'snippets') renderSnippets();
   if (isMobile()) hideSidebar();
 }
@@ -6764,6 +7799,9 @@ function fixSeenLabels(container) { /* seen UI removed */ }
 // Returns true if the string contains only emoji characters (and whitespace)
 function isEmojiOnly(str) {
   if (!str || !str.trim()) return false;
+  // Reject if the string contains any digit or ASCII letter — numbers like "42"
+  // are Emoji_Component chars but should always render as text with a bubble.
+  if (/[0-9a-zA-Z]/.test(str.trim())) return false;
   // Strip all emoji sequences; if nothing remains the string is emoji-only
   const emojiRegex = /^(\p{Emoji_Presentation}|\p{Extended_Pictographic}|\uFE0F|\u200D|\p{Emoji_Modifier}|\p{Emoji_Modifier_Base}|\uFE0E|\p{Emoji_Component}|\s)+$/u;
   return emojiRegex.test(str.trim());
@@ -7599,6 +8637,7 @@ async function loadMessages(userId, loadToken) {
         if (!isForThis) return;
         if (renderedMsgIds.has(newMsg.id)) return;
         renderedMsgIds.add(newMsg.id);
+        _maybePlayMessageSound(newMsg.sender_id, user.id);
         if (activeDmId === userId) {
           // FIX 2: instead of full reload, smartly append into correct group
           appendIncomingMessage(msgsEl, newMsg, user.id, dmDesktopContact);
@@ -7856,6 +8895,7 @@ async function loadFsMessages(userId) {
         if (!isForThis) return;
         if (renderedMsgIds.has(newMsg.id)) return;
         renderedMsgIds.add(newMsg.id);
+        _maybePlayMessageSound(newMsg.sender_id, user.id);
         if (activeDmId === userId) {
           appendIncomingMessage(msgsEl, newMsg, user.id, dmMobileContact);
           updateContactLastMsg(userId, newMsg, user.id);
@@ -9744,16 +10784,309 @@ function toggleSetting(key) {
   const isOn = btn.classList.contains('on');
   btn.classList.toggle('on', !isOn);
   localStorage.setItem('hether_setting_' + key, !isOn ? 'on' : 'off');
+  const btn2 = document.getElementById(key + 'Toggle2');
+  if (btn2) btn2.classList.toggle('on', !isOn);
+}
+// For duplicate toggle buttons (id ends in 2) — syncs both buttons
+function toggleSettingDup(key, el) {
+  const isOn = el.classList.contains('on');
+  el.classList.toggle('on', !isOn);
+  localStorage.setItem('hether_setting_' + key, !isOn ? 'on' : 'off');
+  const primary = document.getElementById(key + 'Toggle');
+  if (primary) primary.classList.toggle('on', !isOn);
+}
+
+function filterSettingsNav(query) {
+  const q = query.trim().toLowerCase();
+  const nav = document.getElementById('settingsNav');
+  const items = nav.querySelectorAll('.settings-nav-item');
+  const groupLabels = nav.querySelectorAll('.settings-nav-group-label');
+
+  if (!q) {
+    items.forEach(i => i.style.display = '');
+    groupLabels.forEach(l => l.style.display = '');
+    return;
+  }
+
+  // Hide/show items
+  items.forEach(i => {
+    const match = i.textContent.trim().toLowerCase().includes(q);
+    i.style.display = match ? '' : 'none';
+  });
+
+  // Hide group labels that have no visible items after them
+  groupLabels.forEach(label => {
+    let next = label.nextElementSibling;
+    let hasVisible = false;
+    while (next && !next.classList.contains('settings-nav-group-label')) {
+      if (next.classList.contains('settings-nav-item') && next.style.display !== 'none') {
+        hasVisible = true; break;
+      }
+      next = next.nextElementSibling;
+    }
+    label.style.display = hasVisible ? '' : 'none';
+  });
+}
+
+function showSettingsPanel(id, btn) {
+  document.querySelectorAll('.settings-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.settings-nav-item').forEach(b => b.classList.remove('active'));
+  const panel = document.getElementById('panel-' + id);
+  if (panel) panel.classList.add('active');
+  if (btn) btn.classList.add('active');
+  // Mobile: slide panel in and nav out
+  const nav = document.getElementById('settingsNav');
+  if (nav && window.innerWidth <= 768) {
+    nav.classList.add('mob-panel-open');
+    if (panel) panel.scrollTop = 0;
+  }
+}
+
+function mobSettingsBack() {
+  const nav = document.getElementById('settingsNav');
+  if (nav) nav.classList.remove('mob-panel-open');
+  // Deactivate all panels on mobile so none peek through
+  document.querySelectorAll('.settings-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.settings-nav-item').forEach(b => b.classList.remove('active'));
+}
+
+// ── SETTINGS: SELECTS & TEXTAREAS ──
+function saveSelectSetting(key, value) {
+  localStorage.setItem('hether_select_' + key, value);
+}
+function saveTextareaSetting(key, value) {
+  localStorage.setItem('hether_textarea_' + key, value);
+}
+
+// ── SETTINGS: KEYBINDINGS ──
+const _kbDefaults = {
+  kbRun: 'Ctrl+Enter', kbFormat: 'Alt+Shift+F', kbSave: 'Ctrl+S',
+  kbComment: 'Ctrl+/', kbFind: 'Ctrl+F', kbDup: 'Ctrl+D',
+  kbGoto: 'Ctrl+G', kbSwitch: 'Ctrl+Tab'
+};
+let _rebindingKey = null;
+let _rebindListener = null;
+
+function _loadKeybindings() {
+  Object.entries(_kbDefaults).forEach(([k, def]) => {
+    const saved = localStorage.getItem('hether_kb_' + k) || def;
+    const lbl = document.getElementById(k + 'Label');
+    if (lbl) lbl.textContent = saved;
+  });
+}
+
+function startRebind(key, el) {
+  if (_rebindingKey) cancelRebind();
+  _rebindingKey = key;
+  el.classList.add('rebinding');
+  el.querySelector('kbd').textContent = 'Press keys…';
+  _rebindListener = function(e) {
+    e.preventDefault(); e.stopPropagation();
+    if (e.key === 'Escape') { cancelRebind(); return; }
+    const parts = [];
+    if (e.ctrlKey || e.metaKey) parts.push('Ctrl');
+    if (e.altKey) parts.push('Alt');
+    if (e.shiftKey) parts.push('Shift');
+    const k = e.key.length === 1 ? e.key.toUpperCase() : e.key;
+    if (!['Control','Alt','Shift','Meta'].includes(e.key)) parts.push(k);
+    if (parts.length === 0) return;
+    const combo = parts.join('+');
+    localStorage.setItem('hether_kb_' + key, combo);
+    el.querySelector('kbd').textContent = combo;
+    el.classList.remove('rebinding');
+    document.removeEventListener('keydown', _rebindListener, true);
+    _rebindingKey = null; _rebindListener = null;
+  };
+  document.addEventListener('keydown', _rebindListener, true);
+}
+
+function cancelRebind() {
+  if (_rebindListener) document.removeEventListener('keydown', _rebindListener, true);
+  if (_rebindingKey) {
+    const el = document.getElementById(_rebindingKey + 'Display');
+    if (el) {
+      el.classList.remove('rebinding');
+      const saved = localStorage.getItem('hether_kb_' + _rebindingKey) || _kbDefaults[_rebindingKey];
+      el.querySelector('kbd').textContent = saved;
+    }
+    _rebindingKey = null; _rebindListener = null;
+  }
+}
+
+function resetKeybindings() {
+  if (!confirm('Reset all key bindings to defaults?')) return;
+  Object.entries(_kbDefaults).forEach(([k, def]) => {
+    localStorage.removeItem('hether_kb_' + k);
+    const lbl = document.getElementById(k + 'Label');
+    if (lbl) lbl.textContent = def;
+  });
+}
+
+// ── SETTINGS: AI MEMORY ──
+function calcAiMemoryCount() {
+  const keys = Object.keys(localStorage).filter(k => k.startsWith('hether_aimem_'));
+  const el = document.getElementById('aiMemoryCountText');
+  if (el) el.textContent = keys.length + ' stored entr' + (keys.length === 1 ? 'y' : 'ies');
+}
+function clearAiMemory() {
+  if (!confirm('Clear all AI memory? This cannot be undone.')) return;
+  Object.keys(localStorage).filter(k => k.startsWith('hether_aimem_')).forEach(k => localStorage.removeItem(k));
+  calcAiMemoryCount();
+}
+function calcNotesCount() {
+  const notes = JSON.parse(localStorage.getItem('hether_notes') || '[]');
+  const el = document.getElementById('aiNotesCountText');
+  if (el) el.textContent = notes.length + ' note' + (notes.length === 1 ? '' : 's') + ' stored locally';
+}
+
+// ── SETTINGS: AI PERSONA ──
+function togglePersonalGreet() {
+  const btn = document.getElementById('personalGreetToggle');
+  if (!btn) return;
+  const isOn = btn.classList.contains('on');
+  btn.classList.toggle('on', !isOn);
+  localStorage.setItem('hether_setting_personalGreet', !isOn ? 'on' : 'off');
+  setWelcomeGreeting(); // re-run greeting with new pref
+}
+
+// ── SETTINGS: ACCESSIBILITY ──
+function applyFontSize(size, silent) {
+  document.documentElement.style.fontSize = size + 'px';
+  if (!silent) localStorage.setItem('hether_select_a11yFontSize', size);
+}
+function toggleHighContrast() {
+  const html = document.documentElement;
+  const on = html.getAttribute('data-high-contrast') === 'on';
+  html.setAttribute('data-high-contrast', on ? 'off' : 'on');
+  localStorage.setItem('hether_setting_highContrast', on ? 'off' : 'on');
+  const btn = document.getElementById('highContrastToggle');
+  if (btn) btn.classList.toggle('on', !on);
+}
+function toggleReduceMotion() {
+  const html = document.documentElement;
+  const on = html.getAttribute('data-reduce-motion') === 'on';
+  html.setAttribute('data-reduce-motion', on ? 'off' : 'on');
+  localStorage.setItem('hether_setting_reduceMotion', on ? 'off' : 'on');
+  const btn = document.getElementById('reduceMotionToggle');
+  if (btn) btn.classList.toggle('on', !on);
+}
+function toggleFocusRing() {
+  const html = document.documentElement;
+  const on = html.getAttribute('data-focus-ring') === 'on';
+  html.setAttribute('data-focus-ring', on ? 'off' : 'on');
+  localStorage.setItem('hether_setting_focusRing', on ? 'off' : 'on');
+  const btn = document.getElementById('focusRingToggle');
+  if (btn) btn.classList.toggle('on', !on);
+}
+
+// ── SETTINGS: PERFORMANCE ──
+function calcPerfStats() {
+  const el = document.getElementById('perfMemText');
+  if (!el) return;
+  if (performance && performance.memory) {
+    const mb = (performance.memory.usedJSHeapSize / 1048576).toFixed(1);
+    el.textContent = mb + ' MB JS heap used';
+  } else {
+    el.textContent = 'Memory info not available in this browser';
+  }
+}
+function toggleMsgAnim() {
+  const btn = document.getElementById('msgAnimToggle');
+  const isOn = btn.classList.contains('on');
+  btn.classList.toggle('on', !isOn);
+  localStorage.setItem('hether_setting_msgAnim', !isOn ? 'on' : 'off');
+  // Inject or remove a style override
+  let styleEl = document.getElementById('_msgAnimStyle');
+  if (!styleEl) { styleEl = document.createElement('style'); styleEl.id = '_msgAnimStyle'; document.head.appendChild(styleEl); }
+  styleEl.textContent = isOn ? '@keyframes msgIn { from{} to{} }' : '';
+}
+function toggleBlurEffects() {
+  const btn = document.getElementById('blurEffectsToggle');
+  const isOn = btn.classList.contains('on');
+  btn.classList.toggle('on', !isOn);
+  localStorage.setItem('hether_setting_blurEffects', !isOn ? 'on' : 'off');
+  let styleEl = document.getElementById('_blurStyle');
+  if (!styleEl) { styleEl = document.createElement('style'); styleEl.id = '_blurStyle'; document.head.appendChild(styleEl); }
+  styleEl.textContent = isOn ? '.overlay{backdrop-filter:none!important;} .companion-popup::before{display:none!important;}' : '';
+}
+
+// ── SETTINGS: NETWORK ──
+function checkNetworkStatus() {
+  const el = document.getElementById('networkStatusText');
+  if (!el) return;
+  el.textContent = navigator.onLine ? '✓ Connected to the internet' : '✗ No internet connection detected';
+}
+
+function clearNetworkCache() {
+  if ('caches' in window) {
+    caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k)))).then(() => {
+      alert('Network cache cleared.');
+    });
+  } else {
+    alert('Cache API not available in this browser.');
+  }
 }
 
 function initSettings() {
-  const keys = ['compact', 'saveChat', 'enterSend', 'sound'];
-  const defaults = { saveChat: 'on', enterSend: 'on' };
+  const keys = ['compact', 'saveChat', 'enterSend', 'autosave', 'lineNumbers', 'wordWrap',
+    'snippetBadges','snippetHighlight','snippetCompact','snippetClickCopy','snippetDoubleOpen',
+    'highContrast','reduceMotion','focusRing',
+    'msgAnim','blurEffects','personalGreet'
+  ];
+  const defaults = { saveChat: 'on', enterSend: 'on', lineNumbers: 'on', msgAnim: 'on', blurEffects: 'on', personalGreet: 'on' };
   keys.forEach(key => {
     const val = localStorage.getItem('hether_setting_' + key) || defaults[key] || 'off';
     const btn = document.getElementById(key + 'Toggle');
     if (btn) btn.classList.toggle('on', val === 'on');
+    // Sync duplicate toggles (e.g. saveChatToggle2 mirrors saveChatToggle)
+    const btn2 = document.getElementById(key + 'Toggle2');
+    if (btn2) btn2.classList.toggle('on', val === 'on');
   });
+
+  // Restore textarea
+  const sp = document.getElementById('aiSystemPrompt');
+  if (sp) sp.value = localStorage.getItem('hether_textarea_aiSystemPrompt') || '';
+
+  // Restore keybindings
+  _loadKeybindings();
+
+  // Fill session info
+  const devEl = document.getElementById('sessionDeviceText');
+  if (devEl) devEl.textContent = navigator.userAgent.includes('Mobile') ? 'Mobile browser' : 'Desktop browser — ' + (navigator.platform || 'unknown OS');
+  const sessEl = document.getElementById('sessionStartText');
+  if (sessEl) {
+    const st = sessionStorage.getItem('hether_session_start') || (() => { const n = Date.now().toString(); sessionStorage.setItem('hether_session_start', n); return n; })();
+    sessEl.textContent = new Date(parseInt(st)).toLocaleString();
+  }
+
+  // Restore font size
+  const fsSaved = localStorage.getItem('hether_select_a11yFontSize');
+  if (fsSaved) { applyFontSize(fsSaved, true); const el = document.getElementById('a11yFontSize'); if (el) el.value = fsSaved; }
+
+  // Restore high contrast
+  if (localStorage.getItem('hether_setting_highContrast') === 'on') document.documentElement.setAttribute('data-high-contrast', 'on');
+
+  // Restore reduce motion
+  if (localStorage.getItem('hether_setting_reduceMotion') === 'on') document.documentElement.setAttribute('data-reduce-motion', 'on');
+
+  // Restore focus ring
+  if (localStorage.getItem('hether_setting_focusRing') === 'on') document.documentElement.setAttribute('data-focus-ring', 'on');
+
+  // Restore blur/anim suppression
+  if (localStorage.getItem('hether_setting_msgAnim') === 'off') {
+    let s = document.getElementById('_msgAnimStyle');
+    if (!s) { s = document.createElement('style'); s.id = '_msgAnimStyle'; document.head.appendChild(s); }
+    s.textContent = '@keyframes msgIn { from{} to{} }';
+  }
+  if (localStorage.getItem('hether_setting_blurEffects') === 'off') {
+    let s = document.getElementById('_blurStyle');
+    if (!s) { s = document.createElement('style'); s.id = '_blurStyle'; document.head.appendChild(s); }
+    s.textContent = '.overlay{backdrop-filter:none!important;} .companion-popup::before{display:none!important;}';
+  }
+
+  // AI memory count
+  calcAiMemoryCount();
+  calcNotesCount();
 }
 initSettings();
 
@@ -11050,14 +12383,51 @@ async function toggleGhostMode() {
 
 // ── NOTIFICATIONS (admin unread title badge) ──
 let _notificationsEnabled = false; // default off (mirrors DB default=false)
+let _soundEnabled = false;         // default off (mirrors DB default=false)
+
+// ── LOW BLIP SOUND (Discord-style warm blip) ──
+const _notifAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function _playLowBlip() {
+  try {
+    if (_notifAudioCtx.state === 'suspended') _notifAudioCtx.resume();
+    const o = _notifAudioCtx.createOscillator();
+    const g = _notifAudioCtx.createGain();
+    const f = _notifAudioCtx.createBiquadFilter();
+    f.type = 'lowpass'; f.frequency.value = 1000;
+    o.type = 'sine';
+    o.frequency.setValueAtTime(480, _notifAudioCtx.currentTime);
+    g.gain.setValueAtTime(0, _notifAudioCtx.currentTime);
+    g.gain.linearRampToValueAtTime(0.32, _notifAudioCtx.currentTime + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.001, _notifAudioCtx.currentTime + 0.008 + 0.12);
+    const o2 = _notifAudioCtx.createOscillator();
+    const g2 = _notifAudioCtx.createGain();
+    o2.type = 'sine'; o2.frequency.value = 580;
+    g2.gain.setValueAtTime(0, _notifAudioCtx.currentTime + 0.14);
+    g2.gain.linearRampToValueAtTime(0.28, _notifAudioCtx.currentTime + 0.148);
+    g2.gain.exponentialRampToValueAtTime(0.001, _notifAudioCtx.currentTime + 0.148 + 0.18);
+    o.connect(f); f.connect(g); g.connect(_notifAudioCtx.destination);
+    o2.connect(g2); g2.connect(_notifAudioCtx.destination);
+    o.start(); o.stop(_notifAudioCtx.currentTime + 0.15);
+    o2.start(_notifAudioCtx.currentTime + 0.14); o2.stop(_notifAudioCtx.currentTime + 0.35);
+  } catch(e) {}
+}
+
+// Play sound only if notifications AND sound are both enabled, and the message is incoming (not from self)
+function _maybePlayMessageSound(senderId, currentUserId) {
+  if (!_notificationsEnabled || !_soundEnabled) return;
+  if (senderId === currentUserId) return; // don't play for own messages
+  _playLowBlip();
+}
 
 async function loadNotifications() {
   try {
     const { data: { user } } = await supabaseClient.auth.getUser();
     if (!user) return;
-    const { data } = await supabaseClient.from('profiles').select('notifications').eq('id', user.id).single();
+    const { data } = await supabaseClient.from('profiles').select('notifications, sound').eq('id', user.id).single();
     _notificationsEnabled = data?.notifications === true;
+    _soundEnabled = _notificationsEnabled ? (data?.sound === true) : false;
     _syncNotificationsToggleUI();
+    _syncSoundToggleUI();
   } catch(e) {}
 }
 
@@ -11067,9 +12437,32 @@ function _syncNotificationsToggleUI() {
   if (!_notificationsEnabled) document.title = 'Hether - Coding Platform';
 }
 
+function _syncSoundToggleUI() {
+  const btn = document.getElementById('soundToggle');
+  // Sound toggle is disabled/greyed when notifications are off
+  if (btn) {
+    btn.classList.toggle('on', _soundEnabled);
+    btn.disabled = !_notificationsEnabled;
+    btn.style.opacity = _notificationsEnabled ? '' : '0.4';
+    btn.style.cursor = _notificationsEnabled ? '' : 'not-allowed';
+  }
+}
+
 async function toggleNotifications() {
   _notificationsEnabled = !_notificationsEnabled;
+  // If turning notifications off, force sound off too
+  if (!_notificationsEnabled && _soundEnabled) {
+    _soundEnabled = false;
+    try {
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      if (user) await supabaseClient.from('profiles').update({ notifications: false, sound: false }).eq('id', user.id);
+    } catch(e) {}
+    _syncNotificationsToggleUI();
+    _syncSoundToggleUI();
+    return;
+  }
   _syncNotificationsToggleUI();
+  _syncSoundToggleUI();
   try {
     const { data: { user } } = await supabaseClient.auth.getUser();
     if (!user) return;
@@ -11077,6 +12470,22 @@ async function toggleNotifications() {
   } catch(e) {
     _notificationsEnabled = !_notificationsEnabled;
     _syncNotificationsToggleUI();
+    _syncSoundToggleUI();
+  }
+}
+
+async function toggleSound() {
+  // Sound can only be toggled if notifications are on
+  if (!_notificationsEnabled) return;
+  _soundEnabled = !_soundEnabled;
+  _syncSoundToggleUI();
+  try {
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if (!user) return;
+    await supabaseClient.from('profiles').update({ sound: _soundEnabled }).eq('id', user.id);
+  } catch(e) {
+    _soundEnabled = !_soundEnabled;
+    _syncSoundToggleUI();
   }
 }
 
@@ -11468,6 +12877,44 @@ function mobRenderThemePicker() {
 
   // Expose so openFsChat can trigger it
   window._dmApplyKeyboardLayout = applyLayout;
+})();
+</script>
+
+
+
+<script>
+(function() {
+  const THUMB_H = 270;
+  let scrollTimer;
+
+  function initSettingsScrollbar() {
+    const nav = document.getElementById('settingsNav');
+    const wrap = document.getElementById('settingsNavWrap');
+    const thumb = document.getElementById('settingsScrollThumb');
+    if (!nav || !wrap || !thumb) return;
+
+    function update() {
+      const scrollable = nav.scrollHeight - nav.clientHeight;
+      if (scrollable <= 0) return;
+      const trackH = nav.clientHeight;
+      const ratio = nav.scrollTop / scrollable;
+      const maxTop = trackH - THUMB_H;
+      thumb.style.top = (ratio * maxTop) + 'px';
+      wrap.classList.add('scrolling');
+      clearTimeout(scrollTimer);
+      scrollTimer = setTimeout(() => wrap.classList.remove('scrolling'), 900);
+    }
+
+    nav.addEventListener('scroll', update, { passive: true });
+    new ResizeObserver(update).observe(nav);
+    update();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initSettingsScrollbar);
+  } else {
+    initSettingsScrollbar();
+  }
 })();
 </script>
 
