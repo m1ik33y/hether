@@ -12417,11 +12417,13 @@ function _playLowBlip() {
   } catch(e) {}
 }
 
-// Play sound only if admin panel is open, notifications AND sound are both enabled, and the message is incoming (not from self)
+// Play sound only if: DM panel is open, notifications+sound enabled, message is incoming,
+// AND the user is not already actively focused on that sender's chat.
 function _maybePlayMessageSound(senderId, currentUserId) {
   if (!dmOpen) return; // admin panel must be open
   if (!_notificationsEnabled || !_soundEnabled) return;
   if (senderId === currentUserId) return; // don't play for own messages
+  if (_isChatVisibleFor(senderId)) return; // already live in this chat — no sound needed
   _playLowBlip();
 }
 
