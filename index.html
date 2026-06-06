@@ -12423,13 +12423,14 @@ function _playLowBlip() {
   }
 }
 
-// Play sound only if: DM panel is open, notifications+sound enabled, message is incoming,
-// AND the user is not already actively focused on that sender's chat.
+// Play sound unless: actively looking at that exact person's chat right now.
+// All other cases (different DM selected, switched tabs, no DM open, etc.) → play.
 function _maybePlayMessageSound(senderId, currentUserId) {
   if (!dmOpen) return; // admin panel must be open
   if (!_notificationsEnabled || !_soundEnabled) return;
   if (senderId === currentUserId) return; // don't play for own messages
-  if (_isChatVisibleFor(senderId)) return; // already live in this chat — no sound needed
+  // Only suppress if: this sender is the active DM AND tab is focused AND DM panel is visible
+  if (activeDmId === senderId && document.hasFocus() && document.visibilityState === 'visible' && _isDMPanelOpen()) return;
   _playLowBlip();
 }
 
