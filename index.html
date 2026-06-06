@@ -12393,28 +12393,34 @@ let _soundEnabled = false;         // default off (mirrors DB default=false)
 // ── LOW BLIP SOUND (Discord-style warm blip) ──
 const _notifAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
 function _playLowBlip() {
-  try {
-    if (_notifAudioCtx.state === 'suspended') _notifAudioCtx.resume();
-    const o = _notifAudioCtx.createOscillator();
-    const g = _notifAudioCtx.createGain();
-    const f = _notifAudioCtx.createBiquadFilter();
-    f.type = 'lowpass'; f.frequency.value = 1000;
-    o.type = 'sine';
-    o.frequency.setValueAtTime(480, _notifAudioCtx.currentTime);
-    g.gain.setValueAtTime(0, _notifAudioCtx.currentTime);
-    g.gain.linearRampToValueAtTime(0.32, _notifAudioCtx.currentTime + 0.008);
-    g.gain.exponentialRampToValueAtTime(0.001, _notifAudioCtx.currentTime + 0.008 + 0.12);
-    const o2 = _notifAudioCtx.createOscillator();
-    const g2 = _notifAudioCtx.createGain();
-    o2.type = 'sine'; o2.frequency.value = 580;
-    g2.gain.setValueAtTime(0, _notifAudioCtx.currentTime + 0.14);
-    g2.gain.linearRampToValueAtTime(0.28, _notifAudioCtx.currentTime + 0.148);
-    g2.gain.exponentialRampToValueAtTime(0.001, _notifAudioCtx.currentTime + 0.148 + 0.18);
-    o.connect(f); f.connect(g); g.connect(_notifAudioCtx.destination);
-    o2.connect(g2); g2.connect(_notifAudioCtx.destination);
-    o.start(); o.stop(_notifAudioCtx.currentTime + 0.15);
-    o2.start(_notifAudioCtx.currentTime + 0.14); o2.stop(_notifAudioCtx.currentTime + 0.35);
-  } catch(e) {}
+  const _doPlay = () => {
+    try {
+      const o = _notifAudioCtx.createOscillator();
+      const g = _notifAudioCtx.createGain();
+      const f = _notifAudioCtx.createBiquadFilter();
+      f.type = 'lowpass'; f.frequency.value = 1000;
+      o.type = 'sine';
+      o.frequency.setValueAtTime(480, _notifAudioCtx.currentTime);
+      g.gain.setValueAtTime(0, _notifAudioCtx.currentTime);
+      g.gain.linearRampToValueAtTime(0.32, _notifAudioCtx.currentTime + 0.008);
+      g.gain.exponentialRampToValueAtTime(0.001, _notifAudioCtx.currentTime + 0.008 + 0.12);
+      const o2 = _notifAudioCtx.createOscillator();
+      const g2 = _notifAudioCtx.createGain();
+      o2.type = 'sine'; o2.frequency.value = 580;
+      g2.gain.setValueAtTime(0, _notifAudioCtx.currentTime + 0.14);
+      g2.gain.linearRampToValueAtTime(0.28, _notifAudioCtx.currentTime + 0.148);
+      g2.gain.exponentialRampToValueAtTime(0.001, _notifAudioCtx.currentTime + 0.148 + 0.18);
+      o.connect(f); f.connect(g); g.connect(_notifAudioCtx.destination);
+      o2.connect(g2); g2.connect(_notifAudioCtx.destination);
+      o.start(); o.stop(_notifAudioCtx.currentTime + 0.15);
+      o2.start(_notifAudioCtx.currentTime + 0.14); o2.stop(_notifAudioCtx.currentTime + 0.35);
+    } catch(e) {}
+  };
+  if (_notifAudioCtx.state === 'suspended') {
+    _notifAudioCtx.resume().then(_doPlay).catch(() => {});
+  } else {
+    _doPlay();
+  }
 }
 
 // Play sound only if: DM panel is open, notifications+sound enabled, message is incoming,
