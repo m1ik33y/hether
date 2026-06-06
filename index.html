@@ -6855,6 +6855,7 @@ async function openDM() {
           const msg = payload.new;
           // Skip only if the per-chat channel will handle it AND the user can actually see it
           if (msg.sender_id === activeDmId && _isChatVisibleFor(msg.sender_id)) return;
+          _maybePlayMessageSound(msg.sender_id, user.id);
           const contact = dmContacts.find(c => c.id === msg.sender_id);
           if (contact) {
             contact.unread = true;
@@ -8642,7 +8643,6 @@ async function loadMessages(userId, loadToken) {
         if (!isForThis) return;
         if (renderedMsgIds.has(newMsg.id)) return;
         renderedMsgIds.add(newMsg.id);
-        _maybePlayMessageSound(newMsg.sender_id, user.id);
         if (activeDmId === userId) {
           // FIX 2: instead of full reload, smartly append into correct group
           appendIncomingMessage(msgsEl, newMsg, user.id, dmDesktopContact);
@@ -8900,7 +8900,6 @@ async function loadFsMessages(userId) {
         if (!isForThis) return;
         if (renderedMsgIds.has(newMsg.id)) return;
         renderedMsgIds.add(newMsg.id);
-        _maybePlayMessageSound(newMsg.sender_id, user.id);
         if (activeDmId === userId) {
           appendIncomingMessage(msgsEl, newMsg, user.id, dmMobileContact);
           updateContactLastMsg(userId, newMsg, user.id);
