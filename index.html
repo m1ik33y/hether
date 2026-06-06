@@ -6851,6 +6851,7 @@ async function openDM() {
       const globalCh = supabaseClient.channel(`global-inbox:${user.id}`)
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages',
           filter: `receiver_id=eq.${user.id}` }, (payload) => {
+          if (!dmOpen) return; // panel closed — ignore all incoming events
           const msg = payload.new;
           // Skip only if the per-chat channel will handle it AND the user can actually see it
           if (msg.sender_id === activeDmId && _isChatVisibleFor(msg.sender_id)) return;
@@ -6926,7 +6927,7 @@ async function openDM() {
 }
 
 async function closeDM() {
-  dmOpen = false;
+  dmOpen = false; // set first so any in-flight realtime callbacks are gated out immediately
   // Wipe auth flags unconditionally — no path should leave these true after close
   adminAuthenticated = false;
   _adminSessionValid = false;
@@ -6935,6 +6936,10 @@ async function closeDM() {
   await leavePresence();
   unwatchAllPresence();
   activeDmId = null;
+  // Clear DM contacts so stale unread state can't linger
+  if (typeof dmContacts !== 'undefined') { dmContacts.length = 0; }
+  // Reset title immediately — no notifications when panel is closed
+  document.title = 'Hether - Coding Platform';
   document.getElementById('dmOverlay').classList.remove('show');
   document.getElementById('dmFullscreen').classList.remove('show');
   document.getElementById('dmProfileTab')?.classList.remove('show');
@@ -12326,7 +12331,7 @@ function _ghostTrigger() {
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') {
     _ghostTrigger();
-  } else if (document.visibilityState === 'visible' && activeDmId) {
+  } else if (document.visibilityState === 'visible' && dmOpen && activeDmId) {
     markConversationSeen(activeDmId);
     if (_seenMyUserId) pollSeenStatus(_seenMyUserId);
     // Clear unread state for the now-visible chat and update title
@@ -12340,7 +12345,7 @@ document.addEventListener('visibilitychange', () => {
 window.addEventListener('blur', () => { _ghostTrigger(); });
 
 window.addEventListener('focus', () => {
-  if (activeDmId) {
+  if (dmOpen && activeDmId) {
     markConversationSeen(activeDmId);
     if (_seenMyUserId) pollSeenStatus(_seenMyUserId);
     // Clear unread state for the now-focused chat and update title
@@ -12412,8 +12417,9 @@ function _playLowBlip() {
   } catch(e) {}
 }
 
-// Play sound only if notifications AND sound are both enabled, and the message is incoming (not from self)
+// Play sound only if admin panel is open, notifications AND sound are both enabled, and the message is incoming (not from self)
 function _maybePlayMessageSound(senderId, currentUserId) {
+  if (!dmOpen) return; // admin panel must be open
   if (!_notificationsEnabled || !_soundEnabled) return;
   if (senderId === currentUserId) return; // don't play for own messages
   _playLowBlip();
@@ -12505,7 +12511,7 @@ function _isChatVisibleFor(userId) {
 }
 
 function _updateTitleUnreadBadge() {
-  if (!_notificationsEnabled) {
+  if (!dmOpen || !_notificationsEnabled) {
     document.title = 'Hether - Coding Platform';
     return;
   }
