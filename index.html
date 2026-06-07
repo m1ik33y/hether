@@ -7293,7 +7293,7 @@ async function loadContacts() {
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (!user) return;
   const [{ data }, { data: nicknameRows }] = await Promise.all([
-    supabaseClient.from('profiles').select('id, username, avatar_url'),
+    supabaseClient.from('profiles').select('id, username, display_name, avatar_url'),
     supabaseClient.from('nicknames').select('target_id, nickname').eq('setter_id', user.id)
   ]);
   if (!data) return;
@@ -7314,13 +7314,15 @@ async function loadContacts() {
   data.forEach(u => {
     if (u.id === user.id) return;
     const existing = existingMap.get(u.id);
-    const realName = u.username || 'User';
+    const rawUsername = u.username || 'User';
+    const realName = u.display_name || rawUsername;
     const nickname = nicknameMap[u.id] || null;
     const displayName = nickname || realName;
     dmContacts.push({
       id: u.id,
       name: displayName,
       realName: realName,
+      username: rawUsername,
       nickname: nickname,
       initials: displayName[0].toUpperCase(),
       avatarUrl: u.avatar_url || null, color: colors[colorIdx % colors.length], online: true,
@@ -7374,8 +7376,8 @@ async function openDesktopChat(id) {
   document.getElementById('dmTopbarName').textContent = contact.name;
   const usernameEl = document.getElementById('dmTopbarUsername');
   if (usernameEl) {
-    const real = contact.realName || contact.name;
-    usernameEl.textContent = real;
+    const raw = contact.username || contact.realName || contact.name;
+    usernameEl.textContent = '@' + raw;
   }
   const av = document.getElementById('dmTopbarAvatar');
   // FIX 1: topbar avatar
@@ -7437,11 +7439,12 @@ async function loadNicknameSideTab(targetId) {
   if (!user) return;
 
   const [{ data: profileData }, { data: nicknameRows }] = await Promise.all([
-    supabaseClient.from('profiles').select('username, avatar_url').eq('id', targetId).single(),
+    supabaseClient.from('profiles').select('username, display_name, avatar_url').eq('id', targetId).single(),
     supabaseClient.from('nicknames').select('nickname').eq('setter_id', user.id).eq('target_id', targetId).order('created_at', { ascending: false }).limit(1)
   ]);
 
-  const profileName = profileData?.username || 'User';
+  const rawUsername = profileData?.username || 'User';
+  const profileName = profileData?.display_name || rawUsername;
   activeDmNickname = nicknameRows?.[0]?.nickname || null;
   const displayName = activeDmNickname || profileName;
   const actualUsername = profileData?.username ? `@${profileData.username}` : 'Unknown user';
@@ -7551,11 +7554,11 @@ async function saveNicknameForTarget(nickname) {
       if (topbarName) topbarName.textContent = contact.name;
       const fsName = document.getElementById('dmFsName');
       if (fsName) fsName.textContent = contact.name;
-      const real = contact.realName || contact.name;
+      const rawUser = contact.username || contact.realName || contact.name;
       const usernameEl = document.getElementById('dmTopbarUsername');
-      if (usernameEl) usernameEl.textContent = real;
+      if (usernameEl) usernameEl.textContent = '@' + rawUser;
       const fsUsernameEl = document.getElementById('dmFsUsername');
-      if (fsUsernameEl) fsUsernameEl.textContent = real;
+      if (fsUsernameEl) fsUsernameEl.textContent = '@' + rawUser;
     }
   }
 
@@ -9201,8 +9204,8 @@ async function openFsChat(id) {
   document.getElementById('dmFsName').textContent = contact.name;
   const fsUsernameEl = document.getElementById('dmFsUsername');
   if (fsUsernameEl) {
-    const real = contact.realName || contact.name;
-    fsUsernameEl.textContent = real;
+    const raw = contact.username || contact.realName || contact.name;
+    fsUsernameEl.textContent = '@' + raw;
   }
   resetPresenceDots(); updatePresenceDots();
 
@@ -10370,7 +10373,7 @@ async function loadUserProfile() {
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (!user) return;
   const { data } = await supabaseClient.from('profiles').select('*').eq('id', user.id).single();
-  if (data) { profile = { name: data.username, username: '@' + data.username, email: user.email, avatarUrl: data.avatar_url }; }
+  if (data) { profile = { name: data.display_name || data.username, username: '@' + data.username, email: user.email, avatarUrl: data.avatar_url }; }
   renderProfileEverywhere();
   loadGhostMode();
   loadNotifications();
@@ -12855,11 +12858,12 @@ async function _loadMobProfileSheet(targetId) {
   if (!user) return;
 
   const [{ data: profileData }, { data: nicknameRows }] = await Promise.all([
-    supabaseClient.from('profiles').select('username, avatar_url').eq('id', targetId).single(),
+    supabaseClient.from('profiles').select('username, display_name, avatar_url').eq('id', targetId).single(),
     supabaseClient.from('nicknames').select('nickname').eq('setter_id', user.id).eq('target_id', targetId).order('created_at', { ascending: false }).limit(1)
   ]);
 
-  const profileName = profileData?.username || 'User';
+  const rawUsername = profileData?.username || 'User';
+  const profileName = profileData?.display_name || rawUsername;
   activeDmNickname = nicknameRows?.[0]?.nickname || null;
   const displayName = activeDmNickname || profileName;
   const actualUsername = profileData?.username ? '@' + profileData.username : 'Unknown user';
@@ -12930,8 +12934,8 @@ async function mobCommitNickname() {
   const newNick = input ? input.value.trim() : '';
   await _saveNicknameValue(newNick);
   activeDmNickname = newNick || null;
-  const { data: profileData } = await supabaseClient.from('profiles').select('username').eq('id', activeDmProfileTarget).single();
-  const profileName = profileData?.username || 'User';
+  const { data: profileData } = await supabaseClient.from('profiles').select('username, display_name').eq('id', activeDmProfileTarget).single();
+  const profileName = profileData?.display_name || profileData?.username || 'User';
   const displayName = activeDmNickname || profileName;
   document.getElementById('mobProfileSheetName').textContent = displayName;
   const editBtn = document.getElementById('mobNicknameEditBtn');
@@ -12939,19 +12943,25 @@ async function mobCommitNickname() {
   mobHideNicknameEditor();
   const fsName = document.getElementById('dmFsName');
   if (fsName) fsName.textContent = displayName;
+  // Sync the in-memory contact
+  const contact = dmContacts.find(c => c.id === activeDmProfileTarget);
+  if (contact) { contact.nickname = activeDmNickname; contact.name = displayName; contact.initials = displayName[0].toUpperCase(); buildDMConvList(); }
 }
 
 async function mobClearNickname() {
   await _saveNicknameValue('');
   activeDmNickname = null;
-  const { data: profileData } = await supabaseClient.from('profiles').select('username').eq('id', activeDmProfileTarget).single();
-  const profileName = profileData?.username || 'User';
+  const { data: profileData } = await supabaseClient.from('profiles').select('username, display_name').eq('id', activeDmProfileTarget).single();
+  const profileName = profileData?.display_name || profileData?.username || 'User';
   document.getElementById('mobProfileSheetName').textContent = profileName;
   const editBtn = document.getElementById('mobNicknameEditBtn');
   if (editBtn) editBtn.textContent = 'Add Nickname';
   mobHideNicknameEditor();
   const fsName = document.getElementById('dmFsName');
   if (fsName) fsName.textContent = profileName;
+  // Also sync the in-memory contact
+  const contact = dmContacts.find(c => c.id === activeDmProfileTarget);
+  if (contact) { contact.nickname = null; contact.name = profileName; contact.initials = profileName[0].toUpperCase(); buildDMConvList(); }
 }
 
 function mobToggleThemePicker() {
