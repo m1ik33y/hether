@@ -7004,7 +7004,15 @@ async function openDM() {
         .on('broadcast', { event: 'chat-cleared' }, ({ payload }) => {
           if (!dmOpen) return;
           const clearerId = payload?.clearerId;
-          if (clearerId) _handleRemoteChatCleared(clearerId);
+          if (clearerId) {
+            _clearingChatForUserId = clearerId;
+            _handleRemoteChatCleared(clearerId);
+            // Keep the flag set long enough to absorb the DELETE flood from Realtime,
+            // then clear it. 3s is generous; the flood typically finishes in <1s.
+            setTimeout(() => {
+              if (_clearingChatForUserId === clearerId) _clearingChatForUserId = null;
+            }, 3000);
+          }
         })
         .subscribe();
       window._dmChatClearedChannel = chatClearedCh;
@@ -12729,7 +12737,13 @@ async function _rehydrateRealtime() {
           .on('broadcast', { event: 'chat-cleared' }, ({ payload }) => {
             if (!dmOpen) return;
             const clearerId = payload?.clearerId;
-            if (clearerId) _handleRemoteChatCleared(clearerId);
+            if (clearerId) {
+              _clearingChatForUserId = clearerId;
+              _handleRemoteChatCleared(clearerId);
+              setTimeout(() => {
+                if (_clearingChatForUserId === clearerId) _clearingChatForUserId = null;
+              }, 3000);
+            }
           })
           .subscribe();
         window._dmChatClearedChannel = chatClearedCh;
