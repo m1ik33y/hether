@@ -7537,7 +7537,7 @@ async function loadNicknameSideTab(targetId) {
   const profileName = profileData?.display_name || rawUsername;
   activeDmNickname = nicknameRows?.[0]?.nickname || null;
   const displayName = activeDmNickname || profileName;
-  const actualUsername = profileData?.username ? `@${profileData.username}` : 'Unknown user';
+  const actualUsername = profileData?.username ? profileData.username : 'Unknown user';
 
   document.getElementById('dmProfileTabName').textContent = displayName;
   document.getElementById('dmProfileTabUsername').textContent = actualUsername;
