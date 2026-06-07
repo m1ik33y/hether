@@ -8222,6 +8222,7 @@ function makeBubbleWrap(msg, isSent, contact, currentUserId) {
   if (msg.reply_to_text) {
     const rp = document.createElement('div');
     rp.className = 'dm-reply-preview';
+    rp.dataset.replyToId = msg.reply_to_id || '';
     rp.innerHTML = `<div class="dm-reply-author">${escHtml(msg.reply_to_author || '')}</div><div class="dm-reply-text">${escHtml(msg.reply_to_text)}</div>`;
     rp.onclick = (e) => { e.stopPropagation(); scrollToReplyTarget(msg.reply_to_id, msg.reply_to_text, msg.reply_to_author || ''); };
     bubble.prepend(rp);
@@ -8577,26 +8578,11 @@ async function scrollToReplyTarget(replyMsgId, replyText, replyAuthor) {
   }
 
   function findInDOM() {
-    // 1️⃣ By id
-    if (replyMsgId) {
-      for (const c of containers) {
-        const w = c.querySelector(`.dm-bubble-wrap[data-msg-id="${replyMsgId}"]`);
-        if (w) return w;
-      }
-    }
-    // 2️⃣ Text + author
+    // Match by message ID only — never fall back to text content
+    if (!replyMsgId) return null;
     for (const c of containers) {
-      for (const w of c.querySelectorAll('.dm-bubble-wrap')) {
-        if ((w.dataset.text || '').trim() === (replyText || '').trim() && w.dataset.sender === replyAuthor) return w;
-      }
-    }
-    // 3️⃣ Text only
-    if (replyText) {
-      for (const c of containers) {
-        for (const w of c.querySelectorAll('.dm-bubble-wrap')) {
-          if ((w.dataset.text || '').trim() === replyText.trim()) return w;
-        }
-      }
+      const w = c.querySelector(`.dm-bubble-wrap[data-msg-id="${replyMsgId}"]`);
+      if (w) return w;
     }
     return null;
   }
@@ -9499,6 +9485,7 @@ async function dmSend(mode) {
   if (msgReplyTo) {
     const rp = document.createElement('div');
     rp.className = 'dm-reply-preview';
+    rp.dataset.replyToId = msgReplyTo.id || '';
     rp.innerHTML = `<div class="dm-reply-author">${escHtml(msgReplyTo.author || '')}</div><div class="dm-reply-text">${escHtml(msgReplyTo.text)}</div>`;
     rp.onclick = (e) => { e.stopPropagation(); scrollToReplyTarget(msgReplyTo.id, msgReplyTo.text, msgReplyTo.author || ''); };
     bubble.prepend(rp);
