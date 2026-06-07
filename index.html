@@ -6999,11 +6999,15 @@ async function openDM() {
           if (clearerId) {
             _clearingChatForUserId = clearerId;
             _showClearingOverlay('Clearing the chat…');
-            _handleRemoteChatCleared(clearerId);
-            _hideClearingOverlay();
-            setTimeout(() => {
-              if (_clearingChatForUserId === clearerId) _clearingChatForUserId = null;
-            }, 3000);
+            // Let the overlay paint for two frames before wiping messages,
+            // otherwise the DOM clear and the overlay appear at the same time.
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+              _handleRemoteChatCleared(clearerId);
+              _hideClearingOverlay();
+              setTimeout(() => {
+                if (_clearingChatForUserId === clearerId) _clearingChatForUserId = null;
+              }, 3000);
+            }));
           }
         })
         .subscribe();
@@ -12732,11 +12736,13 @@ async function _rehydrateRealtime() {
             if (clearerId) {
               _clearingChatForUserId = clearerId;
               _showClearingOverlay('Clearing the chat…');
-              _handleRemoteChatCleared(clearerId);
-              _hideClearingOverlay();
-              setTimeout(() => {
-                if (_clearingChatForUserId === clearerId) _clearingChatForUserId = null;
-              }, 3000);
+              requestAnimationFrame(() => requestAnimationFrame(() => {
+                _handleRemoteChatCleared(clearerId);
+                _hideClearingOverlay();
+                setTimeout(() => {
+                  if (_clearingChatForUserId === clearerId) _clearingChatForUserId = null;
+                }, 3000);
+              }));
             }
           })
           .subscribe();
