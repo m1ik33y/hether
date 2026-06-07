@@ -5652,6 +5652,41 @@ function clearChatUI() {
   buildDMConvList();
 }
 
+// Called on the RECEIVER's side when the other user clears the chat in real time
+function _handleRemoteChatCleared(clearerId) {
+  if (!dmOpen) return;
+  const contact = dmContacts.find(c => c.id === clearerId);
+  if (contact) {
+    contact.lastMessage = null;
+    contact.lastMessageTs = 0;
+    contact.unread = false;
+    contact.unreadCount = 0;
+  }
+  // If currently in that chat, clear messages and exit to empty state
+  if (activeDmId === clearerId) {
+    const msgsEl = document.getElementById('dmChatMessages');
+    if (msgsEl) msgsEl.innerHTML = '';
+    const fsMsgsEl = document.getElementById('dmFsMessages');
+    if (fsMsgsEl) fsMsgsEl.innerHTML = '';
+    renderedMsgIds.clear();
+    if (isMobile()) {
+      // On mobile, close the fullscreen chat view back to the conv list
+      const dmFs = document.getElementById('dmFullscreen');
+      const dmFsChatView = document.getElementById('dmFsChatView');
+      const dmFsConvView = document.getElementById('dmFsConvView');
+      if (dmFsChatView) dmFsChatView.classList.remove('show');
+      if (dmFsConvView) dmFsConvView.classList.remove('hide');
+      activeDmId = null;
+    } else {
+      showDmEmptyState();
+      activeDmId = null;
+      document.querySelectorAll('#dmConvList .dm-conv-item, #dmFsConvList .dm-conv-item')
+        .forEach(el => el.classList.remove('active'));
+    }
+  }
+  buildDMConvList();
+}
+
 function openClearChatConfirm() {
   if (!activeDmId) return;
   document.getElementById('clearChatOverlay').classList.add('show');
@@ -5694,6 +5729,22 @@ async function confirmClearChat() {
   clearChatUI();
   _clearingChatForUserId = null;
   _hideClearingOverlay();
+
+  // Notify the other user in real time so their UI clears immediately
+  try {
+    const notifyChannel = supabaseClient.channel(`chat-cleared:${targetId}`);
+    await new Promise(r => setTimeout(r, 80)); // brief wait for channel to be ready
+    notifyChannel.subscribe(async (status) => {
+      if (status === 'SUBSCRIBED') {
+        await notifyChannel.send({
+          type: 'broadcast',
+          event: 'chat-cleared',
+          payload: { clearerId: user.id }
+        });
+        setTimeout(() => supabaseClient.removeChannel(notifyChannel), 2000);
+      }
+    });
+  } catch(e) {}
 }
 
 function _showClearingOverlay() {
@@ -6945,6 +6996,18 @@ async function openDM() {
         })
         .subscribe();
       window._dmGlobalTypingChannel = globalTypingCh;
+      // Subscribe to real-time "chat cleared" notifications from other users
+      const chatClearedCh = supabaseClient.channel(`chat-cleared:${user.id}`, {
+        config: { broadcast: { self: false } }
+      });
+      chatClearedCh
+        .on('broadcast', { event: 'chat-cleared' }, ({ payload }) => {
+          if (!dmOpen) return;
+          const clearerId = payload?.clearerId;
+          if (clearerId) _handleRemoteChatCleared(clearerId);
+        })
+        .subscribe();
+      window._dmChatClearedChannel = chatClearedCh;
       // Start the persistent seen-updates channel for this user
       await startSeenChannel(user.id);
     }
@@ -6980,6 +7043,7 @@ async function closeDM() {
   if (typingChannel) { await supabaseClient.removeChannel(typingChannel); typingChannel = null; }
   if (window._dmGlobalChannel) { await supabaseClient.removeChannel(window._dmGlobalChannel); window._dmGlobalChannel = null; }
   if (window._dmGlobalTypingChannel) { await supabaseClient.removeChannel(window._dmGlobalTypingChannel); window._dmGlobalTypingChannel = null; }
+  if (window._dmChatClearedChannel) { await supabaseClient.removeChannel(window._dmChatClearedChannel); window._dmChatClearedChannel = null; }
   await stopSeenChannel();
   await subscriptionManager.replaceSubscription(null);
 }
@@ -12648,6 +12712,27 @@ async function _rehydrateRealtime() {
       const themeChState = _chatThemeChannel?.state;
       if (!_chatThemeChannel || themeChState === 'closed' || themeChState === 'errored') {
         await subscribeToChatTheme(activeDmId);
+      }
+    }
+
+    // 9. Chat-cleared broadcast channel — rebuild if dead
+    const clearedChState = window._dmChatClearedChannel?.state;
+    if (!window._dmChatClearedChannel || clearedChState === 'closed' || clearedChState === 'errored') {
+      try { if (window._dmChatClearedChannel) await supabaseClient.removeChannel(window._dmChatClearedChannel); } catch(e) {}
+      window._dmChatClearedChannel = null;
+      const { data: { user: _ccUser } } = await supabaseClient.auth.getUser();
+      if (_ccUser) {
+        const chatClearedCh = supabaseClient.channel(`chat-cleared:${_ccUser.id}`, {
+          config: { broadcast: { self: false } }
+        });
+        chatClearedCh
+          .on('broadcast', { event: 'chat-cleared' }, ({ payload }) => {
+            if (!dmOpen) return;
+            const clearerId = payload?.clearerId;
+            if (clearerId) _handleRemoteChatCleared(clearerId);
+          })
+          .subscribe();
+        window._dmChatClearedChannel = chatClearedCh;
       }
     }
 
