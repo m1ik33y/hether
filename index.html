@@ -7467,7 +7467,7 @@ async function openDesktopChat(id) {
   const usernameEl = document.getElementById('dmTopbarUsername');
   if (usernameEl) {
     const raw = contact.username || contact.realName || contact.name;
-    usernameEl.textContent = '@' + raw;
+    usernameEl.textContent = raw;
   }
   const av = document.getElementById('dmTopbarAvatar');
   // FIX 1: topbar avatar
@@ -7537,7 +7537,7 @@ async function loadNicknameSideTab(targetId) {
   const profileName = profileData?.display_name || rawUsername;
   activeDmNickname = nicknameRows?.[0]?.nickname || null;
   const displayName = activeDmNickname || profileName;
-  const actualUsername = profileData?.username ? profileData.username : 'Unknown user';
+  const actualUsername = profileData?.username ? `@${profileData.username}` : 'Unknown user';
 
   document.getElementById('dmProfileTabName').textContent = displayName;
   document.getElementById('dmProfileTabUsername').textContent = actualUsername;
@@ -7646,7 +7646,7 @@ async function saveNicknameForTarget(nickname) {
       if (fsName) fsName.textContent = contact.name;
       const rawUser = contact.username || contact.realName || contact.name;
       const usernameEl = document.getElementById('dmTopbarUsername');
-      if (usernameEl) usernameEl.textContent = '@' + rawUser;
+      if (usernameEl) usernameEl.textContent = rawUser;
       const fsUsernameEl = document.getElementById('dmFsUsername');
       if (fsUsernameEl) fsUsernameEl.textContent = '@' + rawUser;
     }
