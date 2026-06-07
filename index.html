@@ -5648,6 +5648,7 @@ function clearChatUI() {
   renderedMsgIds.clear();
   const contact = dmContacts.find(c => c.id === activeDmId);
   if (contact) { contact.lastMessage = null; contact.lastMessageTs = 0; contact.unread = false; }
+  if (!isMobile()) { showDmEmptyState(); activeDmId = null; document.querySelectorAll('#dmConvList .dm-conv-item, #dmFsConvList .dm-conv-item').forEach(el => el.classList.remove('active')); }
   buildDMConvList();
 }
 
@@ -5661,13 +5662,27 @@ function _handleRemoteChatCleared(clearerId) {
     contact.unread = false;
     contact.unreadCount = 0;
   }
-  // If currently in that chat, just wipe messages — stay in the chat
+  // If currently in that chat, clear messages and exit to empty state
   if (activeDmId === clearerId) {
     const msgsEl = document.getElementById('dmChatMessages');
     if (msgsEl) msgsEl.innerHTML = '';
     const fsMsgsEl = document.getElementById('dmFsMessages');
     if (fsMsgsEl) fsMsgsEl.innerHTML = '';
     renderedMsgIds.clear();
+    if (isMobile()) {
+      // On mobile, close the fullscreen chat view back to the conv list
+      const dmFs = document.getElementById('dmFullscreen');
+      const dmFsChatView = document.getElementById('dmFsChatView');
+      const dmFsConvView = document.getElementById('dmFsConvView');
+      if (dmFsChatView) dmFsChatView.classList.remove('show');
+      if (dmFsConvView) dmFsConvView.classList.remove('hide');
+      activeDmId = null;
+    } else {
+      showDmEmptyState();
+      activeDmId = null;
+      document.querySelectorAll('#dmConvList .dm-conv-item, #dmFsConvList .dm-conv-item')
+        .forEach(el => el.classList.remove('active'));
+    }
   }
   buildDMConvList();
 }
@@ -5732,20 +5747,13 @@ async function confirmClearChat() {
   } catch(e) {}
 }
 
-function _showClearingOverlay(label = 'Getting things done…') {
+function _showClearingOverlay() {
   // Desktop
   const ov = document.getElementById('dmClearingOverlay');
   const fill = document.getElementById('dmClearingBarFill');
   // Mobile
   const ovFs = document.getElementById('dmFsClearingOverlay');
   const fillFs = document.getElementById('dmFsClearingBarFill');
-
-  // Update label text in both overlays
-  [ov, ovFs].forEach(o => {
-    if (!o) return;
-    const lbl = o.querySelector('.dm-clearing-label');
-    if (lbl) lbl.textContent = label;
-  });
 
   [fill, fillFs].forEach(f => {
     if (!f) return;
@@ -6996,13 +7004,7 @@ async function openDM() {
         .on('broadcast', { event: 'chat-cleared' }, ({ payload }) => {
           if (!dmOpen) return;
           const clearerId = payload?.clearerId;
-          if (clearerId) {
-            _clearingChatForUserId = clearerId;
-            _handleRemoteChatCleared(clearerId);
-            setTimeout(() => {
-              if (_clearingChatForUserId === clearerId) _clearingChatForUserId = null;
-            }, 3000);
-          }
+          if (clearerId) _handleRemoteChatCleared(clearerId);
         })
         .subscribe();
       window._dmChatClearedChannel = chatClearedCh;
@@ -12727,13 +12729,7 @@ async function _rehydrateRealtime() {
           .on('broadcast', { event: 'chat-cleared' }, ({ payload }) => {
             if (!dmOpen) return;
             const clearerId = payload?.clearerId;
-            if (clearerId) {
-              _clearingChatForUserId = clearerId;
-              _handleRemoteChatCleared(clearerId);
-              setTimeout(() => {
-                if (_clearingChatForUserId === clearerId) _clearingChatForUserId = null;
-              }, 3000);
-            }
+            if (clearerId) _handleRemoteChatCleared(clearerId);
           })
           .subscribe();
         window._dmChatClearedChannel = chatClearedCh;
