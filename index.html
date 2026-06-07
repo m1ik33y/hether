@@ -5648,7 +5648,6 @@ function clearChatUI() {
   renderedMsgIds.clear();
   const contact = dmContacts.find(c => c.id === activeDmId);
   if (contact) { contact.lastMessage = null; contact.lastMessageTs = 0; contact.unread = false; }
-  if (!isMobile()) { showDmEmptyState(); activeDmId = null; document.querySelectorAll('#dmConvList .dm-conv-item, #dmFsConvList .dm-conv-item').forEach(el => el.classList.remove('active')); }
   buildDMConvList();
 }
 
@@ -5662,27 +5661,13 @@ function _handleRemoteChatCleared(clearerId) {
     contact.unread = false;
     contact.unreadCount = 0;
   }
-  // If currently in that chat, clear messages and exit to empty state
+  // If currently in that chat, just wipe messages — stay in the chat
   if (activeDmId === clearerId) {
     const msgsEl = document.getElementById('dmChatMessages');
     if (msgsEl) msgsEl.innerHTML = '';
     const fsMsgsEl = document.getElementById('dmFsMessages');
     if (fsMsgsEl) fsMsgsEl.innerHTML = '';
     renderedMsgIds.clear();
-    if (isMobile()) {
-      // On mobile, close the fullscreen chat view back to the conv list
-      const dmFs = document.getElementById('dmFullscreen');
-      const dmFsChatView = document.getElementById('dmFsChatView');
-      const dmFsConvView = document.getElementById('dmFsConvView');
-      if (dmFsChatView) dmFsChatView.classList.remove('show');
-      if (dmFsConvView) dmFsConvView.classList.remove('hide');
-      activeDmId = null;
-    } else {
-      showDmEmptyState();
-      activeDmId = null;
-      document.querySelectorAll('#dmConvList .dm-conv-item, #dmFsConvList .dm-conv-item')
-        .forEach(el => el.classList.remove('active'));
-    }
   }
   buildDMConvList();
 }
