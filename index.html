@@ -6998,16 +6998,10 @@ async function openDM() {
           const clearerId = payload?.clearerId;
           if (clearerId) {
             _clearingChatForUserId = clearerId;
-            _showClearingOverlay('Clearing the chat…');
-            // Let the overlay paint for two frames before wiping messages,
-            // otherwise the DOM clear and the overlay appear at the same time.
-            requestAnimationFrame(() => requestAnimationFrame(() => {
-              _handleRemoteChatCleared(clearerId);
-              _hideClearingOverlay();
-              setTimeout(() => {
-                if (_clearingChatForUserId === clearerId) _clearingChatForUserId = null;
-              }, 3000);
-            }));
+            _handleRemoteChatCleared(clearerId);
+            setTimeout(() => {
+              if (_clearingChatForUserId === clearerId) _clearingChatForUserId = null;
+            }, 3000);
           }
         })
         .subscribe();
@@ -12735,14 +12729,10 @@ async function _rehydrateRealtime() {
             const clearerId = payload?.clearerId;
             if (clearerId) {
               _clearingChatForUserId = clearerId;
-              _showClearingOverlay('Clearing the chat…');
-              requestAnimationFrame(() => requestAnimationFrame(() => {
-                _handleRemoteChatCleared(clearerId);
-                _hideClearingOverlay();
-                setTimeout(() => {
-                  if (_clearingChatForUserId === clearerId) _clearingChatForUserId = null;
-                }, 3000);
-              }));
+              _handleRemoteChatCleared(clearerId);
+              setTimeout(() => {
+                if (_clearingChatForUserId === clearerId) _clearingChatForUserId = null;
+              }, 3000);
             }
           })
           .subscribe();
