@@ -5747,13 +5747,20 @@ async function confirmClearChat() {
   } catch(e) {}
 }
 
-function _showClearingOverlay() {
+function _showClearingOverlay(label = 'Getting things done…') {
   // Desktop
   const ov = document.getElementById('dmClearingOverlay');
   const fill = document.getElementById('dmClearingBarFill');
   // Mobile
   const ovFs = document.getElementById('dmFsClearingOverlay');
   const fillFs = document.getElementById('dmFsClearingBarFill');
+
+  // Update label text in both overlays
+  [ov, ovFs].forEach(o => {
+    if (!o) return;
+    const lbl = o.querySelector('.dm-clearing-label');
+    if (lbl) lbl.textContent = label;
+  });
 
   [fill, fillFs].forEach(f => {
     if (!f) return;
@@ -7006,9 +7013,9 @@ async function openDM() {
           const clearerId = payload?.clearerId;
           if (clearerId) {
             _clearingChatForUserId = clearerId;
+            _showClearingOverlay('Clearing the chat…');
             _handleRemoteChatCleared(clearerId);
-            // Keep the flag set long enough to absorb the DELETE flood from Realtime,
-            // then clear it. 3s is generous; the flood typically finishes in <1s.
+            _hideClearingOverlay();
             setTimeout(() => {
               if (_clearingChatForUserId === clearerId) _clearingChatForUserId = null;
             }, 3000);
@@ -12739,7 +12746,9 @@ async function _rehydrateRealtime() {
             const clearerId = payload?.clearerId;
             if (clearerId) {
               _clearingChatForUserId = clearerId;
+              _showClearingOverlay('Clearing the chat…');
               _handleRemoteChatCleared(clearerId);
+              _hideClearingOverlay();
               setTimeout(() => {
                 if (_clearingChatForUserId === clearerId) _clearingChatForUserId = null;
               }, 3000);
