@@ -1250,7 +1250,7 @@ kbd {
   height: min(652px, 90vh);
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 10px;
   box-shadow: 0 32px 80px rgba(0,0,0,0.28);
   display: flex;
   flex-direction: column;
@@ -1548,7 +1548,7 @@ kbd {
 .dm-profile-tab-close {
   width: 28px;
   height: 28px;
-  border-radius: 8px;
+  border-radius: 10px;
   border: none;
   background: var(--surface2);
   color: var(--text3);
@@ -1640,7 +1640,7 @@ kbd {
   justify-content: center;
   width: calc(100% - 32px);
   padding: 9px 0;
-  border-radius: 8px;
+  border-radius: 10px;
   border: none;
   background: rgba(72, 72, 72, 0.911);
   color: white;
@@ -2302,6 +2302,7 @@ kbd {
   box-sizing: border-box;
   vertical-align: top;
   position: relative;
+  overflow: visible;
 }
 .dm-bubble:not(.dm-bubble-emoji-only):hover { opacity: 0.92; }
 .dm-msg-group.sent .dm-bubble:not(.dm-bubble-emoji-only) { background:#495cea; color: #fff; }
@@ -2391,29 +2392,54 @@ kbd {
 .dm-msg-group { overflow: visible !important; }
 .dm-msg-group-row { overflow: visible !important; }
 .dm-chat-messages { overflow-y: auto; overflow-x: hidden; background: none }
-/* WhatsApp-style message highlight on reply-tap */
-@keyframes msgHighlight {
-  0%   { background-color: rgba(102,100,194,0.32); }
-  100% { background-color: transparent; }
-}
-.dm-bubble-highlighted .dm-bubble {
-  animation: msgHighlight 1.2s ease-out forwards !important;
-  border-radius: 12px !important;
-}
-.dm-bubble-highlighted {
-  border-radius: 12px;
-}
+
 @keyframes reactionPop { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
 .dm-reply-preview {
-  background: rgba(0,0,0,0.06); border-radius: 8px; padding: 6px 10px;
-  font-size: 11.5px; color: var(--text2); margin-bottom: 4px;
-  border-left: 3px solid var(--accent); max-width: 100%;
+  display: block;
+  background: rgba(0,0,0,0.20);
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin: -5.5px -10.5px 6px -10.5px;
+  font-size: 11px;
+  border: none;
   cursor: pointer;
+  box-sizing: border-box;
+  box-shadow: none;
+  position: relative;
+  overflow: hidden;
 }
-.dm-reply-preview .dm-reply-author { font-weight: 600; font-size: 11px; color: var(--accent); margin-bottom: 2px; }
-.dm-reply-preview .dm-reply-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.dm-msg-group.sent .dm-reply-preview { background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.8); border-color: rgba(255,255,255,0.5); }
+/* sent: bar on right */
+.dm-msg-group.sent .dm-reply-preview { border-radius: 14px 6px 6px 6px; }
+/* sent first/solo: parent top-right=18px so mini top-right=14px */
+.dm-msg-group.sent .dm-bubble.bubble-first .dm-reply-preview,
+.dm-msg-group.sent .dm-bubble.bubble-solo .dm-reply-preview { border-radius: 14px 14px 6px 6px; }
+.dm-msg-group.sent .dm-reply-preview::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: auto;
+  width: 4px;
+  background: rgba(0,0,0,0.85);
+}
+[data-theme="dark"] .dm-msg-group.sent .dm-reply-preview::after { background: rgba(255,255,255,0.85); }
+/* received: bar on left */
+.dm-reply-preview .dm-reply-author { font-weight: 700; font-size: 10.5px; color: rgba(255,255,255,0.92); margin-bottom: 2px; }
+.dm-reply-preview .dm-reply-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: rgba(255,255,255,0.75); font-size: 10.5px; }
+.dm-msg-group.received .dm-reply-preview { background: rgba(0,0,0,0.13); border-radius: 6px 14px 6px 6px; }
+/* received first/solo: parent top-left=18px so mini top-left=14px */
+.dm-msg-group.received .dm-bubble.bubble-first .dm-reply-preview,
+.dm-msg-group.received .dm-bubble.bubble-solo .dm-reply-preview { border-radius: 14px 14px 6px 6px; }
+.dm-msg-group.received .dm-reply-preview::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: auto;
+  width: 4px;
+  background: rgba(0,0,0,0.85);
+}
+
+.dm-msg-group.received .dm-reply-preview .dm-reply-author { color: rgba(0,0,0,0.85); }
+.dm-msg-group.received .dm-reply-preview .dm-reply-text { color: rgba(0,0,0,0.65); }
+.dm-bubble:has(.dm-reply-preview) { display: block; width: fit-content; min-width: 100px; }
 
 .dm-group-time { font-size: 10.5px; color: var(--text3); padding: 2px 4px; margin-top: 2px; text-align: center; display: none; }
 
@@ -7972,7 +7998,7 @@ function makeMediaCollageBubble(mediaGroup, isSent, contact, currentUserId) {
   const replyBtn = document.createElement('button');
   replyBtn.className = 'dm-reply-btn'; replyBtn.title = 'Reply';
   replyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>`;
-  replyBtn.onclick = (e) => { e.stopPropagation(); startReply('[media]', isSent ? 'You' : (contact ? contact.name : 'User')); };
+  replyBtn.onclick = (e) => { e.stopPropagation(); startReply('[media]', isSent ? (profile.username ? profile.username.slice(1) : 'me') : (contact ? (contact.username || contact.realName || contact.name) : 'User'), msg.id); };
 
   const moreBtn = document.createElement('button');
   moreBtn.className = 'dm-more-btn'; moreBtn.title = 'More options';
@@ -7987,7 +8013,7 @@ function makeMediaCollageBubble(mediaGroup, isSent, contact, currentUserId) {
 
   const bOuter = document.createElement('div');
   bOuter.className = 'dm-bubble-outer';
-  if (isSent) bOuter.dataset.msgId = mediaGroup.id || '';
+  bOuter.dataset.msgId = mediaGroup.id || '';
   bOuter.appendChild(bWrap);
   return bOuter;
 }
@@ -8166,7 +8192,7 @@ function makeBubbleWrap(msg, isSent, contact, currentUserId) {
   bWrap.className = 'dm-bubble-wrap';
   bWrap.dataset.msgId = msg.id || '';
   bWrap.dataset.text = msg.content || msg.text || '';
-  bWrap.dataset.sender = isSent ? 'You' : (contact ? contact.name : 'User');
+  bWrap.dataset.sender = isSent ? (profile.username ? profile.username.slice(1) : 'me') : (contact ? (contact.username || contact.realName || contact.name) : 'User');
 
   // Stamp the raw timestamp on the wrap — used by grouping logic
   const rawTs = msg.created_at || msg.ts || '';
@@ -8176,12 +8202,12 @@ function makeBubbleWrap(msg, isSent, contact, currentUserId) {
   const rawContent = msg.content || msg.text || '';
   const msgText = rawContent.replace(/(?<![a-zA-Z])[Tt]-[Tt](?![a-zA-Z])/g, '😭');
   if (msg.content) msg.content = msg.content.replace(/(?<![a-zA-Z])[Tt]-[Tt](?![a-zA-Z])/g, '😭');
-  const msgSender = isSent ? 'You' : (contact ? contact.name : 'User');
+  const msgSender = isSent ? (profile.username ? profile.username.slice(1) : 'me') : (contact ? (contact.username || contact.realName || contact.name) : 'User');
 
   const replyBtn = document.createElement('button');
   replyBtn.className = 'dm-reply-btn'; replyBtn.title = 'Reply';
   replyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>`;
-  replyBtn.onclick = (e) => { e.stopPropagation(); startReply(msgText, msgSender); };
+  replyBtn.onclick = (e) => { e.stopPropagation(); startReply(msgText, msgSender, msg.id); };
 
   const moreBtn = document.createElement('button');
   moreBtn.className = 'dm-more-btn'; moreBtn.title = 'More options';
@@ -8197,7 +8223,7 @@ function makeBubbleWrap(msg, isSent, contact, currentUserId) {
     const rp = document.createElement('div');
     rp.className = 'dm-reply-preview';
     rp.innerHTML = `<div class="dm-reply-author">${escHtml(msg.reply_to_author || '')}</div><div class="dm-reply-text">${escHtml(msg.reply_to_text)}</div>`;
-    rp.onclick = (e) => { e.stopPropagation(); scrollToReplyTarget(msg.reply_to_text, msg.reply_to_author || ''); };
+    rp.onclick = (e) => { e.stopPropagation(); scrollToReplyTarget(msg.reply_to_id, msg.reply_to_text, msg.reply_to_author || ''); };
     bubble.prepend(rp);
   }
 
@@ -8241,7 +8267,7 @@ function makeBubbleWrap(msg, isSent, contact, currentUserId) {
   else { bWrap.appendChild(bubble); bWrap.appendChild(replyBtn); bWrap.appendChild(moreBtn); }
 
   // Mobile swipe-to-reply
-  addSwipeToReply(bWrap, isSent, () => startReply(msgText, msgSender));
+  addSwipeToReply(bWrap, isSent, () => startReply(msgText, msgSender, msg.id));
 
   // Render existing reactions from DB data and seed the cache
   if (msg.reactions && Object.keys(msg.reactions).length > 0) {
@@ -8263,9 +8289,7 @@ function makeBubbleWrap(msg, isSent, contact, currentUserId) {
 
   bOuter.appendChild(bWrap);
 
-  if (isSent) {
-    bOuter.dataset.msgId = msg.id || '';
-  }
+  bOuter.dataset.msgId = msg.id || '';
 
   return bOuter;
 }
@@ -8386,7 +8410,7 @@ function showCtxMenu(x, y, bWrap, msg, isSent, contact) {
   const replyBtn = document.createElement('button');
   replyBtn.className = 'dm-ctx-item';
   replyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg> Reply`;
-  replyBtn.onclick = () => { startReply(text, sender); closeCtxMenu(); };
+  replyBtn.onclick = () => { startReply(text, sender, msg ? msg.id : null); closeCtxMenu(); };
 
   const reactBtn = document.createElement('button');
   reactBtn.className = 'dm-ctx-item'; reactBtn.innerHTML = `😊 React`;
@@ -8522,9 +8546,9 @@ async function deleteSingleCollageImage(bWrap, urlToDelete, mediaGroup, isSent, 
 function closeCtxMenu() { document.getElementById('dmCtxMenu').style.display = 'none'; }
 document.addEventListener('click', () => closeCtxMenu());
 
-function startReply(text, author) {
+function startReply(text, author, msgId) {
   if (currentEditState) cancelEdit(currentEditState.mode);
-  replyingTo = { text, author };
+  replyingTo = { text, author, id: msgId || null };
   clearDmStaging(); clearDmFsStaging();
   const bar = document.getElementById('dmReplyBar');
   if (bar) { bar.classList.add('show'); document.getElementById('dmReplyBarAuthor').textContent = author; document.getElementById('dmReplyBarText').textContent = text; }
@@ -8541,26 +8565,176 @@ function cancelReply(mode) {
 }
 
 // Scroll to the message that was replied to and flash a WhatsApp-style highlight
-function scrollToReplyTarget(replyText, replyAuthor) {
-  // Search both possible containers
+async function scrollToReplyTarget(replyMsgId, replyText, replyAuthor) {
+  console.log('[scrollToReply] called', { replyMsgId, replyText, replyAuthor });
+  const isMob = isMobile();
+  const msgsElId = isMob ? 'dmFsMessages' : 'dmChatMessages';
   const containers = ['dmChatMessages', 'dmFsMessages'].map(id => document.getElementById(id)).filter(Boolean);
-  for (const container of containers) {
-    const wraps = container.querySelectorAll('.dm-bubble-wrap');
-    for (const wrap of wraps) {
-      const bubbleText = wrap.dataset.text || '';
-      const bubbleSender = wrap.dataset.sender || '';
-      if (bubbleText.trim() === replyText.trim() && bubbleSender === replyAuthor) {
-        // Remove class first to reset animation, then scroll, then highlight after scroll settles
-        wrap.classList.remove('dm-bubble-highlighted');
-        void wrap.offsetWidth;
-        wrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        setTimeout(() => {
-          wrap.classList.add('dm-bubble-highlighted');
-          setTimeout(() => wrap.classList.remove('dm-bubble-highlighted'), 1200);
-        }, 350);
-        return;
+  console.log('[scrollToReply] isMob:', isMob, 'containers:', containers.length);
+
+  function flashWrap(wrap) {
+    wrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function findInDOM() {
+    // 1️⃣ By id
+    if (replyMsgId) {
+      for (const c of containers) {
+        const w = c.querySelector(`.dm-bubble-wrap[data-msg-id="${replyMsgId}"]`);
+        if (w) return w;
       }
     }
+    // 2️⃣ Text + author
+    for (const c of containers) {
+      for (const w of c.querySelectorAll('.dm-bubble-wrap')) {
+        if ((w.dataset.text || '').trim() === (replyText || '').trim() && w.dataset.sender === replyAuthor) return w;
+      }
+    }
+    // 3️⃣ Text only
+    if (replyText) {
+      for (const c of containers) {
+        for (const w of c.querySelectorAll('.dm-bubble-wrap')) {
+          if ((w.dataset.text || '').trim() === replyText.trim()) return w;
+        }
+      }
+    }
+    return null;
+  }
+
+  // Fast path: already in DOM
+  const existing = findInDOM();
+  console.log('[scrollToReply] findInDOM:', existing);
+  if (existing) { flashWrap(existing); return; }
+
+  // Target is not rendered yet — need to load older messages until we find it.
+  // Only possible if we have a replyMsgId and there are more messages to load.
+  console.log('[scrollToReply] not in DOM, will load');
+  if (!replyMsgId) return;
+
+  const msgsEl = document.getElementById(msgsElId);
+  if (!msgsEl) return;
+
+  const allLoaded = isMob ? dmMobileAllLoaded : dmDesktopAllLoaded;
+  console.log('[scrollToReply] allLoaded:', allLoaded, 'desktopOffset:', dmDesktopOffset, 'mobileOffset:', dmMobileOffset);
+  if (allLoaded) return;
+
+  // Show a subtle loading indicator so the user knows something is happening
+  const _findBarId = isMob ? 'dmFsChatLoadBar' : 'dmChatLoadBar';
+  const _findFillId = isMob ? 'dmFsChatLoadFill' : 'dmChatLoadFill';
+  _startLoadBar(_findBarId, _findFillId);
+  // Override color to white (dark) / black (light) for find-msg only
+  const _findFill = document.getElementById(_findFillId);
+  const _findIsDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  if (_findFill) { _findFill.dataset.origBg = _findFill.style.background; _findFill.dataset.origShadow = _findFill.style.boxShadow; _findFill.style.background = _findIsDark ? '#ffffff' : '#000000'; _findFill.style.boxShadow = 'none'; }
+
+  // Fetch the target message's created_at so we know its position
+  try {
+    const { data: targetMsg } = await supabaseClient.from('messages').select('id, created_at').eq('id', replyMsgId).single();
+    console.log('[scrollToReply] targetMsg:', targetMsg);
+    if (!targetMsg) { _finishLoadBar(_findBarId, _findFillId); setTimeout(() => { if (_findFill) { _findFill.style.background = _findFill.dataset.origBg || ''; _findFill.style.boxShadow = _findFill.dataset.origShadow || ''; } }, 560); return; }
+
+    const userId = isMob ? dmMobileUserId : dmDesktopUserId;
+    const user   = isMob ? dmMobileUser   : dmDesktopUser;
+    const contact= isMob ? dmMobileContact: dmDesktopContact;
+    if (!userId || !user) { _finishLoadBar(_findBarId, _findFillId); setTimeout(() => { if (_findFill) { _findFill.style.background = _findFill.dataset.origBg || ''; _findFill.style.boxShadow = _findFill.dataset.origShadow || ''; } }, 560); return; }
+
+    // Count how many messages exist UP TO AND INCLUDING the target (by created_at)
+    const { count: posCount } = await supabaseClient.from('messages')
+      .select('*', { count: 'exact', head: true })
+      .or(`and(sender_id.eq.${user.id},receiver_id.eq.${userId}),and(sender_id.eq.${userId},receiver_id.eq.${user.id})`)
+      .lte('created_at', targetMsg.created_at);
+
+    console.log('[scrollToReply] posCount:', posCount);
+    if (!posCount) { _finishLoadBar(_findBarId, _findFillId); setTimeout(() => { if (_findFill) { _findFill.style.background = _findFill.dataset.origBg || ''; _findFill.style.boxShadow = _findFill.dataset.origShadow || ''; } }, 560); return; }
+
+    // We want to load from (posCount - a small context window) so the target has some context above it
+    const CONTEXT = 5;
+    const newStart = Math.max(0, posCount - 1 - CONTEXT); // row index of first msg to load
+    // We need to load from newStart all the way to the current offset (what's already in DOM)
+    const currentOffset = isMob ? dmMobileOffset : dmDesktopOffset;
+    console.log('[scrollToReply] newStart:', newStart, 'currentOffset:', currentOffset);
+    if (newStart >= currentOffset) {
+      // Message is actually within the already-loaded range — just wasn't found by text fallback
+      _finishLoadBar(_findBarId, _findFillId); setTimeout(() => { if (_findFill) { _findFill.style.background = _findFill.dataset.origBg || ''; _findFill.style.boxShadow = _findFill.dataset.origShadow || ''; } }, 560); return;
+    }
+
+    // Load the gap: newStart → currentOffset-1
+    const { data: gapData } = await supabaseClient.from('messages').select('*')
+      .or(`and(sender_id.eq.${user.id},receiver_id.eq.${userId}),and(sender_id.eq.${userId},receiver_id.eq.${user.id})`)
+      .order('created_at', { ascending: true })
+      .range(newStart, currentOffset - 1);
+
+    console.log('[scrollToReply] gapData:', gapData && gapData.length);
+    if (!gapData || gapData.length === 0) { _finishLoadBar(_findBarId, _findFillId); setTimeout(() => { if (_findFill) { _findFill.style.background = _findFill.dataset.origBg || ''; _findFill.style.boxShadow = _findFill.dataset.origShadow || ''; } }, 560); return; }
+
+    // Update offset state
+    if (isMob) {
+      dmMobileOffset = newStart;
+      if (newStart <= 0) dmMobileAllLoaded = true;
+    } else {
+      dmDesktopOffset = newStart;
+      if (newStart <= 0) dmDesktopAllLoaded = true;
+    }
+
+    // Render and prepend gap messages
+    const prevScrollHeight = msgsEl.scrollHeight;
+    const groups = groupMessages(gapData.map(m => ({ ...m, ts: m.created_at })));
+    const frag = document.createDocumentFragment();
+    groups.forEach(item => {
+      if (item.type === 'separator') {
+        const sep = document.createElement('div');
+        sep.className = 'dm-time-separator'; sep.textContent = item.label;
+        frag.appendChild(sep);
+      } else if (item.type === 'system') {
+        frag.appendChild(makeSystemMsgEl(item.content));
+      } else {
+        const isSent = item.sender_id === user.id;
+        const groupEl = document.createElement('div');
+        groupEl.className = `dm-msg-group ${isSent ? 'sent' : 'received'}`;
+        groupEl.dataset.groupTs = item.groupKey;
+        groupEl.dataset.senderId = item.sender_id;
+        groupEl.dataset.minuteKey = item.minuteKey;
+        groupEl.dataset.createdAt = item.firstTs || '';
+        const rowEl = document.createElement('div');
+        rowEl.className = 'dm-msg-group-row';
+        if (!isSent) rowEl.appendChild(makeGroupAvatar(contact));
+        const bubblesWrap = document.createElement('div');
+        bubblesWrap.className = 'dm-msg-bubbles';
+        item.messages.forEach(msg => { if (msg.id) renderedMsgIds.add(msg.id); bubblesWrap.appendChild(makeBubbleWrap(msg, isSent, contact, user.id)); });
+        applyBubbleGrouping(bubblesWrap);
+        rowEl.appendChild(bubblesWrap);
+        groupEl.appendChild(rowEl);
+        const timeEl = document.createElement('div');
+        timeEl.className = 'dm-group-time'; timeEl.textContent = item.time;
+        groupEl.appendChild(timeEl);
+        frag.appendChild(groupEl);
+      }
+    });
+
+    // Remove old load-more indicator and loading pill, then prepend new content
+    _finishLoadBar(_findBarId, _findFillId); setTimeout(() => { if (_findFill) { _findFill.style.background = _findFill.dataset.origBg || ''; _findFill.style.boxShadow = _findFill.dataset.origShadow || ''; } }, 560);
+    const oldIndicator = msgsEl.querySelector('.dm-load-more-indicator');
+    if (oldIndicator) oldIndicator.remove();
+    msgsEl.insertBefore(frag, msgsEl.firstChild);
+    mergeAdjacentGroups(msgsEl);
+
+    // Re-add load-more indicator if still not at top
+    const stillNotLoaded = isMob ? !dmMobileAllLoaded : !dmDesktopAllLoaded;
+    if (stillNotLoaded) prependLoadMoreIndicator(msgsEl, isMob ? 'mobile' : 'desktop');
+
+    // Keep scroll position stable (don't jump)
+    msgsEl.scrollTop = msgsEl.scrollHeight - prevScrollHeight;
+
+    // Now find and flash the target
+    const found = findInDOM();
+    console.log('[scrollToReply] found after prepend:', found);
+    if (found) {
+      // Small delay so layout settles before scrollIntoView
+      setTimeout(() => flashWrap(found), 80);
+    }
+  } catch(e) {
+    console.error('[scrollToReply] catch:', e);
+    _finishLoadBar(_findBarId, _findFillId); setTimeout(() => { if (_findFill) { _findFill.style.background = _findFill.dataset.origBg || ''; _findFill.style.boxShadow = _findFill.dataset.origShadow || ''; } }, 560);
   }
 }
 
@@ -9304,14 +9478,14 @@ async function dmSend(mode) {
   const bWrap = document.createElement('div');
   bWrap.className = 'dm-bubble-wrap';
   bWrap.dataset.text = text;
-  bWrap.dataset.sender = 'You';
+  bWrap.dataset.sender = profile.username ? profile.username.slice(1) : 'me';
   bWrap.dataset.ts = nowIso;
   bWrap.dataset.minuteKey = msgMinuteKey(nowIso, user.id);
 
   const replyBtnOpt = document.createElement('button');
   replyBtnOpt.className = 'dm-reply-btn'; replyBtnOpt.title = 'Reply';
   replyBtnOpt.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>`;
-  replyBtnOpt.onclick = (e) => { e.stopPropagation(); startReply(text, 'You'); };
+  replyBtnOpt.onclick = (e) => { e.stopPropagation(); startReply(text, profile.username ? profile.username.slice(1) : 'me', bWrap.dataset.msgId || null); };
 
   const moreBtnOpt = document.createElement('button');
   moreBtnOpt.className = 'dm-more-btn'; moreBtnOpt.title = 'More options';
@@ -9326,6 +9500,7 @@ async function dmSend(mode) {
     const rp = document.createElement('div');
     rp.className = 'dm-reply-preview';
     rp.innerHTML = `<div class="dm-reply-author">${escHtml(msgReplyTo.author || '')}</div><div class="dm-reply-text">${escHtml(msgReplyTo.text)}</div>`;
+    rp.onclick = (e) => { e.stopPropagation(); scrollToReplyTarget(msgReplyTo.id, msgReplyTo.text, msgReplyTo.author || ''); };
     bubble.prepend(rp);
   }
 
@@ -9337,7 +9512,7 @@ async function dmSend(mode) {
   bWrap.appendChild(moreBtnOpt); bWrap.appendChild(replyBtnOpt); bWrap.appendChild(bubble);
 
   // Mobile swipe-to-reply for optimistic bubble
-  addSwipeToReply(bWrap, true, () => startReply(text, 'You'));
+  addSwipeToReply(bWrap, true, () => startReply(text, profile.username ? profile.username.slice(1) : 'me', bWrap.dataset.msgId || null));
 
   // Only show optimistic text bubble if there's actual text
   if (!text) {
@@ -9397,7 +9572,7 @@ async function dmSend(mode) {
       media_url: staged ? staged.dataUrl : null,
       is_video: staged ? staged.isVideo : false
     };
-    if (msgReplyTo) { insertData.reply_to_text = msgReplyTo.text; insertData.reply_to_author = msgReplyTo.author; }
+    if (msgReplyTo) { insertData.reply_to_text = msgReplyTo.text; insertData.reply_to_author = msgReplyTo.author; if (msgReplyTo.id) insertData.reply_to_id = msgReplyTo.id; }
     const { data: inserted, error } = await supabaseClient.from('messages').insert(insertData).select().single();
     if (error) throw error;
 
