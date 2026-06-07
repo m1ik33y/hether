@@ -6858,7 +6858,7 @@ async function openDM() {
           if (contact) {
             contact.unread = true;
             contact.unreadCount = (contact.unreadCount || 0) + 1;
-            const d = new Date(msg.created_at);
+            const d = parseSupabaseDate(msg.created_at);
             contact.lastMessage = { type: 'received', text: msg.content, time: formatMsgTime(d) };
             contact.lastMessageTs = d.getTime();
             buildDMConvList();
@@ -7643,13 +7643,13 @@ function groupMessages(messages) {
       const lastRawTs = lastMsg.created_at || lastMsg.ts || null;
       const lastD = parseSupabaseDate(lastRawTs);
       const gap = ts - lastD.getTime();
-      const sameMinute = currentGroup.minuteKey === mKey;
 
-      // Same-minute: always merge (existing behaviour)
-      // Consecutive image-only from same sender within 5 min: also merge into same group
-      const canMergeAsMedia = isMediaOnly && _isMsgMediaOnly(lastMsg) && gap <= MEDIA_GROUP_GAP_MS;
+      // Group if same sender AND within 5 minutes of the last message in the group.
+      // A different sender always starts a new group regardless of time.
+      const withinWindow = gap <= MEDIA_GROUP_GAP_MS; // 5 * 60 * 1000
+      const canMergeAsMedia = isMediaOnly && _isMsgMediaOnly(lastMsg) && withinWindow;
 
-      if (sameMinute || canMergeAsMedia) {
+      if (withinWindow || canMergeAsMedia) {
         if (isMediaOnly && _isMsgMediaOnly(lastMsg)) {
           if (!currentGroup.mediaGroupStart) {
             currentGroup.mediaGroupStart = currentGroup.messages.length - 1;
@@ -7661,8 +7661,7 @@ function groupMessages(messages) {
         currentGroup.time = formatMsgTime(d);
         currentGroup.lastTs = rawTs;
         currentGroup.groupKey = ts;
-        // Keep minuteKey pointing at latest bubble so mergeAdjacentGroups works
-        if (sameMinute) currentGroup.minuteKey = mKey;
+        currentGroup.minuteKey = mKey;
         return;
       }
     }
@@ -7828,45 +7827,43 @@ function mergeAdjacentGroups(container) {
       // Derive minute-key from the group's stored value, or from the last/first bubble inside it
       function groupMinuteKey(grp) {
         if (grp.dataset.minuteKey) return grp.dataset.minuteKey;
-        // Fallback: read from the last bubble-wrap inside the group
         const wraps = grp.querySelectorAll('.dm-bubble-wrap');
         const lastWrap = wraps[wraps.length - 1];
         return lastWrap ? lastWrap.dataset.minuteKey || '' : '';
       }
 
-      const keyA = groupMinuteKey(a);
+      // Use timestamp gap for merging: same sender + within 5 minutes = same group.
+      // aTs is the LAST message time in group A; bFirstTs is the FIRST message time in group B.
+      const aTs = parseInt(a.dataset.groupTs || '0', 10);
+      const bCreatedAt = b.dataset.createdAt;
+      const bFirstTs = bCreatedAt ? parseSupabaseDate(bCreatedAt).getTime() : parseInt(b.dataset.groupTs || '0', 10);
+      const gap = bFirstTs - aTs;
+      const withinWindow = gap <= MEDIA_GROUP_GAP_MS; // 5 * 60 * 1000
+
+      // For the merge commit below we still need keyB to update minuteKey
       const keyB = groupMinuteKey(b);
 
-      // Check if the groups can be merged by same minute-key
-      const sameMinuteKey = keyA && keyB && keyA === keyB;
-
-      // Also allow merging if the tail of group A and head of group B are both image-only within 5 min
       let canMergeAsMedia = false;
-      if (!sameMinuteKey) {
-        const aTs = parseInt(a.dataset.groupTs || '0', 10);
-        const bTs = parseInt(b.dataset.groupTs || '0', 10);
-        const gap = bTs - aTs;
-        if (gap <= MEDIA_GROUP_GAP_MS) {
-          const aBubblesCheck = a.querySelector('.dm-msg-bubbles');
-          const bBubblesCheck = b.querySelector('.dm-msg-bubbles');
-          const aLastChild = aBubblesCheck ? aBubblesCheck.lastElementChild : null;
-          const bFirstChild = bBubblesCheck ? bBubblesCheck.firstElementChild : null;
-          const aLastIsMedia = aLastChild && (aLastChild.querySelector('.dm-bubble-media-only') !== null || aLastChild.querySelector('.dm-media-collage') !== null);
-          const bFirstIsMedia = bFirstChild && (bFirstChild.querySelector('.dm-bubble-media-only') !== null || bFirstChild.querySelector('.dm-media-collage') !== null);
-          if (aLastIsMedia && bFirstIsMedia) canMergeAsMedia = true;
-        }
+      if (withinWindow) {
+        const aBubblesCheck = a.querySelector('.dm-msg-bubbles');
+        const bBubblesCheck = b.querySelector('.dm-msg-bubbles');
+        const aLastChild = aBubblesCheck ? aBubblesCheck.lastElementChild : null;
+        const bFirstChild = bBubblesCheck ? bBubblesCheck.firstElementChild : null;
+        const aLastIsMedia = aLastChild && (aLastChild.querySelector('.dm-bubble-media-only') !== null || aLastChild.querySelector('.dm-media-collage') !== null);
+        const bFirstIsMedia = bFirstChild && (bFirstChild.querySelector('.dm-bubble-media-only') !== null || bFirstChild.querySelector('.dm-media-collage') !== null);
+        if (aLastIsMedia && bFirstIsMedia) canMergeAsMedia = true;
       }
 
-      if (!sameMinuteKey && !canMergeAsMedia) continue;
+      if (!withinWindow && !canMergeAsMedia) continue;
 
       const aBubbles = a.querySelector('.dm-msg-bubbles');
       const bBubbles = b.querySelector('.dm-msg-bubbles');
       if (aBubbles && bBubbles) {
-        // Move all bubble-outers from b into a, update the minute-key to b's (which is same, but keep consistent)
+        // Move all bubble-outers from b into a
         Array.from(bBubbles.children).forEach(child => aBubbles.appendChild(child));
         applyBubbleGrouping(aBubbles);
         if (b.dataset.groupTs) a.dataset.groupTs = b.dataset.groupTs;
-        a.dataset.minuteKey = keyB; // same value, but now reflects the latest bubble
+        a.dataset.minuteKey = keyB;
         if (b.dataset.createdAt) a.dataset.createdAt = b.dataset.createdAt;
         const bTime = b.querySelector('.dm-group-time');
         const aTime = a.querySelector('.dm-group-time');
@@ -9056,7 +9053,7 @@ function appendIncomingMessage(container, msg, currentUserId, contact) {
   }
 
   const isSent = msg.sender_id === currentUserId;
-  const d = new Date(msg.created_at || Date.now());
+  const d = parseSupabaseDate(msg.created_at || new Date().toISOString());
   const ts = d.getTime();
 
   // Remove matching optimistic bubble (sent messages already shown optimistically)
@@ -9107,15 +9104,16 @@ function appendIncomingMessage(container, msg, currentUserId, contact) {
   const isIncomingMediaOnly = _isMsgMediaOnly(msg);
 
   if (lastGroup && lastGroup.dataset.senderId === msg.sender_id) {
-    const sameMinute = incomingMinuteKey && lastGroup.dataset.minuteKey === incomingMinuteKey;
     const bubblesWrap = lastGroup.querySelector('.dm-msg-bubbles');
     const lastBubbleOuter = bubblesWrap ? bubblesWrap.lastElementChild : null;
     const lastBubbleIsMedia = lastBubbleOuter && (lastBubbleOuter.querySelector('.dm-bubble-media-only') !== null || lastBubbleOuter.querySelector('.dm-media-collage') !== null);
     const lastGroupTs = parseInt(lastGroup.dataset.groupTs || '0', 10);
-    const withinMediaGap = isIncomingMediaOnly && lastBubbleIsMedia && (ts - lastGroupTs) <= MEDIA_GROUP_GAP_MS;
+    // Group if same sender AND within 5 minutes of the last message. Different sender always starts a new group.
+    const withinWindow = (ts - lastGroupTs) <= MEDIA_GROUP_GAP_MS;
+    const withinMediaGap = isIncomingMediaOnly && lastBubbleIsMedia && withinWindow;
 
-    if ((sameMinute || withinMediaGap) && bubblesWrap) {
-      if (withinMediaGap && !sameMinute) {
+    if ((withinWindow || withinMediaGap) && bubblesWrap) {
+      if (withinMediaGap && !withinWindow) {
         _appendMediaToGroup(bubblesWrap, msg, isSent, contact, currentUserId);
       } else {
         bubblesWrap.appendChild(makeBubbleWrap(msg, isSent, contact, currentUserId));
@@ -9174,7 +9172,7 @@ function appendIncomingMessage(container, msg, currentUserId, contact) {
 function updateContactLastMsg(userId, msg, currentUserId) {
   const contact = dmContacts.find(c => c.id === userId);
   if (!contact) return;
-  const d = new Date(msg.created_at);
+  const d = parseSupabaseDate(msg.created_at);
   contact.lastMessage = { type: msg.sender_id === currentUserId ? 'sent' : 'received', text: msg.content, time: formatMsgTime(d) };
   contact.lastMessageTs = d.getTime();
   if (msg.sender_id === currentUserId) contact.sentByMe = true;
@@ -10253,7 +10251,7 @@ function renderNotesList() {
     item.className = 'note-item' + (note.id === activeNoteId ? ' active' : '');
     item.onclick = () => openNote(note.id);
     const preview = note.body.split('\n')[0] || 'No content';
-    const d = new Date(note.updatedAt);
+    const d = parseSupabaseDate(note.updatedAt);
     const dateStr = d.toLocaleDateString([], { month: 'short', day: 'numeric' });
     item.innerHTML = `
       <div class="note-item-title">${escHtml(note.title || 'Untitled')}</div>
@@ -10360,7 +10358,7 @@ async function preloadAllChats() {
   latestMap.forEach((msg, userId) => {
     const contact = dmContacts.find(c => c.id === userId);
     if (!contact) return;
-    const d = new Date(msg.created_at);
+    const d = parseSupabaseDate(msg.created_at);
     contact.lastMessage = { type: msg.sender_id === user.id ? 'sent' : 'received', text: msg.content, time: formatMsgTime(d) };
     contact.lastMessageTs = d.getTime();
   });
@@ -10764,7 +10762,7 @@ function renderHistoryList() {
     const div = document.createElement('div');
     div.className = 'history-item';
     div.onclick = () => { loadHistoryItem(item); };
-    const d = new Date(item.ts);
+    const d = parseSupabaseDate(item.ts);
     const dateStr = d.toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     div.innerHTML = `<div class="history-item-q">${escHtml(item.q)}</div><div class="history-item-a">${escHtml(item.a.substring(0, 100))}${item.a.length > 100 ? '…' : ''}</div><div class="history-item-time">${dateStr}</div>`;
     list.appendChild(div);
@@ -12333,17 +12331,182 @@ function _ghostTrigger() {
   if (typeof closeDM === 'function') closeDM();
 }
 
+// ── REALTIME REHYDRATION ──
+// Supabase WebSockets can silently drop when a tab is hidden, throttled by
+// the browser, or idle for a long time. This rebuilds every dead channel so
+// presence, messages, and typing all resume the moment the tab is visible.
+let _rehydrating = false;
+async function _rehydrateRealtime() {
+  if (!dmOpen || _rehydrating) return;
+  _rehydrating = true;
+  try {
+    // 1. Presence heartbeat — restart if channel is gone or not joined
+    if (!presenceChannel || presenceChannel.state !== 'joined') {
+      await joinPresence();
+    }
+
+    // 2. Watcher channels for all contacts — replace any that died
+    const deadWatchers = Object.keys(_presenceWatchChannels).filter(uid => {
+      const entry = _presenceWatchChannels[uid];
+      return !entry.channel || entry.channel.state === 'closed' || entry.channel.state === 'errored';
+    });
+    deadWatchers.forEach(uid => {
+      unwatchUserPresence(uid);   // remove the dead one
+      watchUserPresence(uid);     // fresh subscribe
+    });
+    // Also kick any watcher whose channel is just stalled (not 'joined' yet)
+    Object.keys(_presenceWatchChannels).forEach(uid => {
+      const entry = _presenceWatchChannels[uid];
+      if (entry.channel && entry.channel.state !== 'joined' && entry.channel.state !== 'joining') {
+        unwatchUserPresence(uid);
+        watchUserPresence(uid);
+      }
+    });
+
+    // 3. Global inbox channel — rebuild if dead
+    const globalChState = window._dmGlobalChannel?.state;
+    if (!window._dmGlobalChannel || globalChState === 'closed' || globalChState === 'errored') {
+      try { if (window._dmGlobalChannel) await supabaseClient.removeChannel(window._dmGlobalChannel); } catch(e) {}
+      window._dmGlobalChannel = null;
+      // Re-bootstrap global channels the same way openDM does
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      if (user) {
+        const globalCh = supabaseClient.channel(`global-inbox:${user.id}`)
+          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages',
+            filter: `receiver_id=eq.${user.id}` }, (payload) => {
+            if (!dmOpen) return;
+            const msg = payload.new;
+            if (msg.sender_id === activeDmId && _isChatVisibleFor(msg.sender_id)) return;
+            _maybePlayMessageSound(msg.sender_id, user.id);
+            const contact = dmContacts.find(c => c.id === msg.sender_id);
+            if (contact) {
+              contact.unread = true;
+              contact.unreadCount = (contact.unreadCount || 0) + 1;
+              const d = parseSupabaseDate(msg.created_at);
+              contact.lastMessage = { type: 'received', text: msg.content, time: formatMsgTime(d) };
+              contact.lastMessageTs = d.getTime();
+              buildDMConvList();
+            }
+          })
+          .subscribe();
+        window._dmGlobalChannel = globalCh;
+      }
+    }
+
+    // 4. Global typing channel — rebuild if dead
+    const globalTypingState = window._dmGlobalTypingChannel?.state;
+    if (!window._dmGlobalTypingChannel || globalTypingState === 'closed' || globalTypingState === 'errored') {
+      try { if (window._dmGlobalTypingChannel) await supabaseClient.removeChannel(window._dmGlobalTypingChannel); } catch(e) {}
+      window._dmGlobalTypingChannel = null;
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      if (user) {
+        const globalTypingCh = supabaseClient.channel(`typing-notify:${user.id}`, {
+          config: { broadcast: { self: false } }
+        });
+        globalTypingCh
+          .on('broadcast', { event: 'typing' }, ({ payload }) => {
+            const senderId = payload.userId;
+            if (!senderId) return;
+            if (payload.isTyping) {
+              ['dmConvList', 'dmFsConvList'].forEach(listId => {
+                const list = document.getElementById(listId);
+                if (!list) return;
+                const item = list.querySelector(`.dm-conv-item[data-id="${senderId}"]`);
+                if (!item) return;
+                const preview = item.querySelector('.dm-conv-preview');
+                if (preview && !preview.classList.contains('typing')) {
+                  preview.dataset.prevText = preview.textContent;
+                  preview.dataset.prevClass = preview.className;
+                  preview.className = 'dm-conv-preview typing';
+                  preview.textContent = 'Typing\u2026';
+                }
+              });
+              if (senderId === activeDmId) showRemoteTyping(senderId);
+            } else {
+              if (senderId === activeDmId) {
+                hideRemoteTyping();
+              } else {
+                ['dmConvList', 'dmFsConvList'].forEach(listId => {
+                  const list = document.getElementById(listId);
+                  if (!list) return;
+                  const item = list.querySelector(`.dm-conv-item[data-id="${senderId}"]`);
+                  if (!item) return;
+                  const preview = item.querySelector('.dm-conv-preview.typing');
+                  if (preview) {
+                    preview.className = preview.dataset.prevClass || 'dm-conv-preview';
+                    preview.textContent = preview.dataset.prevText || '';
+                    delete preview.dataset.prevText;
+                    delete preview.dataset.prevClass;
+                  }
+                });
+              }
+            }
+          })
+          .subscribe();
+        window._dmGlobalTypingChannel = globalTypingCh;
+      }
+    }
+
+    // 5. Per-chat message channel — rebuild if dead
+    const chatChState = subscriptionManager.activeSubscription?.state;
+    if (activeDmId && (!subscriptionManager.activeSubscription || chatChState === 'closed' || chatChState === 'errored')) {
+      // Re-open without resetting the UI — just restore the realtime subscription.
+      // We use a lightweight approach: re-run loadMessages for the current chat only
+      // if the channel is confirmed dead. This also catches any messages missed while offline.
+      const isMobile = document.getElementById('dmFullscreen')?.classList.contains('show');
+      if (isMobile) {
+        if (typeof openFsChat === 'function') await openFsChat(activeDmId);
+      } else {
+        if (typeof openDesktopChat === 'function') await openDesktopChat(activeDmId);
+      }
+    }
+
+    // 6. Typing channel — rebuild if dead
+    if (activeDmId) {
+      const typingChState = typingChannel?.state;
+      if (!typingChannel || typingChState === 'closed' || typingChState === 'errored') {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        if (user) await setupTypingChannel(user.id, activeDmId);
+      }
+    }
+
+    // 7. Seen channel — rebuild if dead
+    if (_seenMyUserId) {
+      const seenChState = _seenChannel?.state;
+      if (!_seenChannel || seenChState === 'closed' || seenChState === 'errored') {
+        await startSeenChannel(_seenMyUserId);
+      }
+    }
+
+    // 8. Chat theme channel — rebuild if dead
+    if (activeDmId) {
+      const themeChState = _chatThemeChannel?.state;
+      if (!_chatThemeChannel || themeChState === 'closed' || themeChState === 'errored') {
+        await subscribeToChatTheme(activeDmId);
+      }
+    }
+
+    // Always refresh presence dots after rehydrating
+    updatePresenceDots();
+  } catch(e) {
+    // Silently swallow — rehydration is best-effort
+  } finally {
+    _rehydrating = false;
+  }
+}
+
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') {
     _ghostTrigger();
   } else if (document.visibilityState === 'visible' && dmOpen && activeDmId) {
     markConversationSeen(activeDmId);
     if (_seenMyUserId) pollSeenStatus(_seenMyUserId);
-    // Clear unread state for the now-visible chat and update title
     const contact = dmContacts ? dmContacts.find(c => c.id === activeDmId) : null;
     if (contact) { contact.unread = false; contact.unreadCount = 0; }
     _updateTitleUnreadBadge();
     buildDMConvList();
+    // Reconnect any channels that died while hidden
+    _rehydrateRealtime();
   }
 });
 
@@ -12353,11 +12516,12 @@ window.addEventListener('focus', () => {
   if (dmOpen && activeDmId) {
     markConversationSeen(activeDmId);
     if (_seenMyUserId) pollSeenStatus(_seenMyUserId);
-    // Clear unread state for the now-focused chat and update title
     const contact = dmContacts ? dmContacts.find(c => c.id === activeDmId) : null;
     if (contact) { contact.unread = false; contact.unreadCount = 0; }
     _updateTitleUnreadBadge();
     buildDMConvList();
+    // Reconnect any channels that dropped while the window was blurred
+    _rehydrateRealtime();
   }
 });
 
