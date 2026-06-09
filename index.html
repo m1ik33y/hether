@@ -3615,6 +3615,111 @@ kbd {
 }
 .dm-msg-group.sent .dm-edited-tag { text-align: right; }
 .dm-msg-group.received .dm-edited-tag { text-align: left; }
+
+/* ── ADMIN TERMINAL ── */
+#adminTerminal {
+  display: none;
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  width: min(720px, 94vw);
+  height: min(400px, 88vh);
+  background: #0a0a0c;
+  border: 1px solid #1e1e26;
+  border-radius: 8px;
+  box-shadow: 0 32px 96px rgba(0,0,0,0.85), 0 0 0 1px rgba(255,255,255,0.04);
+  font-family: 'DM Mono', 'Courier New', monospace;
+  overflow: hidden;
+  animation: termIn 0.14s cubic-bezier(0.4,0,0.2,1);
+  flex-direction: column;
+}
+#adminTerminal.show { display: flex; }
+@media (max-width: 640px) {
+  #adminTerminal {
+    top: 0; left: 0;
+    transform: none;
+    width: 100vw;
+    height: 100dvh;
+    border-radius: 0;
+    border: none;
+  }
+}
+@keyframes termIn {
+  from { opacity: 0; transform: translate(-50%, -51%) scale(0.98); }
+  to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+.term-titlebar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 0 0 16px;
+  background: #111114;
+  border-bottom: 1px solid #1e1e26;
+  user-select: none;
+  flex-shrink: 0;
+  height: 32px;
+}
+.term-titlebar-left {
+  display: flex; align-items: center; gap: 10px;
+  flex: 1;
+}
+.term-title {
+  font-size: 11px; font-weight: 400;
+  color: #5a5a6e; letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+.term-close {
+  height: 32px; width: 46px;
+  background: transparent; border: none; color: #4e4e6a;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background 0.1s, color 0.1s;
+  flex-shrink: 0;
+}
+.term-close:hover { background: #e81123; color: #ffffff; }
+.term-close svg { width: 16px; height: 16px; }
+
+/* The terminal body — this is where typing happens */
+#termBody {
+  padding: 14px 18px 0;
+  flex: 1;
+  overflow-y: auto;
+  font-size: 12.5px; line-height: 1.75;
+  color: #b8b8c8;
+  cursor: text;
+}
+#termBody::-webkit-scrollbar { width: 3px; }
+#termBody::-webkit-scrollbar-thumb { background: #1e1e2a; border-radius: 2px; }
+
+/* Output lines */
+.term-line { white-space: pre-wrap; word-break: break-all; }
+.term-line.info  { color: #4e4e6a; }
+.term-line.ok    { color: #3dba6e; }
+.term-line.err   { color: #c0392b; }
+.term-line.warn  { color: #c0892b; }
+.term-line.cmd   { color: #6e6ec8; }
+
+/* The live input line at the bottom of termBody */
+.term-input-line {
+  display: flex; align-items: center;
+  padding: 0 0 14px 0;
+  margin-top: 2px;
+}
+.term-prompt-sym {
+  color: #3dba6e; font-size: 12.5px; margin-right: 8px;
+  flex-shrink: 0; user-select: none;
+}
+#termLiveInput {
+  flex: 1; background: transparent; border: none; outline: none;
+  color: #d4d4e0; font-family: 'DM Mono', 'Courier New', monospace; font-size: 12.5px;
+  caret-color: #3dba6e;
+  padding: 0;
+}
+#termLiveInput::placeholder { color: #28282e; }
+
+#terminalOverlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6); z-index: 9998; backdrop-filter: blur(2px);
+}
+#terminalOverlay.show { display: block; }
 </style>
 </head>
 <body>
@@ -4282,6 +4387,13 @@ kbd {
               <div>
                 <div class="setting-label">Admin Key <span style="font-size:12px;color:var(--text3);font-weight:400;">(Authorized Personnel Only)</span></div>
                 <div class="setting-sub">Restricted access — requires valid credentials</div>
+              </div>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+            <div class="setting-row clickable" onclick="openAdminTerminal()">
+              <div>
+                <div class="setting-label">Admin Terminal <span style="font-size:12px;color:var(--text3);font-weight:400;">(Admin only)</span></div>
+                <div class="setting-sub">Execute privileged commands — restricted access</div>
               </div>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
             </div>
@@ -5254,6 +5366,26 @@ kbd {
 </div>
 
 </div><!-- /mainApp -->
+
+<!-- ADMIN TERMINAL -->
+<div id="terminalOverlay" onclick="closeAdminTerminal()"></div>
+<div id="adminTerminal" role="dialog" aria-label="Admin Terminal">
+  <div class="term-titlebar">
+    <div class="term-titlebar-left">
+      <div class="term-title">hether :: admin-shell</div>
+    </div>
+    <button class="term-close" onclick="closeAdminTerminal()" title="Close (Esc)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div id="termBody" onclick="focusTermInput()">
+    <!-- output lines injected here by JS -->
+    <div class="term-input-line">
+      <span class="term-prompt-sym">&gt;&gt;</span>
+      <input id="termLiveInput" type="text" autocomplete="off" spellcheck="false" onkeydown="termHandleKey(event)">
+    </div>
+  </div>
+</div>
 
 <!-- SNIPPETS (no mini widget needed) -->
 
@@ -10599,7 +10731,10 @@ async function loadUserProfile() {
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (!user) return;
   const { data } = await supabaseClient.from('profiles').select('*').eq('id', user.id).single();
-  if (data) { profile = { name: data.display_name || data.username, username: '@' + data.username, email: user.email, avatarUrl: data.avatar_url }; }
+  if (data) {
+    profile = { name: data.display_name || data.username, username: '@' + data.username, email: user.email, avatarUrl: data.avatar_url };
+    window._cachedUserRole = data.role || null;
+  }
   renderProfileEverywhere();
   loadGhostMode();
   loadNotifications();
@@ -13241,6 +13376,313 @@ function mobRenderThemePicker() {
     picker.appendChild(item);
   });
 }
+</script>
+
+<script>
+// ── ADMIN TERMINAL ──
+(function() {
+
+  const TERM_HISTORY = [];
+  let termHistIdx = -1;
+
+  function termEl()      { return document.getElementById('adminTerminal'); }
+  function bodyEl()      { return document.getElementById('termBody'); }
+  function inputEl()     { return document.getElementById('termLiveInput'); }
+  function inputLineEl() { return document.querySelector('#termBody .term-input-line'); }
+
+  // Focus the hidden input when clicking anywhere in the terminal body
+  window.focusTermInput = function() {
+    const inp = inputEl();
+    if (inp) inp.focus();
+  };
+
+  function termPrint(text, cls) {
+    const body = bodyEl();
+    const inputLine = inputLineEl();
+    if (!body || !inputLine) return;
+    const line = document.createElement('div');
+    line.className = 'term-line' + (cls ? ' ' + cls : '');
+    line.textContent = text;
+    body.insertBefore(line, inputLine);
+    body.scrollTop = body.scrollHeight;
+  }
+
+  function termBanner() {
+    termPrint('hether admin-shell  —  initialized', 'info');
+    termPrint('type --help for available directives', 'info');
+    termPrint('', '');
+  }
+
+  // ── ADMIN ACCESS ERROR ──
+  window.showAdminAccessErrorPill = function(msg) {
+    console.error('[hether] ' + (msg || 'Access denied — admin key not found'));
+  };
+
+  // ── ASYNC ROLE CHECK ──
+  async function isCurrentUserAdmin() {
+    // Fast path: use cached role if available
+    if (typeof window._cachedUserRole !== 'undefined') {
+      return window._cachedUserRole === 'admin';
+    }
+    try {
+      const { data: { user }, error } = await supabaseClient.auth.getUser();
+      if (error || !user) return false;
+      const { data: p } = await supabaseClient.from('profiles').select('role').eq('id', user.id).single();
+      window._cachedUserRole = p ? (p.role || null) : null;
+      return window._cachedUserRole === 'admin';
+    } catch(e) {
+      return false;
+    }
+  }
+
+  window.openAdminTerminal = async function() {
+    const admin = await isCurrentUserAdmin();
+    if (!admin) {
+      window.showAdminAccessErrorPill('Access denied — Admin clearance required');
+      return;
+    }
+    const el = termEl();
+    const ov = document.getElementById('terminalOverlay');
+    if (!el || !ov) return;
+    el.classList.add('show');
+    ov.classList.add('show');
+    // Always start fresh — clear all output lines then print banner
+    const body = bodyEl();
+    if (body) body.querySelectorAll('.term-line').forEach(l => l.remove());
+    termBanner();
+    setTimeout(() => { const inp = inputEl(); if (inp) inp.focus(); }, 80);
+  };
+
+  window.closeAdminTerminal = function() {
+    const el = termEl();
+    const ov = document.getElementById('terminalOverlay');
+    if (el) el.classList.remove('show');
+    if (ov) ov.classList.remove('show');
+    const inp = inputEl();
+    if (inp) inp.value = '';
+  };
+
+  // Alt+T shortcut — desktop only
+  document.addEventListener('keydown', function(e) {
+    if (e.altKey && e.key === 't' && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
+      if (window.innerWidth <= 640) return;
+      e.preventDefault();
+      const el = termEl();
+      if (el && el.classList.contains('show')) {
+        window.closeAdminTerminal();
+      } else {
+        window.openAdminTerminal(); // already checks admin role internally
+      }
+    }
+    if (e.key === 'Escape') {
+      const el = termEl();
+      if (el && el.classList.contains('show')) {
+        e.stopPropagation();
+        window.closeAdminTerminal();
+      }
+    }
+  });
+
+  window.termHandleKey = function(e) {
+    const inp = inputEl();
+    if (e.key === 'Enter') {
+      const raw = inp.value.trim();
+      if (!raw) return;
+      TERM_HISTORY.unshift(raw);
+      termHistIdx = -1;
+      inp.value = '';
+      termPrint('>> ' + raw, 'cmd');
+      runTermCmd(raw);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (termHistIdx + 1 < TERM_HISTORY.length) {
+        termHistIdx++;
+        inp.value = TERM_HISTORY[termHistIdx];
+      }
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (termHistIdx > 0) {
+        termHistIdx--;
+        inp.value = TERM_HISTORY[termHistIdx];
+      } else {
+        termHistIdx = -1;
+        inp.value = '';
+      }
+    }
+  };
+
+  async function runTermCmd(raw) {
+    const parts = raw.trim().split(/\s+/);
+    const cmd = parts[0].toLowerCase();
+
+    // Gate every command — verify admin before executing anything
+    const admin = await isCurrentUserAdmin();
+    if (!admin) {
+      termPrint('', '');
+      termPrint('  ACCESS DENIED  administration key not present in session', 'err');
+      termPrint('  required clearance: ADMIN  |  current clearance: ' + (window._cachedUserRole || 'NONE'), 'err');
+      termPrint('', '');
+      return;
+    }
+
+    if (cmd === '--help') {
+      termPrint('', '');
+      termPrint('  DIRECTIVES', 'info');
+      termPrint('  --clear <uid1> <uid2>    purge all messages between two users', 'info');
+      termPrint('  --reset                  flush terminal output buffer', 'info');
+      termPrint('  --help                   display this index', 'info');
+      termPrint('', '');
+      return;
+    }
+
+    if (cmd === '--reset') {
+      const body = bodyEl();
+      const inputLine = inputLineEl();
+      if (body && inputLine) {
+        // Remove all .term-line divs, keep input-line
+        body.querySelectorAll('.term-line').forEach(l => l.remove());
+        termBanner();
+      }
+      return;
+    }
+
+    if (cmd === '--clear') {
+      if (parts.length !== 3) {
+        termPrint('', '');
+        termPrint('  ERR  invalid argument count', 'err');
+        termPrint('  usage: --clear <uid1> <uid2>', 'err');
+        termPrint('', '');
+        return;
+      }
+      await cmdClearChat(parts[1], parts[2]);
+      return;
+    }
+
+    termPrint('', '');
+    termPrint('  ERR  unrecognized directive: ' + cmd, 'err');
+    termPrint('  run --help to list valid directives', 'err');
+    termPrint('', '');
+  }
+
+  async function cmdClearChat(u1, u2) {
+    termPrint('', '');
+    // 1. Verify the executing user is admin
+    let currentUser;
+    try {
+      const { data: { user }, error } = await supabaseClient.auth.getUser();
+      if (error || !user) {
+        termPrint('  ERR  session token absent or expired — reauthenticate', 'err');
+        termPrint('', '');
+        return;
+      }
+      currentUser = user;
+    } catch(e) {
+      termPrint('  ERR  auth subsystem fault: ' + e.message, 'err');
+      termPrint('', '');
+      return;
+    }
+
+    // Check role in profiles table
+    const { data: myProfile, error: roleErr } = await supabaseClient
+      .from('profiles').select('role').eq('id', currentUser.id).single();
+
+    if (roleErr || !myProfile) {
+      termPrint('  ERR  profile record unresolvable — uid: ' + currentUser.id, 'err');
+      termPrint('', '');
+      return;
+    }
+    if (myProfile.role !== 'admin') {
+      termPrint('  ACCESS DENIED  administration key not present in session', 'err');
+      termPrint('  required clearance: ADMIN  |  current clearance: ' + (myProfile.role || 'NONE'), 'err');
+      termPrint('', '');
+      return;
+    }
+
+    // 2. Resolve both usernames to profile IDs
+    termPrint('  [1/4]  resolving uid: ' + u1, 'info');
+
+    const { data: p1Data, error: p1Err } = await supabaseClient
+      .from('profiles').select('id, username').eq('username', u1).maybeSingle();
+    if (p1Err) {
+      termPrint('  ERR  profiles lookup fault — ' + p1Err.message, 'err');
+      termPrint('', '');
+      return;
+    }
+    if (!p1Data) {
+      termPrint('  ERR  no record for handle: ' + u1, 'err');
+      termPrint('', '');
+      return;
+    }
+
+    termPrint('  [2/4]  resolving uid: ' + u2, 'info');
+
+    const { data: p2Data, error: p2Err } = await supabaseClient
+      .from('profiles').select('id, username').eq('username', u2).maybeSingle();
+    if (p2Err) {
+      termPrint('  ERR  profiles lookup fault — ' + p2Err.message, 'err');
+      termPrint('', '');
+      return;
+    }
+    if (!p2Data) {
+      termPrint('  ERR  no record for handle: ' + u2, 'err');
+      termPrint('', '');
+      return;
+    }
+
+    if (p1Data.id === p2Data.id) {
+      termPrint('  ERR  uid collision — both handles map to identical account', 'err');
+      termPrint('', '');
+      return;
+    }
+
+    const id1 = p1Data.id, id2 = p2Data.id;
+    termPrint('  [3/4]  targets bound: ' + p1Data.username + ' <-> ' + p2Data.username, 'info');
+    termPrint('  [4/4]  issuing DELETE on messages table...', 'info');
+
+    // 3. Delete all messages between the two users
+    const { error: delErr, count } = await supabaseClient
+      .from('messages')
+      .delete({ count: 'exact' })
+      .or(`and(sender_id.eq.${id1},receiver_id.eq.${id2}),and(sender_id.eq.${id2},receiver_id.eq.${id1})`);
+
+    if (delErr) {
+      termPrint('', '');
+      termPrint('  ERR  DELETE rejected by backend', 'err');
+      termPrint('  db:  ' + delErr.message, 'err');
+      termPrint('  code: ' + (delErr.code || 'n/a') + '  hint: ' + (delErr.hint || 'none'), 'err');
+      termPrint('', '');
+      return;
+    }
+
+    termPrint('       deleted ' + (count ?? '?') + ' message(s)', 'ok');
+
+    // 4. Notify both users in real time
+    try {
+      const ch1 = supabaseClient.channel(`chat-cleared:${id1}`);
+      const ch2 = supabaseClient.channel(`chat-cleared:${id2}`);
+      await new Promise(r => setTimeout(r, 80));
+
+      for (const [ch, notifyId, clearerId] of [[ch1, id1, id2], [ch2, id2, id1]]) {
+        ch.subscribe(async (status) => {
+          if (status === 'SUBSCRIBED') {
+            await ch.send({
+              type: 'broadcast',
+              event: 'chat-cleared',
+              payload: { clearerId }
+            });
+            setTimeout(() => supabaseClient.removeChannel(ch), 2000);
+          }
+        });
+      }
+    } catch(e) {
+      termPrint('  WARN  realtime dispatch fault: ' + e.message, 'warn');
+      termPrint('       messages purged but clients may not sync immediately', 'warn');
+    }
+
+    termPrint('', '');
+  }
+
+})();
 </script>
 
 <nav class="mobile-bottom-nav" id="mobileBottomNav">
