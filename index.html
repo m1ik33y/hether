@@ -13528,7 +13528,9 @@ function mobRenderThemePicker() {
     if (cmd === '--help') {
       termPrint('', '');
       termPrint('  DIRECTIVES', 'info');
+      termPrint('  --check <u1> <u2>        check if two users have message history', 'info');
       termPrint('  --clear <uid1> <uid2>    purge all messages between two users', 'info');
+      termPrint('  --clear <uid>            purge all DMs for a user with everyone', 'info');
       termPrint('  --reset                  flush terminal output buffer', 'info');
       termPrint('  --help                   display this index', 'info');
       termPrint('', '');
@@ -13546,15 +13548,31 @@ function mobRenderThemePicker() {
       return;
     }
 
-    if (cmd === '--clear') {
+    if (cmd === '--check') {
       if (parts.length !== 3) {
         termPrint('', '');
         termPrint('  ERR  invalid argument count', 'err');
-        termPrint('  usage: --clear <uid1> <uid2>', 'err');
+        termPrint('  usage: --check <u1> <u2>', 'err');
         termPrint('', '');
         return;
       }
-      await cmdClearChat(parts[1], parts[2]);
+      await cmdCheckHistory(parts[1], parts[2]);
+      return;
+    }
+
+    if (cmd === '--clear') {
+      if (parts.length === 2) {
+        await cmdClearAll(parts[1]);
+        return;
+      }
+      if (parts.length === 3) {
+        await cmdClearChat(parts[1], parts[2]);
+        return;
+      }
+      termPrint('', '');
+      termPrint('  ERR  invalid argument count', 'err');
+      termPrint('  usage: --clear <u1> <u2>   or   --clear <u>', 'err');
+      termPrint('', '');
       return;
     }
 
@@ -13679,6 +13697,97 @@ function mobRenderThemePicker() {
       termPrint('       messages purged but clients may not sync immediately', 'warn');
     }
 
+    termPrint('', '');
+  }
+
+  async function cmdCheckHistory(u1, u2) {
+    termPrint('', '');
+    termPrint('  [1/3]  resolving: ' + u1, 'info');
+    const { data: p1, error: e1 } = await supabaseClient
+      .from('profiles').select('id, username').eq('username', u1).maybeSingle();
+    if (e1 || !p1) { termPrint('  ERR  no record for handle: ' + u1, 'err'); termPrint('', ''); return; }
+
+    termPrint('  [2/3]  resolving: ' + u2, 'info');
+    const { data: p2, error: e2 } = await supabaseClient
+      .from('profiles').select('id, username').eq('username', u2).maybeSingle();
+    if (e2 || !p2) { termPrint('  ERR  no record for handle: ' + u2, 'err'); termPrint('', ''); return; }
+
+    if (p1.id === p2.id) { termPrint('  ERR  both handles resolve to the same account', 'err'); termPrint('', ''); return; }
+
+    termPrint('  [3/3]  querying message history...', 'info');
+    const { data: msgs, error: mErr } = await supabaseClient
+      .from('messages')
+      .select('id', { count: 'exact' })
+      .or(`and(sender_id.eq.${p1.id},receiver_id.eq.${p2.id}),and(sender_id.eq.${p2.id},receiver_id.eq.${p1.id})`)
+      .limit(1);
+
+    if (mErr) { termPrint('  ERR  query fault — ' + mErr.message, 'err'); termPrint('', ''); return; }
+
+    const hasHistory = msgs && msgs.length > 0;
+    termPrint('', '');
+    termPrint('  ' + p1.username + ' <-> ' + p2.username, 'info');
+    termPrint('  message history: ' + (hasHistory ? 'true' : 'false'), hasHistory ? 'ok' : 'warn');
+    termPrint('', '');
+  }
+
+  async function cmdClearAll(u) {
+    termPrint('', '');
+    termPrint('  [1/4]  resolving: ' + u, 'info');
+    const { data: profile, error: pErr } = await supabaseClient
+      .from('profiles').select('id, username').eq('username', u).maybeSingle();
+    if (pErr || !profile) { termPrint('  ERR  no record for handle: ' + u, 'err'); termPrint('', ''); return; }
+
+    const uid = profile.id;
+
+    termPrint('  [2/4]  discovering all DM partners...', 'info');
+    const { data: msgs, error: mErr } = await supabaseClient
+      .from('messages')
+      .select('sender_id, receiver_id')
+      .or(`sender_id.eq.${uid},receiver_id.eq.${uid}`);
+
+    if (mErr) { termPrint('  ERR  query fault — ' + mErr.message, 'err'); termPrint('', ''); return; }
+
+    const partnerIds = [...new Set(
+      (msgs || []).map(m => m.sender_id === uid ? m.receiver_id : m.sender_id)
+    )];
+
+    termPrint('  [3/4]  found ' + partnerIds.length + ' partner(s) — issuing DELETE...', 'info');
+
+    const { error: delErr, count } = await supabaseClient
+      .from('messages')
+      .delete({ count: 'exact' })
+      .or(`sender_id.eq.${uid},receiver_id.eq.${uid}`);
+
+    if (delErr) {
+      termPrint('  ERR  DELETE rejected by backend', 'err');
+      termPrint('  db:  ' + delErr.message, 'err');
+      termPrint('', '');
+      return;
+    }
+
+    termPrint('       deleted ' + (count ?? '?') + ' message(s) across ' + partnerIds.length + ' conversation(s)', 'ok');
+
+    termPrint('  [4/4]  broadcasting clear to all affected clients...', 'info');
+    try {
+      for (const partnerId of partnerIds) {
+        for (const [notifyId, clearerId] of [[uid, partnerId], [partnerId, uid]]) {
+          const ch = supabaseClient.channel(`chat-cleared:${notifyId}`);
+          ch.subscribe(async (status) => {
+            if (status === 'SUBSCRIBED') {
+              await ch.send({ type: 'broadcast', event: 'chat-cleared', payload: { clearerId } });
+              setTimeout(() => supabaseClient.removeChannel(ch), 2000);
+            }
+          });
+        }
+        await new Promise(r => setTimeout(r, 40));
+      }
+    } catch(e) {
+      termPrint('  WARN  realtime dispatch fault: ' + e.message, 'warn');
+      termPrint('       messages purged but clients may not sync immediately', 'warn');
+    }
+
+    termPrint('', '');
+    termPrint('  cleared all DMs for: ' + profile.username, 'ok');
     termPrint('', '');
   }
 
