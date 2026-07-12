@@ -4455,7 +4455,7 @@ kbd {
             <div class="setting-row">
               <div>
                 <div class="setting-label">hether</div>
-                <div class="setting-sub">Version 1.0.0 — AI assistant &amp; coding platform</div>
+                <div class="setting-sub">Version 7.8 — AI assistant &amp; code n' arcade</div>
               </div>
             </div>
           </div>
@@ -7195,7 +7195,7 @@ async function closeDM() {
   // Clear DM contacts so stale unread state can't linger
   if (typeof dmContacts !== 'undefined') { dmContacts.length = 0; }
   // Reset title immediately — no notifications when panel is closed
-  document.title = 'Hether - Coding Platform';
+  document.title = "Hether - Code n' Arcade ";
   document.getElementById('dmOverlay').classList.remove('show');
   document.getElementById('dmFullscreen').classList.remove('show');
   document.getElementById('dmProfileTab')?.classList.remove('show');
@@ -13039,7 +13039,7 @@ async function loadNotifications() {
 function _syncNotificationsToggleUI() {
   const btn = document.getElementById('notificationsToggle');
   if (btn) btn.classList.toggle('on', _notificationsEnabled);
-  if (!_notificationsEnabled) document.title = 'Hether - Coding Platform';
+  if (!_notificationsEnabled) document.title = "Hether - Code n' Arcade";
 }
 
 function _syncSoundToggleUI() {
@@ -13111,7 +13111,7 @@ function _isChatVisibleFor(userId) {
 
 function _updateTitleUnreadBadge() {
   if (!dmOpen || !_notificationsEnabled) {
-    document.title = 'Hether - Coding Platform';
+    document.title = "Hether - Code n' Arcade";
     return;
   }
   const unreadUsers = (typeof dmContacts !== 'undefined')
@@ -13123,9 +13123,9 @@ function _updateTitleUnreadBadge() {
       }).length
     : 0;
   if (unreadUsers <= 0) {
-    document.title = 'Hether - Coding Platform';
+    document.title = "Hether - Code n' Arcade";
   } else {
-    document.title = `(${unreadUsers}) Hether - Coding Platform`;
+    document.title = `(${unreadUsers}) Hether - Code n' Arcade`;
   }
 }
 
@@ -13143,7 +13143,7 @@ const _originalCloseDM = window.closeDM;
 if (typeof _originalCloseDM === 'function') {
   window.closeDM = async function() {
     await _originalCloseDM.apply(this, arguments);
-    document.title = 'Hether - Coding Platform';
+    document.title = "Hether - Code n' Arcade";
   };
 }
 
