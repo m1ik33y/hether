@@ -4048,13 +4048,36 @@ kbd {
       </div>
     </div>
 
-    <!-- ALOFT TOUCH CONTROLS: left half = move arrows, right half = tap to jump/double-jump -->
+    <!-- ALOFT TOUCH CONTROLS: left half = pixel-style move arrows, right half = tap anywhere to jump (with an up-arrow indicator) -->
+    <style>
+      .aloft-pixel-btn {
+        background: none; border: none; padding: 0; margin: 0; cursor: pointer;
+        width: 54px; height: 54px;
+        display: flex; align-items: center; justify-content: center;
+        -webkit-user-select: none; user-select: none; touch-action: none;
+        -webkit-tap-highlight-color: transparent;
+        opacity: 0.8; transition: opacity 0.1s ease, transform 0.1s ease;
+      }
+      .aloft-pixel-btn svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.7)); }
+      .aloft-pixel-btn.is-active { opacity: 1; transform: scale(0.88); }
+      #aloftBtnLeft svg { transform: rotate(180deg); }
+      #aloftBtnJump svg { transform: rotate(-90deg); }
+      #aloftBtnJump { opacity: 0.55; }
+    </style>
     <div id="aloftTouchControls" style="position:absolute;inset:0;display:none;pointer-events:none;">
-      <div id="aloftMoveZone" style="position:absolute;left:0;top:0;width:50%;height:100%;display:flex;align-items:flex-end;justify-content:flex-start;gap:14px;padding:0 0 22px 22px;touch-action:none;pointer-events:auto;">
-        <button type="button" id="aloftBtnLeft" aria-label="Move left" style="width:58px;height:58px;border-radius:50%;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:#fff;font-size:26px;display:flex;align-items:center;justify-content:center;-webkit-user-select:none;user-select:none;touch-action:none;">‹</button>
-        <button type="button" id="aloftBtnRight" aria-label="Move right" style="width:58px;height:58px;border-radius:50%;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:#fff;font-size:26px;display:flex;align-items:center;justify-content:center;-webkit-user-select:none;user-select:none;touch-action:none;">›</button>
+      <div id="aloftMoveZone" style="position:absolute;left:0;top:0;width:50%;height:100%;display:flex;align-items:flex-end;justify-content:flex-start;gap:18px;padding:0 0 26px 22px;touch-action:none;pointer-events:auto;">
+        <button type="button" id="aloftBtnLeft" aria-label="Move left" class="aloft-pixel-btn">
+          <svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><polygon points="0,4 8,4 8,5.5 11,5.5 11,7 14,7 14,8.5 17,8.5 20,10 17,11.5 14,11.5 14,13 11,13 11,14.5 8,14.5 8,16 0,16" fill="#fff"/></svg>
+        </button>
+        <button type="button" id="aloftBtnRight" aria-label="Move right" class="aloft-pixel-btn">
+          <svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><polygon points="0,4 8,4 8,5.5 11,5.5 11,7 14,7 14,8.5 17,8.5 20,10 17,11.5 14,11.5 14,13 11,13 11,14.5 8,14.5 8,16 0,16" fill="#fff"/></svg>
+        </button>
       </div>
-      <div id="aloftJumpZone" style="position:absolute;right:0;top:0;width:50%;height:100%;touch-action:none;pointer-events:auto;"></div>
+      <div id="aloftJumpZone" style="position:absolute;right:0;top:0;width:50%;height:100%;touch-action:none;pointer-events:auto;display:flex;align-items:flex-end;justify-content:flex-end;padding:0 26px 26px 0;">
+        <button type="button" id="aloftBtnJump" aria-label="Jump" class="aloft-pixel-btn" style="pointer-events:none;">
+          <svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><polygon points="0,4 8,4 8,5.5 11,5.5 11,7 14,7 14,8.5 17,8.5 20,10 17,11.5 14,11.5 14,13 11,13 11,14.5 8,14.5 8,16 0,16" fill="#fff"/></svg>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -14531,13 +14554,15 @@ function onAloftTap(e) {
 function isAloftTouchDevice() {
   return ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 }
-function onAloftLeftDown(e) { e.preventDefault(); keys['ArrowLeft'] = true; }
-function onAloftLeftUp(e) { e.preventDefault(); keys['ArrowLeft'] = false; }
-function onAloftRightDown(e) { e.preventDefault(); keys['ArrowRight'] = true; }
-function onAloftRightUp(e) { e.preventDefault(); keys['ArrowRight'] = false; }
+function onAloftLeftDown(e) { e.preventDefault(); keys['ArrowLeft'] = true; e.currentTarget.classList.add('is-active'); }
+function onAloftLeftUp(e) { e.preventDefault(); keys['ArrowLeft'] = false; e.currentTarget.classList.remove('is-active'); }
+function onAloftRightDown(e) { e.preventDefault(); keys['ArrowRight'] = true; e.currentTarget.classList.add('is-active'); }
+function onAloftRightUp(e) { e.preventDefault(); keys['ArrowRight'] = false; e.currentTarget.classList.remove('is-active'); }
 function onAloftJumpZoneDown(e) {
   e.preventDefault();
   if (gameState === 'playing') doJump();
+  const jb = document.getElementById('aloftBtnJump');
+  if (jb) { jb.classList.add('is-active'); clearTimeout(jb._releaseT); jb._releaseT = setTimeout(() => jb.classList.remove('is-active'), 130); }
 }
 function setAloftTouchControlsVisible(visible) {
   const tc = document.getElementById('aloftTouchControls');
@@ -14889,10 +14914,28 @@ function aloftOnShow() {
     VIRT_W = Math.max(160, Math.round(VIRT_H * (vw / vh)));
     canvas.width  = VIRT_W * SCALE;
     canvas.height = VIRT_H * SCALE;
-    canvas.style.width  = vw + 'px';
-    canvas.style.height = vh + 'px';
-    canvas.style.left   = '0px';
-    canvas.style.top    = '0px';
+    // Fit the canvas's internal aspect ratio into the view WITHOUT stretching it.
+    // On narrow/portrait phones, VIRT_W gets clamped to a 160 minimum (so there's
+    // enough width for the platform zone), which means the canvas's internal
+    // aspect ratio can no longer match the phone's actual (tall/narrow) aspect
+    // ratio. Previously the canvas was force-stretched to vw x vh, which squashed
+    // it and made everything look vertically stretched. Instead, scale it
+    // uniformly to fit inside the view and letterbox (pillarbox) any leftover
+    // space — the view's black background fills the bars seamlessly.
+    const targetAspect = canvas.width / canvas.height;
+    const viewAspect = vw / vh;
+    let cssW, cssH;
+    if (viewAspect > targetAspect) {
+      cssH = vh;
+      cssW = vh * targetAspect;
+    } else {
+      cssW = vw;
+      cssH = vw / targetAspect;
+    }
+    canvas.style.width  = cssW + 'px';
+    canvas.style.height = cssH + 'px';
+    canvas.style.left   = ((vw - cssW) / 2) + 'px';
+    canvas.style.top    = ((vh - cssH) / 2) + 'px';
     viewW = VIRT_W * SCALE;
     viewH = VIRT_H * SCALE;
   }
