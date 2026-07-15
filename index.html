@@ -1062,10 +1062,10 @@ body {
   text-align: left; width: 100%;
 }
 .settings-nav-item:hover { background: var(--surface2); color: var(--text); }
-.settings-nav-item.active { background: var(--surface2); color: var(--accent); font-weight: 600; }
+.settings-nav-item.active { background: var(--surface2); color: #95B84B; font-weight: 600; }
 .settings-nav-item svg { width: 16px; height: 16px; flex-shrink: 0; opacity: 0.5; }
 .settings-nav-item:hover svg { opacity: 0.8; }
-.settings-nav-item.active svg { opacity: 1; stroke: var(--accent); }
+.settings-nav-item.active svg { opacity: 1; stroke: #95B84B; }
 
 .settings-nav-title {
   font-size: 20px; font-weight: 700; color: var(--text);
@@ -3401,13 +3401,17 @@ kbd {
 .code-editor-view.show { display: flex; }
 
 /* ── SNIPPETS ── */
-.snippet-tab-btn {
-  padding: 5px 13px; border-radius: var(--radius); border: 1px solid var(--border);
-  background: transparent; color: var(--text2); font-family: 'DM Sans', sans-serif;
-  font-size: 12.5px; cursor: pointer; transition: all var(--t);
+.snippet-tabs-group {
+  display: flex; align-items: center; gap: 2px; margin-left: auto;
+  padding: 3px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px;
 }
-.snippet-tab-btn:hover { background: var(--surface2); color: var(--text); }
-.snippet-tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.snippet-tab-btn {
+  padding: 6px 14px; border-radius: 7px; border: none;
+  background: transparent; color: var(--text2); font-family: 'DM Sans', sans-serif;
+  font-size: 12.5px; font-weight: 500; cursor: pointer; transition: all var(--t);
+}
+.snippet-tab-btn:hover { color: var(--text); }
+.snippet-tab-btn.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
 
 .snippet-card {
   background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
@@ -3434,33 +3438,55 @@ kbd {
 .snippet-desc li { margin-left: 16px; margin-bottom: 2px; }
 
 .code-editor-header {
-  padding: 12px 20px; border-bottom: 1px solid var(--border);
+  padding: 10px 20px; border-bottom: 1px solid var(--border);
   background: var(--surface); display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+  min-height: 54px; box-shadow: 0 1px 0 rgba(0,0,0,0.02);
 }
-.code-editor-header h2 { font-size: 14px; font-weight: 600; color: var(--text); flex: 1; }
+.code-editor-header h2 {
+  font-size: 14.5px; font-weight: 600; color: var(--text); letter-spacing: -0.1px;
+  display: flex; align-items: center; gap: 9px;
+}
+.code-editor-header h2::before {
+  content: ''; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--accent); flex-shrink: 0; display: none;
+}
+.code-editor-header-spacer { flex: 1; }
+
+.code-editor-toolbar {
+  display: flex; align-items: center; gap: 4px; margin-left: auto;
+  padding: 4px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px;
+}
 
 .lang-select {
-  padding: 5px 10px; border: 1px solid var(--border); border-radius: var(--radius);
-  background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif;
-  font-size: 12.5px; cursor: pointer; outline: none; transition: border-color var(--t);
+  padding: 6px 26px 6px 11px; border: none; border-radius: 7px;
+  background: var(--surface) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%236b6b78" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>') no-repeat right 8px center / 11px 11px;
+  color: var(--text); font-family: 'DM Sans', sans-serif;
+  font-size: 12.5px; font-weight: 500; cursor: pointer; outline: none; transition: all var(--t);
+  -webkit-appearance: none; appearance: none;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
 }
-.lang-select:focus { border-color: var(--accent); }
+.lang-select:hover { color: var(--text); }
+.lang-select:focus { box-shadow: 0 0 0 3px rgba(102,100,194,0.15); }
+
+.code-toolbar-divider { width: 1px; align-self: stretch; margin: 2px 2px; background: var(--border); flex-shrink: 0; }
 
 .run-btn {
-  padding: 6px 14px; border-radius: var(--radius); border: none;
+  padding: 7px 16px; border-radius: 7px; border: none;
   background: var(--accent); color: #fff; font-family: 'DM Sans', sans-serif;
-  font-size: 13px; font-weight: 500; cursor: pointer; transition: background var(--t);
+  font-size: 13px; font-weight: 600; cursor: pointer; transition: all var(--t);
   display: flex; align-items: center; gap: 6px;
+  box-shadow: 0 1px 3px rgba(102,100,194,0.35);
 }
-.run-btn:hover { background: var(--accent-hover); }
+.run-btn:hover { background: var(--accent-hover); box-shadow: 0 2px 6px rgba(102,100,194,0.45); transform: translateY(-1px); }
+.run-btn:active { transform: translateY(0); }
 .run-btn svg { width: 12px; height: 12px; }
 
 .clear-output-btn {
-  padding: 6px 10px; border-radius: var(--radius); border: 1px solid var(--border);
-  background: transparent; color: var(--text3); font-family: 'DM Sans', sans-serif;
-  font-size: 12px; cursor: pointer; transition: all var(--t);
+  padding: 7px 12px; border-radius: 7px; border: none;
+  background: transparent; color: var(--text2); font-family: 'DM Sans', sans-serif;
+  font-size: 12.5px; font-weight: 500; cursor: pointer; transition: all var(--t);
 }
-.clear-output-btn:hover { border-color: var(--text2); color: var(--text); background: var(--surface2); }
+.clear-output-btn:hover { color: var(--text); background: var(--surface); box-shadow: 0 1px 2px rgba(0,0,0,0.06); }
 
 .code-editor-body { flex: 1; display: flex; overflow: hidden; }
 
@@ -3871,7 +3897,7 @@ kbd {
   <div class="section-label">Workspace</div>
 
   <button class="nav-btn active" id="navChat" onclick="showView('chat')" data-tip="Assist">
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-box-icon lucide-box"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-brain-icon lucide-brain"><path d="M12 18V5"/><path d="M15 13a4.17 4.17 0 0 1-3-4 4.17 4.17 0 0 1-3 4"/><path d="M17.598 6.5A3 3 0 1 0 12 5a3 3 0 1 0-5.598 1.5"/><path d="M17.997 5.125a4 4 0 0 1 2.526 5.77"/><path d="M18 18a4 4 0 0 0 2-7.464"/><path d="M19.967 17.483A4 4 0 1 1 12 18a4 4 0 1 1-7.967-.517"/><path d="M6 18a4 4 0 0 1-2-7.464"/><path d="M6.003 5.125a4 4 0 0 0-2.526 5.77"/></svg>
     <span class="nav-btn-label">Assist</span>
   </button>
 
@@ -3891,7 +3917,7 @@ kbd {
   </button>
 
   <button class="nav-btn" id="navNotes" onclick="showView('notes')" data-tip="Notes">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-panel-left-open-icon lucide-panel-left-open"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m14 9 3 3-3 3"/></svg>
     <span class="nav-btn-label">Notes</span>
   </button>
 
@@ -4021,6 +4047,15 @@ kbd {
         <button onclick="aloftStart()" style="padding:11px 32px;background:#fff;color:#000;border:none;border-radius:2px;font-family:'DM Mono',monospace;font-size:13px;cursor:pointer;letter-spacing:2px;font-weight:700;">RETRY</button>
       </div>
     </div>
+
+    <!-- ALOFT TOUCH CONTROLS: left half = move arrows, right half = tap to jump/double-jump -->
+    <div id="aloftTouchControls" style="position:absolute;inset:0;display:none;pointer-events:none;">
+      <div id="aloftMoveZone" style="position:absolute;left:0;top:0;width:50%;height:100%;display:flex;align-items:flex-end;justify-content:flex-start;gap:14px;padding:0 0 22px 22px;touch-action:none;pointer-events:auto;">
+        <button type="button" id="aloftBtnLeft" aria-label="Move left" style="width:58px;height:58px;border-radius:50%;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:#fff;font-size:26px;display:flex;align-items:center;justify-content:center;-webkit-user-select:none;user-select:none;touch-action:none;">‹</button>
+        <button type="button" id="aloftBtnRight" aria-label="Move right" style="width:58px;height:58px;border-radius:50%;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:#fff;font-size:26px;display:flex;align-items:center;justify-content:center;-webkit-user-select:none;user-select:none;touch-action:none;">›</button>
+      </div>
+      <div id="aloftJumpZone" style="position:absolute;right:0;top:0;width:50%;height:100%;touch-action:none;pointer-events:auto;"></div>
+    </div>
   </div>
 
   <div class="notes-view" id="notesView">
@@ -4065,24 +4100,25 @@ kbd {
   <!-- CODE EDITOR VIEW -->
   <div class="code-editor-view" id="codeView">
     <div class="code-editor-header">
-      <button class="hamburger" style="display:flex;" onclick="toggleSidebarMobile()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-      </button>
       <h2>Code Editor</h2>
-      <select class="lang-select" id="langSelect" onchange="onLangChange()">
-        <option value="html">HTML / CSS / JS</option>
-        <option value="javascript">JavaScript (console)</option>
-        <option value="java">Java (simulated)</option>
-      </select>
-      <button class="clear-output-btn" onclick="clearCodeOutput()">Clear</button>
-      <button class="clear-output-btn" onclick="saveCodeFile()" style="display:flex;align-items:center;gap:5px;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-        Save
-      </button>
-      <button class="run-btn" onclick="runCode()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-        Run
-      </button>
+      <div class="code-editor-toolbar">
+        <select class="lang-select" id="langSelect" onchange="onLangChange()">
+          <option value="html">HTML / CSS / JS</option>
+          <option value="javascript">JavaScript (console)</option>
+          <option value="java">Java (simulated)</option>
+        </select>
+        <div class="code-toolbar-divider"></div>
+        <button class="clear-output-btn" onclick="clearCodeOutput()">Clear</button>
+        <button class="clear-output-btn" onclick="saveCodeFile()" style="display:flex;align-items:center;gap:5px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Save
+        </button>
+        <div class="code-toolbar-divider"></div>
+        <button class="run-btn" onclick="runCode()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Run
+        </button>
+      </div>
     </div>
     <div class="code-editor-body">
       <div class="code-pane">
@@ -4106,11 +4142,8 @@ kbd {
   <!-- SNIPPETS VIEW -->
   <div class="snippets-view" id="snippetsView" style="display:none;flex:1;flex-direction:column;overflow:hidden;">
     <div class="code-editor-header" style="flex-shrink:0;">
-      <button class="hamburger" style="display:flex;" onclick="toggleSidebarMobile()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-      </button>
       <h2>Code Snippets</h2>
-      <div style="display:flex;gap:6px;margin-left:auto;">
+      <div class="snippet-tabs-group">
         <button class="snippet-tab-btn active" id="snippetTabJava" onclick="switchSnippetTab('java')">Java</button>
         <button class="snippet-tab-btn" id="snippetTabWeb" onclick="switchSnippetTab('web')">HTML / JS / CSS</button>
       </div>
@@ -6548,7 +6581,7 @@ function showView(view) {
 
 // ── MOBILE BOTTOM NAV SYNC ──
 function updateMobNav(view) {
-  const map = { chat: 'mobNavChat', code: 'mobNavCode', snippets: 'mobNavSnippets', notes: 'mobNavNotes', settings: 'mobNavSettings' };
+  const map = { chat: 'mobNavChat', code: 'mobNavCode', snippets: 'mobNavSnippets', aloft: 'mobNavAloft', settings: 'mobNavSettings' };
   Object.entries(map).forEach(([v, id]) => {
     const el = document.getElementById(id);
     if (el) el.classList.toggle('active', view === v);
@@ -13908,9 +13941,9 @@ function mobRenderThemePicker() {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/><line x1="12" y1="2" x2="12" y2="22" stroke-dasharray="3,2"/></svg>
     <span>Snippets</span>
   </button>
-  <button class="mob-nav-item" id="mobNavNotes" onclick="showView('notes'); updateMobNav('notes')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-    <span>Notes</span>
+  <button class="mob-nav-item" id="mobNavAloft" onclick="showView('aloft'); updateMobNav('aloft')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 12a1 1 0 1 1 0 9H9.006a7 7 0 1 1 6.702-9z"/><path d="M21.832 9A3 3 0 0 0 19 7h-2.207a5.5 5.5 0 0 0-10.72.61"/></svg>
+    <span>Aloft</span>
   </button>
   <button class="mob-nav-item" id="mobNavSettings" onclick="showView('settings'); updateMobNav('settings')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -14025,7 +14058,7 @@ function mobRenderThemePicker() {
 // The canvas fills the aloftView div minus sidebar
 // We use a virtual grid (VIRT_W × VIRT_H game units) rendered at SCALE px each
 const SCALE = 3;
-const VIRT_W = 160;  // game units wide
+let VIRT_W = 160;    // game units wide — recalculated on resize to match screen aspect (full screen)
 const VIRT_H = 120;  // game units tall (viewport)
 let canvas, ctx, viewW, viewH;
 let raf = null;
@@ -14445,12 +14478,13 @@ function initGame() {
   peakPlayerY = startPlatY;  // reset peak to start
 }
 
-const PLAT_MARGIN = 18; // keep platforms away from screen edges
+const PLAT_ZONE_W = 124; // fixed-width centre column that platforms/floaters spawn within, independent of screen width
 function spawnPlatformAbove() {
   const gap = 18 + Math.random() * 12;
   const y = highestPlatformY - gap;
   const w = Math.max(12, Math.floor(12 + Math.random() * 18));
-  const x = Math.floor(Math.random() * (VIRT_W - w - PLAT_MARGIN * 2)) + PLAT_MARGIN;
+  const zoneLeft = (VIRT_W - PLAT_ZONE_W) / 2; // keeps platforms centered on wide/full-screen canvases
+  const x = Math.floor(Math.random() * (PLAT_ZONE_W - w)) + zoneLeft;
   highestPlatformY = y;
 
   // Region-specific: sometimes replace this platform with a moving floater
@@ -14493,6 +14527,61 @@ function onAloftTap(e) {
   if (gameState === 'playing') doJump();
 }
 
+// ── TOUCH CONTROLS (phone/mobile): left-half arrow buttons move, right-half tap jumps ──
+function isAloftTouchDevice() {
+  return ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+}
+function onAloftLeftDown(e) { e.preventDefault(); keys['ArrowLeft'] = true; }
+function onAloftLeftUp(e) { e.preventDefault(); keys['ArrowLeft'] = false; }
+function onAloftRightDown(e) { e.preventDefault(); keys['ArrowRight'] = true; }
+function onAloftRightUp(e) { e.preventDefault(); keys['ArrowRight'] = false; }
+function onAloftJumpZoneDown(e) {
+  e.preventDefault();
+  if (gameState === 'playing') doJump();
+}
+function setAloftTouchControlsVisible(visible) {
+  const tc = document.getElementById('aloftTouchControls');
+  if (tc) tc.style.display = (visible && isAloftTouchDevice()) ? 'block' : 'none';
+}
+function bindAloftTouchControls() {
+  const btnL = document.getElementById('aloftBtnLeft');
+  const btnR = document.getElementById('aloftBtnRight');
+  const jumpZone = document.getElementById('aloftJumpZone');
+  if (btnL) {
+    btnL.addEventListener('pointerdown', onAloftLeftDown);
+    btnL.addEventListener('pointerup', onAloftLeftUp);
+    btnL.addEventListener('pointercancel', onAloftLeftUp);
+    btnL.addEventListener('pointerleave', onAloftLeftUp);
+  }
+  if (btnR) {
+    btnR.addEventListener('pointerdown', onAloftRightDown);
+    btnR.addEventListener('pointerup', onAloftRightUp);
+    btnR.addEventListener('pointercancel', onAloftRightUp);
+    btnR.addEventListener('pointerleave', onAloftRightUp);
+  }
+  if (jumpZone) jumpZone.addEventListener('pointerdown', onAloftJumpZoneDown);
+}
+function unbindAloftTouchControls() {
+  const btnL = document.getElementById('aloftBtnLeft');
+  const btnR = document.getElementById('aloftBtnRight');
+  const jumpZone = document.getElementById('aloftJumpZone');
+  if (btnL) {
+    btnL.removeEventListener('pointerdown', onAloftLeftDown);
+    btnL.removeEventListener('pointerup', onAloftLeftUp);
+    btnL.removeEventListener('pointercancel', onAloftLeftUp);
+    btnL.removeEventListener('pointerleave', onAloftLeftUp);
+  }
+  if (btnR) {
+    btnR.removeEventListener('pointerdown', onAloftRightDown);
+    btnR.removeEventListener('pointerup', onAloftRightUp);
+    btnR.removeEventListener('pointercancel', onAloftRightUp);
+    btnR.removeEventListener('pointerleave', onAloftRightUp);
+  }
+  if (jumpZone) jumpZone.removeEventListener('pointerdown', onAloftJumpZoneDown);
+  keys['ArrowLeft'] = false;
+  keys['ArrowRight'] = false;
+}
+
 function doJump() {
   if (player.onGround || player.coyoteTime > 0) {
     player.vy = -4.6;
@@ -14512,7 +14601,7 @@ function doJump() {
 
 // ── PHYSICS ──
 const GRAVITY = 0.28;
-const MOVE_SPEED = 1.6;
+const MOVE_SPEED = 1.35;
 const MAX_FALL = 7;
 
 function update() {
@@ -14762,6 +14851,7 @@ function triggerGameOver() {
   const nb = document.getElementById('aloftNewBest');
   if (nb) nb.style.display = (score > 0 && score >= bestScore) ? 'block' : 'none';
   document.getElementById('aloftGameOverScreen').style.display = 'flex';
+  setAloftTouchControlsVisible(false);
   if (raf) { cancelAnimationFrame(raf); raf = null; }
   render();
 }
@@ -14779,6 +14869,7 @@ function aloftStart() {
   document.getElementById('aloftGameOverScreen').style.display = 'none';
   initGame();
   gameState = 'playing';
+  setAloftTouchControlsVisible(true);
   if (!raf) raf = requestAnimationFrame(gameLoop);
 }
 
@@ -14786,25 +14877,22 @@ function aloftOnShow() {
   canvas = document.getElementById('aloftCanvas');
   ctx = canvas.getContext('2d');
 
-  // Resize canvas: fill height, cap width so there are always side margins on wide screens
+  // Resize canvas: fill the ENTIRE view edge-to-edge (true full screen, no side margins).
+  // VIRT_W is widened to match the screen's aspect ratio so the background/world extends
+  // all the way to both edges. Crows/birds use VIRT_W so they roam the full screen width;
+  // platforms stay confined to a fixed-width centre column (see PLAT_ZONE_W) regardless.
   function resize() {
     const view = document.getElementById('aloftView');
     if (!view || !canvas) return;
     const vw = view.clientWidth;
     const vh = view.clientHeight;
-    const SIDE_PAD = Math.max(40, vw * 0.08); // at least 8% padding each side
-    const availW = vw - SIDE_PAD * 2;
-    const scaleX = availW / (VIRT_W * SCALE);
-    const scaleY = vh / (VIRT_H * SCALE);
-    const sf = Math.min(scaleX, scaleY, 1.8); // cap max scale
-    const cw = Math.floor(VIRT_W * SCALE * sf);
-    const ch = Math.floor(VIRT_H * SCALE * sf);
+    VIRT_W = Math.max(160, Math.round(VIRT_H * (vw / vh)));
     canvas.width  = VIRT_W * SCALE;
     canvas.height = VIRT_H * SCALE;
-    canvas.style.width  = cw + 'px';
-    canvas.style.height = ch + 'px';
-    canvas.style.left   = Math.floor((vw - cw) / 2) + 'px';
-    canvas.style.top    = Math.floor((vh - ch) / 2) + 'px';
+    canvas.style.width  = vw + 'px';
+    canvas.style.height = vh + 'px';
+    canvas.style.left   = '0px';
+    canvas.style.top    = '0px';
     viewW = VIRT_W * SCALE;
     viewH = VIRT_H * SCALE;
   }
@@ -14830,6 +14918,8 @@ function aloftOnShow() {
   window.addEventListener('keydown', onAloftKey);
   window.addEventListener('keyup', onAloftKeyUp);
   canvas.addEventListener('click', onAloftTap);
+  bindAloftTouchControls();
+  setAloftTouchControlsVisible(false);
   document.getElementById('aloftStartScreen').style.display = 'flex';
   document.getElementById('aloftGameOverScreen').style.display = 'none';
 
@@ -14851,6 +14941,8 @@ function aloftOnHide() {
   window.removeEventListener('resize', window._aloftResize);
   const c = document.getElementById('aloftCanvas');
   if (c) c.removeEventListener('click', onAloftTap);
+  unbindAloftTouchControls();
+  setAloftTouchControlsVisible(false);
 }
 
 window.aloftStart   = aloftStart;
