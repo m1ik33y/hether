@@ -4051,10 +4051,10 @@ kbd {
     <!-- ALOFT TOUCH CONTROLS: left half = move arrows, right half = tap to jump/double-jump -->
     <div id="aloftTouchControls" style="position:absolute;inset:0;display:none;pointer-events:none;">
       <div id="aloftMoveZone" style="position:absolute;left:0;top:0;width:50%;height:100%;display:flex;align-items:flex-end;justify-content:flex-start;gap:14px;padding:0 0 22px 22px;touch-action:none;pointer-events:auto;">
-        <button type="button" id="aloftBtnLeft" aria-label="Move left" style="width:58px;height:58px;border-radius:50%;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:#fff;display:flex;align-items:center;justify-content:center;-webkit-user-select:none;user-select:none;touch-action:none;">
+        <button type="button" id="aloftBtnLeft" aria-label="Move left" style="width:58px;height:58px;border-radius:3px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:#fff;display:flex;align-items:center;justify-content:center;-webkit-user-select:none;user-select:none;touch-action:none;image-rendering:pixelated;">
           <svg width="26" height="26" viewBox="0 0 40 40" style="image-rendering:pixelated;transform:scaleX(-1);pointer-events:none;"><rect x="8" y="0" width="8" height="8" fill="#fff"/><rect x="16" y="8" width="8" height="8" fill="#fff"/><rect x="24" y="16" width="8" height="8" fill="#fff"/><rect x="16" y="24" width="8" height="8" fill="#fff"/><rect x="8" y="32" width="8" height="8" fill="#fff"/></svg>
         </button>
-        <button type="button" id="aloftBtnRight" aria-label="Move right" style="width:58px;height:58px;border-radius:50%;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:#fff;display:flex;align-items:center;justify-content:center;-webkit-user-select:none;user-select:none;touch-action:none;">
+        <button type="button" id="aloftBtnRight" aria-label="Move right" style="width:58px;height:58px;border-radius:3px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:#fff;display:flex;align-items:center;justify-content:center;-webkit-user-select:none;user-select:none;touch-action:none;image-rendering:pixelated;">
           <svg width="26" height="26" viewBox="0 0 40 40" style="image-rendering:pixelated;pointer-events:none;"><rect x="8" y="0" width="8" height="8" fill="#fff"/><rect x="16" y="8" width="8" height="8" fill="#fff"/><rect x="24" y="16" width="8" height="8" fill="#fff"/><rect x="16" y="24" width="8" height="8" fill="#fff"/><rect x="8" y="32" width="8" height="8" fill="#fff"/></svg>
         </button>
       </div>
@@ -14063,7 +14063,7 @@ function mobRenderThemePicker() {
 // We use a virtual grid (VIRT_W × VIRT_H game units) rendered at SCALE px each
 const SCALE = 3;
 let VIRT_W = 160;    // game units wide — recalculated on resize to match screen aspect (full screen)
-const VIRT_H = 120;  // game units tall (viewport)
+let VIRT_H = 120;  // game units tall (viewport) — recalculated on resize for narrow/portrait screens
 let canvas, ctx, viewW, viewH;
 let raf = null;
 let gameState = 'start';
@@ -14895,7 +14895,19 @@ function aloftOnShow() {
     if (!view || !canvas) return;
     const vw = view.clientWidth;
     const vh = view.clientHeight;
-    VIRT_W = Math.max(160, Math.round(VIRT_H * (vw / vh)));
+    const MIN_VIRT_W = 160; // minimum world width in game units (keeps platform zone sane)
+    const BASE_VIRT_H = 120; // reference world height for landscape-ish screens
+    if (vw >= vh * (MIN_VIRT_W / BASE_VIRT_H)) {
+      // Wide / landscape-ish screen: keep world height fixed, widen world to match aspect.
+      VIRT_H = BASE_VIRT_H;
+      VIRT_W = Math.max(MIN_VIRT_W, Math.round(VIRT_H * (vw / vh)));
+    } else {
+      // Narrow / portrait screen (phones): keep world width fixed at the minimum and
+      // grow world height to match the aspect ratio instead of clamping width, which is
+      // what caused the buffer's aspect ratio to mismatch the screen's and stretch the game.
+      VIRT_W = MIN_VIRT_W;
+      VIRT_H = Math.round(VIRT_W * (vh / vw));
+    }
     canvas.width  = VIRT_W * SCALE;
     canvas.height = VIRT_H * SCALE;
     canvas.style.width  = vw + 'px';
