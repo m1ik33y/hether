@@ -3869,11 +3869,11 @@ kbd {
         <div class="auth-form" id="loginForm">
           <div class="auth-field">
             <div class="auth-field-label">Email address</div>
-            <input type="email" class="auth-input" id="loginEmail" placeholder="you@example.com" onkeydown="authKeyHandler(event,'login')">
+            <input type="email" class="auth-input" id="loginEmail" name="hether_login_local_part" placeholder="you@example.com" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false" onkeydown="authKeyHandler(event,'login')">
           </div>
           <div class="auth-field">
             <div class="auth-field-label">Password</div>
-            <input type="password" class="auth-input" id="loginPassword" placeholder="••••••••" onkeydown="authKeyHandler(event,'login')">
+            <input type="password" class="auth-input" id="loginPassword" name="hether_login_secret" placeholder="••••••••" autocomplete="new-password" onkeydown="authKeyHandler(event,'login')">
           </div>
           <div class="auth-form-error" id="loginError">Invalid email or password. Please try again.</div>
           <button class="auth-submit-btn" onclick="handleLoginSubmit()">Log in</button>
@@ -3888,15 +3888,15 @@ kbd {
         <div class="auth-form" id="signupForm">
           <div class="auth-field">
             <div class="auth-field-label">Username</div>
-            <input type="text" class="auth-input" id="signupUsername" placeholder="yourname" onkeydown="authKeyHandler(event,'signup')">
+            <input type="text" class="auth-input" id="signupUsername" name="hether_signup_handle" placeholder="yourname" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" onkeydown="authKeyHandler(event,'signup')">
           </div>
           <div class="auth-field">
             <div class="auth-field-label">Email address</div>
-            <input type="email" class="auth-input" id="signupEmail" placeholder="you@example.com" onkeydown="authKeyHandler(event,'signup')">
+            <input type="email" class="auth-input" id="signupEmail" name="hether_signup_local_part" placeholder="you@example.com" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false" onkeydown="authKeyHandler(event,'signup')">
           </div>
           <div class="auth-field">
             <div class="auth-field-label">Password</div>
-            <input type="password" class="auth-input" id="signupPassword" placeholder="Min 8 characters" onkeydown="authKeyHandler(event,'signup')">
+            <input type="password" class="auth-input" id="signupPassword" name="hether_signup_secret" placeholder="Min 8 characters" autocomplete="new-password" onkeydown="authKeyHandler(event,'signup')">
           </div>
           <div class="auth-form-error" id="signupError">Please fill in all fields correctly.</div>
           <button class="auth-submit-btn" onclick="handleSignupSubmit()">Create account</button>
@@ -3943,11 +3943,6 @@ kbd {
   <button class="nav-btn" id="navSnippets" onclick="showView('snippets')" data-tip="Snippets">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/><line x1="12" y1="2" x2="12" y2="22" stroke-dasharray="3,2"/></svg>
     <span class="nav-btn-label">Snippets</span>
-  </button>
-
-  <button class="nav-btn" id="navBuilds" onclick="showView('builds')" data-tip="Builds">
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
-    <span class="nav-btn-label">Builds</span>
   </button>
 
   <button class="nav-btn" id="navNotes" onclick="showView('notes')" data-tip="Notes">
@@ -4152,7 +4147,6 @@ kbd {
         <select class="lang-select" id="langSelect" onchange="onLangChange()">
           <option value="html">HTML / CSS / JS</option>
           <option value="javascript">JavaScript (console)</option>
-          <option value="java">Java (simulated)</option>
         </select>
         <div class="code-toolbar-divider"></div>
         <button class="clear-output-btn" onclick="clearCodeOutput()">Clear</button>
@@ -4174,8 +4168,7 @@ kbd {
           <div class="code-line-numbers" id="codeLineNumbers">1</div>
           <textarea id="codeInput" spellcheck="false" placeholder="// Write your code here...
 // HTML mode: full HTML/CSS/JS previewed in iframe
-// JS mode: output shown in console panel
-// Java mode: simulated output"></textarea>
+// JS mode: output shown in console panel"></textarea>
         </div>
       </div>
       <div class="output-pane">
@@ -4191,19 +4184,10 @@ kbd {
     <div class="code-editor-header" style="flex-shrink:0;">
       <h2>Code Snippets</h2>
       <div class="snippet-tabs-group">
-        <button class="snippet-tab-btn active" id="snippetTabJava" onclick="switchSnippetTab('java')">Java</button>
-        <button class="snippet-tab-btn" id="snippetTabWeb" onclick="switchSnippetTab('web')">HTML / JS / CSS</button>
+        <button class="snippet-tab-btn active" id="snippetTabWeb" onclick="switchSnippetTab('web')">HTML / JS / CSS</button>
       </div>
     </div>
     <div style="flex:1;overflow-y:auto;padding:20px 24px;" id="snippetsContent"></div>
-  </div>
-
-  <!-- BUILDS VIEW -->
-  <div class="snippets-view" id="buildsView" style="display:none;flex:1;flex-direction:column;overflow:hidden;">
-    <div class="code-editor-header" style="flex-shrink:0;">
-      <h2>Builds</h2>
-    </div>
-    <div style="flex:1;overflow-y:auto;padding:20px 24px;" id="buildsContent"></div>
   </div>
 
   <!-- CHAT HISTORY VIEW -->
@@ -6599,19 +6583,18 @@ function showView(view) {
   if (view === currentView) return;
   const prevView = currentView;
   currentView = view;
-  const views = ['chat','settings','notes','code','snippets','builds','history','aloft'];
+  const views = ['chat','settings','notes','code','snippets','history','aloft'];
   views.forEach(v => {
-    const el = document.getElementById(v === 'chat' ? 'chatView' : v === 'settings' ? 'settingsView' : v === 'notes' ? 'notesView' : v === 'code' ? 'codeView' : v === 'snippets' ? 'snippetsView' : v === 'builds' ? 'buildsView' : v === 'aloft' ? 'aloftView' : 'historyView');
+    const el = document.getElementById(v === 'chat' ? 'chatView' : v === 'settings' ? 'settingsView' : v === 'notes' ? 'notesView' : v === 'code' ? 'codeView' : v === 'snippets' ? 'snippetsView' : v === 'aloft' ? 'aloftView' : 'historyView');
     if (!el) return;
     if (v === 'chat') el.style.display = view === 'chat' ? 'flex' : 'none';
     else if (v === 'snippets') el.style.display = view === 'snippets' ? 'flex' : 'none';
-    else if (v === 'builds') el.style.display = view === 'builds' ? 'flex' : 'none';
     else if (v === 'aloft') el.style.display = view === 'aloft' ? 'flex' : 'none';
     else el.classList.toggle('show', view === v);
   });
   if (view === 'aloft') aloftOnShow();
   if (prevView === 'aloft' && view !== 'aloft') aloftOnHide();
-  const navMap = { chat: 'navChat', settings: 'navSettings', notes: 'navNotes', code: 'navCode', snippets: 'navSnippets', builds: 'navBuilds', history: 'navHistory', aloft: 'navAloft' };
+  const navMap = { chat: 'navChat', settings: 'navSettings', notes: 'navNotes', code: 'navCode', snippets: 'navSnippets', history: 'navHistory', aloft: 'navAloft' };
   Object.entries(navMap).forEach(([v, id]) => { const el = document.getElementById(id); if (el) el.classList.toggle('active', view === v); });
   if (view === 'notes') renderNotesList();
   if (view === 'history') renderHistoryList();
@@ -6632,7 +6615,6 @@ function showView(view) {
     }
   }
   if (view === 'snippets') renderSnippets();
-  if (view === 'builds') renderBuilds();
   if (isMobile()) hideSidebar();
 }
 
@@ -10833,9 +10815,19 @@ async function checkAuth() {
   else showAuthPage();
 }
 
+function clearAuthFields() {
+  ['loginEmail', 'loginPassword', 'signupUsername', 'signupEmail', 'signupPassword'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  const le = document.getElementById('loginError'); if (le) le.style.display = 'none';
+  const se = document.getElementById('signupError'); if (se) se.style.display = 'none';
+}
+
 function showAuthPage() {
   document.getElementById('authPage').style.display = 'flex';
   document.getElementById('mainApp').style.display = 'none';
+  clearAuthFields();
   showAuthView('landing');
 }
 function showApp() {
@@ -10849,6 +10841,11 @@ function showApp() {
   document.getElementById('authPage').style.display = 'none';
   document.getElementById('mainApp').style.display = 'flex';
   closeLogout(); closeAdminPopup(); closeProfileEdit();
+  // Always land on the home / AI chat view with a clean conversation —
+  // whatever view or leftover chat the previous session left behind
+  // should never carry into a fresh login.
+  currentView = null;
+  newChat();
   loadContacts();
 }
 
@@ -10880,6 +10877,10 @@ function enterGuestMode() {
   // Show the green Sign Up button in the header
   const headerBtn = document.getElementById('guestHeaderSignupBtn');
   if (headerBtn) headerBtn.style.display = 'flex';
+  // Land on the home / AI chat view with a clean conversation, same as a
+  // real login — no leftover view state or messages from a prior session.
+  currentView = null;
+  newChat();
 }
 
 function exitGuestMode() {
@@ -11178,8 +11179,7 @@ function onLangChange() {
   textOut.style.display = 'none';
   const hints = {
     html: '<!-- HTML / CSS / JS\n     Write full HTML page or just body content -->\n',
-    javascript: '// JavaScript — console.log outputs shown below\n',
-    java: '// Java simulation — System.out.println supported\npublic class Main {\n  public static void main(String[] args) {\n    System.out.println("Hello, World!");\n  }\n}\n'
+    javascript: '// JavaScript — console.log outputs shown below\n'
   };
   const curr = document.getElementById('codeInput').value;
   if (!curr.trim()) document.getElementById('codeInput').value = hints[lang] || '';
@@ -11234,34 +11234,6 @@ function runCode() {
         else if (l.type === 'warn') line.style.color = '#f59e0b';
         line.textContent = l.text;
         textOut.appendChild(line);
-      });
-    }
-  } else if (lang === 'java') {
-    iframe.style.display = 'none';
-    textOut.style.display = 'block';
-    textOut.innerHTML = '';
-    // Simulate basic Java System.out.println
-    const lines = code.split('\n');
-    const output = [];
-    lines.forEach(line => {
-      const m = line.match(/System\.out\.println\s*\(([^;]+)\)/);
-      if (m) {
-        let val = m[1].trim();
-        if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
-          output.push(val.slice(1, -1));
-        } else {
-          output.push(val);
-        }
-      }
-    });
-    if (output.length === 0) {
-      textOut.innerHTML = '<span style="color:var(--text3);font-size:12px;">No System.out.println output detected</span>';
-    } else {
-      output.forEach(line => {
-        const div = document.createElement('div');
-        div.style.marginBottom = '2px';
-        div.textContent = line;
-        textOut.appendChild(div);
       });
     }
   }
@@ -11829,386 +11801,7 @@ document.getElementById('infoModalOverlay')?.addEventListener('keydown', e => {
 });
 
 // ── SNIPPETS ──
-let activeSnippetTab = 'java';
-
-const javaSnippets = [
-  {
-    title: 'Hello World',
-    code: `public class Main {
-    public static void main(String[] args) {
-        System.out.println("Hello, World!");
-    }
-}`,
-    desc: ['Entry point of every Java program', 'System.out.println() prints text and adds a newline', 'main() is always static — called without creating an object']
-  },
-  {
-    title: 'Reverse a String',
-    code: `public static String reverse(String s) {
-    return new StringBuilder(s).reverse().toString();
-}`,
-    desc: ['StringBuilder has a built-in reverse() method', 'toString() converts it back to a regular String', 'Runs in O(n) time']
-  },
-  {
-    title: 'Check if Palindrome',
-    code: `public static boolean isPalindrome(String s) {
-    String clean = s.toLowerCase().replaceAll("[^a-z0-9]", "");
-    String rev = new StringBuilder(clean).reverse().toString();
-    return clean.equals(rev);
-}`,
-    desc: ['Cleans the string by stripping non-alphanumerics', 'Lowercases for case-insensitive comparison', 'Compares original to its reverse']
-  },
-  {
-    title: 'FizzBuzz',
-    code: `for (int i = 1; i <= 100; i++) {
-    if (i % 15 == 0) System.out.println("FizzBuzz");
-    else if (i % 3 == 0) System.out.println("Fizz");
-    else if (i % 5 == 0) System.out.println("Buzz");
-    else System.out.println(i);
-}`,
-    desc: ['Classic interview problem', 'Check divisible by 15 first to catch the combined case', 'Uses modulo (%) operator to find remainders']
-  },
-  {
-    title: 'Binary Search',
-    code: `public static int binarySearch(int[] arr, int target) {
-    int lo = 0, hi = arr.length - 1;
-    while (lo <= hi) {
-        int mid = lo + (hi - lo) / 2;
-        if (arr[mid] == target) return mid;
-        if (arr[mid] < target) lo = mid + 1;
-        else hi = mid - 1;
-    }
-    return -1;
-}`,
-    desc: ['Requires array to be sorted beforehand', 'O(log n) time — far faster than linear search on large data', 'Returns -1 if element not found']
-  },
-  {
-    title: 'Factorial (Recursive)',
-    code: `public static long factorial(int n) {
-    if (n <= 1) return 1;
-    return n * factorial(n - 1);
-}`,
-    desc: ['Classic example of recursion', 'Base case: factorial of 0 and 1 is 1', 'Use long to avoid overflow for larger values of n']
-  },
-  {
-    title: 'Bubble Sort',
-    code: `public static void bubbleSort(int[] arr) {
-    int n = arr.length;
-    for (int i = 0; i < n - 1; i++) {
-        for (int j = 0; j < n - i - 1; j++) {
-            if (arr[j] > arr[j + 1]) {
-                int tmp = arr[j];
-                arr[j] = arr[j + 1];
-                arr[j + 1] = tmp;
-            }
-        }
-    }
-}`,
-    desc: ['Simple O(n²) sorting algorithm', 'Each pass "bubbles" the largest element to the end', 'In-place: no extra memory needed']
-  },
-  {
-    title: 'ArrayList Operations',
-    code: `import java.util.ArrayList;
-ArrayList<String> list = new ArrayList<>();
-list.add("apple");
-list.add("banana");
-list.remove("apple");
-System.out.println(list.size()); // 1
-System.out.println(list.get(0)); // banana`,
-    desc: ['ArrayList is a dynamic array — grows automatically', 'add() appends; remove() by value or index', 'get(index) retrieves an element by position']
-  },
-  {
-    title: 'HashMap Example',
-    code: `import java.util.HashMap;
-HashMap<String, Integer> map = new HashMap<>();
-map.put("score", 100);
-map.put("lives", 3);
-System.out.println(map.get("score")); // 100
-System.out.println(map.containsKey("lives")); // true`,
-    desc: ['HashMap stores key→value pairs', 'put() adds or overwrites; get() retrieves by key', 'containsKey() checks existence without retrieving the value']
-  },
-  {
-    title: 'Read User Input',
-    code: `import java.util.Scanner;
-Scanner sc = new Scanner(System.in);
-System.out.print("Enter your name: ");
-String name = sc.nextLine();
-System.out.println("Hello, " + name + "!");
-sc.close();`,
-    desc: ['Scanner reads from System.in (keyboard)', 'nextLine() reads a full line including spaces', 'Always close Scanner when done to free resources']
-  },
-  {
-    title: 'Selection Sort',
-    code: `public static void selectionSort(int[] arr) {
-    int n = arr.length;
-    for (int i = 0; i < n - 1; i++) {
-        int minIdx = i;
-        for (int j = i + 1; j < n; j++) {
-            if (arr[j] < arr[minIdx]) minIdx = j;
-        }
-        int tmp = arr[minIdx];
-        arr[minIdx] = arr[i];
-        arr[i] = tmp;
-    }
-}`,
-    desc: ['Finds the minimum element and places it at the front each pass', 'O(n²) time but fewer swaps than bubble sort', 'In-place, no extra memory required']
-  },
-  {
-    title: 'Merge Sort',
-    code: `public static void mergeSort(int[] arr, int l, int r) {
-    if (l >= r) return;
-    int mid = (l + r) / 2;
-    mergeSort(arr, l, mid);
-    mergeSort(arr, mid + 1, r);
-    merge(arr, l, mid, r);
-}
-private static void merge(int[] arr, int l, int mid, int r) {
-    int[] tmp = Arrays.copyOfRange(arr, l, r + 1);
-    int i = 0, j = mid - l + 1, k = l;
-    while (i <= mid - l && j <= r - l)
-        arr[k++] = tmp[i] <= tmp[j] ? tmp[i++] : tmp[j++];
-    while (i <= mid - l) arr[k++] = tmp[i++];
-    while (j <= r - l)   arr[k++] = tmp[j++];
-}`,
-    desc: ['Divide-and-conquer O(n log n) sorting algorithm', 'Stable sort — equal elements keep their original order', 'Requires O(n) extra space for the temp array']
-  },
-  {
-    title: 'Linked List Node',
-    code: `class Node {
-    int data;
-    Node next;
-    Node(int data) { this.data = data; }
-}
-
-class LinkedList {
-    Node head;
-    void add(int val) {
-        Node n = new Node(val);
-        if (head == null) { head = n; return; }
-        Node cur = head;
-        while (cur.next != null) cur = cur.next;
-        cur.next = n;
-    }
-}`,
-    desc: ['Each node holds data and a reference to the next node', 'add() traverses to the tail before inserting', 'head is null for an empty list']
-  },
-  {
-    title: 'Stack with Deque',
-    code: `import java.util.Deque;
-import java.util.ArrayDeque;
-Deque<Integer> stack = new ArrayDeque<>();
-stack.push(1);
-stack.push(2);
-stack.push(3);
-System.out.println(stack.pop());  // 3 (LIFO)
-System.out.println(stack.peek()); // 2`,
-    desc: ['ArrayDeque is the preferred stack in modern Java', 'push() adds to top; pop() removes and returns top', 'peek() reads the top without removing it']
-  },
-  {
-    title: 'Queue with LinkedList',
-    code: `import java.util.Queue;
-import java.util.LinkedList;
-Queue<String> q = new LinkedList<>();
-q.offer("first");
-q.offer("second");
-System.out.println(q.poll()); // first (FIFO)
-System.out.println(q.peek()); // second`,
-    desc: ['offer() enqueues; poll() dequeues (FIFO)', 'peek() reads the front without removing', 'Returns null on empty queue — no exception like remove()']
-  },
-  {
-    title: 'String Formatting',
-    code: `String name = "Alice";
-int age = 30;
-double gpa = 3.85;
-String s1 = String.format("Name: %s, Age: %d", name, age);
-String s2 = String.format("GPA: %.2f", gpa);
-System.out.println(s1); // Name: Alice, Age: 30
-System.out.println(s2); // GPA: 3.85`,
-    desc: ['%s for strings, %d for integers, %f for floats', '%.2f limits to 2 decimal places', 'Preferred over string concatenation for readability']
-  },
-  {
-    title: 'Try-With-Resources',
-    code: `import java.io.*;
-try (BufferedReader br = new BufferedReader(
-        new FileReader("data.txt"))) {
-    String line;
-    while ((line = br.readLine()) != null) {
-        System.out.println(line);
-    }
-} catch (IOException e) {
-    e.printStackTrace();
-}`,
-    desc: ['Automatically closes resources when the block exits', 'Works with any class implementing AutoCloseable', 'Eliminates the need for a finally block to close streams']
-  },
-  {
-    title: 'Lambda & Stream Filter',
-    code: `import java.util.*;
-import java.util.stream.*;
-List<Integer> nums = Arrays.asList(1, 2, 3, 4, 5, 6);
-List<Integer> evens = nums.stream()
-    .filter(n -> n % 2 == 0)
-    .collect(Collectors.toList());
-System.out.println(evens); // [2, 4, 6]`,
-    desc: ['stream() creates a pipeline over the collection', 'filter() keeps only elements matching the predicate', 'collect(Collectors.toList()) materialises the result']
-  },
-  {
-    title: 'Optional to Avoid NullPointerException',
-    code: `import java.util.Optional;
-Optional<String> name = Optional.ofNullable(getUserName());
-String result = name
-    .map(String::toUpperCase)
-    .orElse("GUEST");
-System.out.println(result);`,
-    desc: ['Optional wraps a value that might be null', 'map() transforms the value only if present', 'orElse() provides a safe default when empty']
-  },
-  {
-    title: 'Comparable & Sorting Objects',
-    code: `class Student implements Comparable<Student> {
-    String name; int grade;
-    Student(String n, int g) { name = n; grade = g; }
-    @Override
-    public int compareTo(Student o) {
-        return Integer.compare(this.grade, o.grade);
-    }
-}
-// Usage:
-List<Student> students = new ArrayList<>();
-Collections.sort(students); // sorts by grade`,
-    desc: ['Implement Comparable to define natural ordering', 'compareTo returns negative, 0, or positive', 'Collections.sort() then works without extra comparator']
-  },
-  {
-    title: 'Generic Method',
-    code: `public static <T extends Comparable<T>> T max(T a, T b) {
-    return a.compareTo(b) >= 0 ? a : b;
-}
-// Works with any Comparable type:
-System.out.println(max(10, 20));       // 20
-System.out.println(max("apple","fig")); // fig`,
-    desc: ['<T extends Comparable<T>> bounds T to comparable types', 'One method works for int, String, Double, etc.', 'Type safety is checked at compile time, not runtime']
-  },
-  {
-    title: 'Iterator Pattern',
-    code: `import java.util.*;
-List<String> items = new ArrayList<>(Arrays.asList("a","b","c"));
-Iterator<String> it = items.iterator();
-while (it.hasNext()) {
-    String s = it.next();
-    if (s.equals("b")) it.remove(); // safe removal
-}
-System.out.println(items); // [a, c]`,
-    desc: ['Iterator allows safe removal while iterating', 'Avoids ConcurrentModificationException unlike for-each', 'hasNext() + next() is the standard traversal pattern']
-  },
-  {
-    title: 'Enum with Methods',
-    code: `enum Direction {
-    NORTH, SOUTH, EAST, WEST;
-    public Direction opposite() {
-        return switch (this) {
-            case NORTH -> SOUTH;
-            case SOUTH -> NORTH;
-            case EAST  -> WEST;
-            case WEST  -> EAST;
-        };
-    }
-}
-System.out.println(Direction.NORTH.opposite()); // SOUTH`,
-    desc: ['Enums can hold methods, fields, and constructors', 'Switch expressions with arrows are concise and exhaustive', 'Enum values are singleton instances — safe to compare with ==']
-  },
-  {
-    title: 'Interface with Default Method',
-    code: `interface Greeter {
-    String greet(String name);
-    default String greetLoud(String name) {
-        return greet(name).toUpperCase();
-    }
-}
-class HelloGreeter implements Greeter {
-    public String greet(String name) {
-        return "Hello, " + name + "!";
-    }
-}
-// greetLoud() inherited for free`,
-    desc: ['default methods add behaviour without breaking existing implementations', 'Implementing classes inherit the default automatically', 'Override default if custom logic is needed']
-  },
-  {
-    title: 'Thread with Runnable',
-    code: `Runnable task = () -> {
-    for (int i = 0; i < 5; i++) {
-        System.out.println(Thread.currentThread().getName() + ": " + i);
-    }
-};
-Thread t1 = new Thread(task, "Worker-1");
-Thread t2 = new Thread(task, "Worker-2");
-t1.start();
-t2.start();`,
-    desc: ['Runnable (lambda) separates the task from the thread', 'start() spawns a new OS thread; run() just calls it on the current thread', 'Output order is non-deterministic — threads race']
-  },
-  {
-    title: 'Read / Write File',
-    code: `import java.nio.file.*;
-// Write
-Path p = Path.of("notes.txt");
-Files.writeString(p, "Hello file!\\n", StandardOpenOption.CREATE);
-// Read all lines
-List<String> lines = Files.readAllLines(p);
-lines.forEach(System.out::println);`,
-    desc: ['Files.writeString() is the simplest way to write text in Java 11+', 'StandardOpenOption.CREATE creates or truncates the file', 'readAllLines() loads everything into memory — fine for small files']
-  },
-  {
-    title: 'Record Class (Java 16+)',
-    code: `record Point(double x, double y) {
-    double distanceTo(Point other) {
-        double dx = this.x - other.x;
-        double dy = this.y - other.y;
-        return Math.sqrt(dx * dx + dy * dy);
-    }
-}
-Point a = new Point(0, 0), b = new Point(3, 4);
-System.out.println(a.distanceTo(b)); // 5.0`,
-    desc: ['Records auto-generate constructor, getters, equals, hashCode, toString', 'Immutable by default — fields are final', 'Great for plain data carriers without boilerplate']
-  },
-  {
-    title: 'Sealed Classes (Java 17+)',
-    code: `sealed interface Shape permits Circle, Rectangle {}
-record Circle(double radius) implements Shape {}
-record Rectangle(double w, double h) implements Shape {}
-
-double area(Shape s) {
-    return switch (s) {
-        case Circle c    -> Math.PI * c.radius() * c.radius();
-        case Rectangle r -> r.w() * r.h();
-    };
-}`,
-    desc: ['sealed restricts which classes can implement/extend', 'Pattern matching switch is exhaustive — no default needed', 'Combines well with records for algebraic data types']
-  },
-  {
-    title: 'Collections.frequency & groupingBy',
-    code: `import java.util.*;
-import java.util.stream.*;
-List<String> words = Arrays.asList("cat","dog","cat","bird","dog","cat");
-Map<String, Long> freq = words.stream()
-    .collect(Collectors.groupingBy(w -> w, Collectors.counting()));
-System.out.println(freq); // {cat=3, dog=2, bird=1}`,
-    desc: ['groupingBy partitions elements by a classifier function', 'Collectors.counting() counts elements per group', 'Result is a Map — iterate with entrySet() to process each group']
-  },
-  {
-    title: 'Pattern Matching instanceof (Java 16+)',
-    code: `Object obj = "Hello, Java!";
-if (obj instanceof String s && s.length() > 5) {
-    System.out.println(s.toUpperCase());
-}`,
-    desc: ['instanceof with a pattern variable casts and binds in one step', 'The variable s is only in scope when the check passes', 'Eliminates the manual cast that was needed before Java 16']
-  },
-  {
-    title: 'CompletableFuture',
-    code: `import java.util.concurrent.CompletableFuture;
-CompletableFuture.supplyAsync(() -> fetchData())
-    .thenApply(data -> process(data))
-    .thenAccept(result -> System.out.println("Done: " + result))
-    .exceptionally(ex -> { System.err.println(ex); return null; });`,
-    desc: ['supplyAsync() runs the supplier on the common ForkJoin pool', 'thenApply() transforms the result (like map)', 'exceptionally() handles errors without breaking the chain']
-  },
-];
-
+let activeSnippetTab = 'web';
 const webSnippets = [
   {
     title: 'Responsive Flexbox Center',
@@ -12576,212 +12169,8 @@ channel.onmessage = e => {
   },
 ];
 
-const buildSnippets = [
-  {
-    title: 'Star Dodger (canvas mini-game)',
-    code: `<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>Star Dodger</title>
-<style>
-  body { margin:0; background:#0e0e18; display:flex; align-items:center; justify-content:center; height:100vh; font-family:sans-serif; }
-  #wrap { text-align:center; color:#fff; }
-  canvas { background:#141425; border:2px solid #444; border-radius:8px; }
-  #score { font-size:18px; margin-bottom:8px; }
-  #msg { margin-top:8px; font-size:14px; color:#aaa; }
-</style>
-</head>
-<body>
-<div id="wrap">
-  <div id="score">Score: 0</div>
-  <canvas id="c" width="300" height="400"></canvas>
-  <div id="msg">Use \u2190 \u2192 or A/D to dodge. Press R to restart.</div>
-</div>
-<script>
-const canvas = document.getElementById('c');
-const ctx = canvas.getContext('2d');
-const W = canvas.width, H = canvas.height;
-let player, stars, score, speed, running, keys;
-
-function init() {
-  player = { x: W/2 - 15, y: H - 30, w: 30, h: 15 };
-  stars = [];
-  score = 0;
-  speed = 2;
-  running = true;
-  keys = {};
-  document.getElementById('score').textContent = 'Score: 0';
-}
-
-function spawnStar() {
-  stars.push({ x: Math.random() * (W - 10), y: -10, r: 5 + Math.random() * 5 });
-}
-
-window.addEventListener('keydown', e => {
-  keys[e.key] = true;
-  if (e.key.toLowerCase() === 'r' && !running) init();
-});
-window.addEventListener('keyup', e => keys[e.key] = false);
-
-function update() {
-  if (!running) return;
-  if (keys['ArrowLeft'] || keys['a']) player.x -= 4;
-  if (keys['ArrowRight'] || keys['d']) player.x += 4;
-  player.x = Math.max(0, Math.min(W - player.w, player.x));
-
-  if (Math.random() < 0.04 + score * 0.0003) spawnStar();
-  stars.forEach(s => s.y += speed);
-  stars = stars.filter(s => s.y < H + 10);
-
-  for (const s of stars) {
-    if (s.x > player.x - s.r && s.x < player.x + player.w + s.r &&
-        s.y > player.y - s.r && s.y < player.y + player.h + s.r) {
-      running = false;
-    }
-  }
-  score++;
-  speed += 0.002;
-  document.getElementById('score').textContent = 'Score: ' + score;
-}
-
-function draw() {
-  ctx.clearRect(0, 0, W, H);
-  ctx.fillStyle = '#6664c2';
-  ctx.fillRect(player.x, player.y, player.w, player.h);
-  ctx.fillStyle = '#ffd166';
-  stars.forEach(s => {
-    ctx.beginPath();
-    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-    ctx.fill();
-  });
-  if (!running) {
-    ctx.fillStyle = 'rgba(0,0,0,0.6)';
-    ctx.fillRect(0, 0, W, H);
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 20px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('Game Over', W/2, H/2 - 10);
-    ctx.font = '14px sans-serif';
-    ctx.fillText('Press R to restart', W/2, H/2 + 16);
-  }
-}
-
-function loop() {
-  update();
-  draw();
-  requestAnimationFrame(loop);
-}
-
-init();
-loop();
-<\/script>
-</body>
-</html>`,
-    desc: ['A canvas-based dodging game: stars fall from the top at increasing speed and you shift a paddle left/right to avoid them, scoring points for every frame survived. Built with the HTML5 Canvas API for rendering, a requestAnimationFrame game loop for updates and drawing, keyboard event listeners for input, simple rectangle/circle collision detection, and incremental difficulty scaling over time.']
-  },
-  {
-    title: 'Bubble Pop (DOM mini-game)',
-    code: `<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>Bubble Pop</title>
-<style>
-  body { margin:0; background:#101018; font-family:sans-serif; color:#fff; overflow:hidden; }
-  #hud { position:fixed; top:10px; left:10px; font-size:16px; z-index:10; }
-  #arena { position:relative; width:100vw; height:100vh; }
-  .bubble {
-    position:absolute; width:40px; height:40px; border-radius:50%;
-    display:flex; align-items:center; justify-content:center;
-    cursor:pointer; user-select:none; font-size:12px;
-    box-shadow:0 0 10px rgba(255,255,255,0.3);
-    transition: transform 0.1s;
-  }
-  .bubble:active { transform: scale(0.8); }
-  .good { background: radial-gradient(circle at 30% 30%, #8ee6c0, #22a06b); }
-  .bad { background: radial-gradient(circle at 30% 30%, #ff9b9b, #d64545); }
-  #overlay {
-    position:fixed; inset:0; background:rgba(0,0,0,0.75);
-    display:none; align-items:center; justify-content:center;
-    flex-direction:column; z-index:20;
-  }
-  #overlay button {
-    margin-top:14px; padding:8px 18px; border:none; border-radius:6px;
-    background:#6664c2; color:#fff; font-size:14px; cursor:pointer;
-  }
-</style>
-</head>
-<body>
-<div id="hud">Score: <span id="score">0</span> &nbsp; Time: <span id="time">30</span>s</div>
-<div id="arena"></div>
-<div id="overlay">
-  <div id="finalScore" style="font-size:22px;"></div>
-  <button onclick="startGame()">Play Again</button>
-</div>
-<script>
-const arena = document.getElementById('arena');
-const scoreEl = document.getElementById('score');
-const timeEl = document.getElementById('time');
-const overlay = document.getElementById('overlay');
-let score, timeLeft, spawnTimer, tickTimer, running;
-
-function startGame() {
-  overlay.style.display = 'none';
-  arena.innerHTML = '';
-  score = 0; timeLeft = 30; running = true;
-  scoreEl.textContent = score;
-  timeEl.textContent = timeLeft;
-  clearInterval(spawnTimer); clearInterval(tickTimer);
-  spawnTimer = setInterval(spawnBubble, 550);
-  tickTimer = setInterval(tick, 1000);
-}
-
-function tick() {
-  timeLeft--;
-  timeEl.textContent = timeLeft;
-  if (timeLeft <= 0) endGame();
-}
-
-function spawnBubble() {
-  if (!running) return;
-  const bubble = document.createElement('div');
-  const isBad = Math.random() < 0.25;
-  bubble.className = 'bubble ' + (isBad ? 'bad' : 'good');
-  bubble.textContent = isBad ? '\u2715' : '+1';
-  const x = Math.random() * (window.innerWidth - 40);
-  const y = Math.random() * (window.innerHeight - 40);
-  bubble.style.left = x + 'px';
-  bubble.style.top = y + 'px';
-  bubble.onclick = () => {
-    if (!running) return;
-    if (isBad) { endGame(); }
-    else { score++; scoreEl.textContent = score; }
-    bubble.remove();
-  };
-  arena.appendChild(bubble);
-  setTimeout(() => bubble.remove(), 1600);
-}
-
-function endGame() {
-  running = false;
-  clearInterval(spawnTimer);
-  clearInterval(tickTimer);
-  document.getElementById('finalScore').textContent = 'Final Score: ' + score;
-  overlay.style.display = 'flex';
-}
-
-startGame();
-<\/script>
-</body>
-</html>`,
-    desc: ['A reflex/click game: bubbles spawn at random positions and disappear after a short delay, rewarding quick clicks on good ones and punishing clicks on bad ones, all within a 30-second countdown. Built with dynamic DOM element creation, CSS radial gradients and transitions for visual polish, setInterval timers for spawning and the countdown, and event-driven scoring logic.']
-  },
-];
-
 function switchSnippetTab(tab) {
   activeSnippetTab = tab;
-  document.getElementById('snippetTabJava').classList.toggle('active', tab === 'java');
   document.getElementById('snippetTabWeb').classList.toggle('active', tab === 'web');
   renderSnippets();
 }
@@ -12789,7 +12178,7 @@ function switchSnippetTab(tab) {
 function renderSnippets() {
   const container = document.getElementById('snippetsContent');
   if (!container) return;
-  const snippets = activeSnippetTab === 'java' ? javaSnippets : webSnippets;
+  const snippets = webSnippets;
   container.innerHTML = '';
   snippets.forEach((s, i) => {
     const card = document.createElement('div');
@@ -12816,82 +12205,8 @@ function renderSnippets() {
   });
 }
 
-function renderBuilds() {
-  const container = document.getElementById('buildsContent');
-  if (!container) return;
-  container.innerHTML = '';
-  buildSnippets.forEach((s, i) => {
-    const card = document.createElement('div');
-    card.className = 'snippet-card';
-    const descHtml = s.desc.map(d => `<li>${escHtml(d)}</li>`).join('');
-    card.innerHTML = `
-      <div class="snippet-card-header">
-        <div class="snippet-card-title">${escHtml(s.title)}</div>
-        <div style="display:flex;gap:6px;flex-shrink:0;">
-          <button class="snippet-copy-btn" id="buildCopyBtn_${i}" onclick="copyBuildSnippet(${i})">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="12" height="12"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-            Copy
-          </button>
-          <button class="snippet-run-btn" id="buildRunBtn_${i}" onclick="toggleBuildRun(${i})">
-            <svg viewBox="0 0 24 24" fill="currentColor" width="10" height="10"><polygon points="6 4 20 12 6 20"/></svg>
-            Run
-          </button>
-        </div>
-      </div>
-      <div class="snippet-card-body">
-        <div class="snippet-card-main">
-          <div class="snippet-code">${escHtml(s.code)}</div>
-          <div class="snippet-desc"><ul>${descHtml}</ul></div>
-        </div>
-        <div class="snippet-run-panel" id="buildRunPanel_${i}"></div>
-      </div>
-    `;
-    container.appendChild(card);
-  });
-}
-
-function toggleBuildRun(index) {
-  const panel = document.getElementById(`buildRunPanel_${index}`);
-  const btn = document.getElementById(`buildRunBtn_${index}`);
-  if (!panel || !btn) return;
-  const isOpen = panel.classList.contains('open');
-  if (isOpen) {
-    panel.classList.remove('open');
-    panel.innerHTML = '';
-    btn.classList.remove('active');
-    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor" width="10" height="10"><polygon points="6 4 20 12 6 20"/></svg> Run`;
-  } else {
-    panel.innerHTML = '';
-    const iframe = document.createElement('iframe');
-    iframe.setAttribute('sandbox', 'allow-scripts');
-    panel.appendChild(iframe);
-    iframe.srcdoc = buildSnippets[index].code;
-    panel.classList.add('open');
-    btn.classList.add('active');
-    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor" width="10" height="10"><rect x="5" y="5" width="14" height="14"/></svg> Stop`;
-  }
-}
-
-function copyBuildSnippet(index) {
-  const code = buildSnippets[index].code;
-  navigator.clipboard.writeText(code).catch(() => {
-    const ta = document.createElement('textarea');
-    ta.value = code; document.body.appendChild(ta); ta.select();
-    document.execCommand('copy'); document.body.removeChild(ta);
-  });
-  const btn = document.getElementById(`buildCopyBtn_${index}`);
-  if (btn) {
-    btn.textContent = '✓ Copied';
-    btn.classList.add('copied');
-    setTimeout(() => {
-      btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="12" height="12"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy`;
-      btn.classList.remove('copied');
-    }, 1500);
-  }
-}
-
 function copySnippet(index) {
-  const snippets = activeSnippetTab === 'java' ? javaSnippets : webSnippets;
+  const snippets = webSnippets;
   const code = snippets[index].code;
   navigator.clipboard.writeText(code).catch(() => {
     const ta = document.createElement('textarea');
