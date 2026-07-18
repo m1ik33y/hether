@@ -1236,6 +1236,14 @@ kbd {
 .btn-cancel:hover { background: var(--surface2); color: var(--text); }
 .btn-confirm { padding: 8px 16px; border-radius: var(--radius); border: none; background: var(--accent); color: #fff; font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer; transition: background var(--t); font-weight: 500; }
 .btn-confirm:hover { background: var(--accent-hover); }
+.btn-confirm:disabled { opacity: 0.7; cursor: not-allowed; }
+.btn-confirm .spinner {
+  display: inline-block; width: 14px; height: 14px;
+  border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff;
+  border-radius: 50%; animation: btn-spin 0.7s linear infinite;
+  vertical-align: middle;
+}
+@keyframes btn-spin { to { transform: rotate(360deg); } }
 
 /* ── ADMIN DM ── */
 .dm-overlay {
@@ -5457,7 +5465,7 @@ kbd {
     <div class="popup-error" id="adminError">Incorrect key. Try again.</div>
     <div class="popup-btns">
       <button class="btn-cancel" onclick="closeAdminPopup()">Cancel</button>
-      <button class="btn-confirm" onclick="verifyAdmin()">Verify</button>
+      <button class="btn-confirm" id="adminVerifyBtn" onclick="verifyAdmin()"><span id="adminVerifyLabel">Verify</span><span id="adminVerifySpinner" class="spinner" style="display:none;"></span></button>
     </div>
   </div>
 </div>
@@ -6095,9 +6103,8 @@ document.getElementById('clearChatOverlay').addEventListener('keydown', function
 });
 
 // ── CONSTANTS & STATE ──
-// Admin key stored as ASCII char codes — not a plain string in source
-// 'adminm1ik33yshamwaviii' → each number is the char code of that character
-const _AK = [97,100,109,105,110,109,49,105,107,51,51,121,115,104,97,109,119,97,118,105,105,105];
+// Admin key is no longer stored in the frontend in any form (not even masked).
+// Verification now happens against the "pass" table in Supabase — see verifyAdmin().
 let adminAuthenticated = false;
 let currentView = 'chat';
 let isTyping = false;
@@ -6925,13 +6932,39 @@ function adminKeyHandler(e) {
   if (e.key === 'Escape') closeAdminPopup(); // wipes flags
 }
 
-function verifyAdmin() {
-  const val = document.getElementById('adminInput').value;
+async function verifyAdmin() {
+  const input = document.getElementById('adminInput');
+  const val = input.value;
   const err = document.getElementById('adminError');
-  // Convert the entered string to char codes and compare element-by-element
-  // against the stored ASCII array — no plain-text key ever compared directly
-  const match = val.length === _AK.length &&
-    _AK.every((code, i) => val.charCodeAt(i) === code);
+  const btn = document.getElementById('adminVerifyBtn');
+  const label = document.getElementById('adminVerifyLabel');
+  const spinner = document.getElementById('adminVerifySpinner');
+
+  if (!val) return;
+
+  // Show spinner in place of the "Verify" text while we hit Supabase
+  err.style.display = 'none';
+  btn.disabled = true;
+  label.style.display = 'none';
+  spinner.style.display = 'inline-block';
+
+  let match = false;
+  try {
+    // Server-side check via RPC — only true/false ever comes back,
+    // the password value itself never leaves the database.
+    const { data, error } = await supabaseClient.rpc('verify_admin_key', { key: val });
+    if (error) throw error;
+    match = data === true;
+  } catch (e) {
+    console.warn('[Admin] Verification request failed', e);
+    match = false;
+  }
+
+  // Restore button state
+  btn.disabled = false;
+  spinner.style.display = 'none';
+  label.style.display = 'inline';
+
   if (match) {
     // Grant access FIRST, then dismiss overlay WITHOUT wiping flags
     _adminSessionValid = true;
@@ -6940,8 +6973,8 @@ function verifyAdmin() {
     openDM();               // now openDM runs with valid flags
   } else {
     err.style.display = 'block';
-    document.getElementById('adminInput').value = '';
-    document.getElementById('adminInput').focus();
+    input.value = '';
+    input.focus();
   }
 }
 
@@ -7131,10 +7164,15 @@ async function startSeenChannel(myUserId) {
     // BroadcastChannel not supported (rare) — polling covers it
   }
 
-  // ── Mechanism 3: Polling fallback (fires every 3s while DM is open) ──
-  // This guarantees seen tags appear in real-time even when realtime events
-  // don't fire due to missing REPLICA IDENTITY FULL on the messages table.
-  _seenPollInterval = setInterval(() => pollSeenStatus(myUserId), 3000);
+  // ── Polling fallback REMOVED ──
+  // This used to re-check seen-status every 3s as a fallback for when realtime
+  // UPDATE events don't fire (missing REPLICA IDENTITY FULL). Removed per request —
+  // it was firing a request every 3 seconds the entire time a chat was open, which
+  // adds up in egress for no real benefit here. Mechanisms 1 (realtime UPDATE) and
+  // 2 (BroadcastChannel, for same-browser cross-tab sync) still run and cover the
+  // normal case; the tab-focus/visibility one-shot calls to pollSeenStatus() also
+  // still exist below as an extra one-time refresh, so seen-ticks still update,
+  // just without a background timer constantly re-checking.
 }
 
 async function stopSeenChannel() {
@@ -7336,6 +7374,27 @@ async function closeDM() {
   activeDmId = null;
   // Clear DM contacts so stale unread state can't linger
   if (typeof dmContacts !== 'undefined') { dmContacts.length = 0; }
+  // Wipe the RENDERED DOM too — hiding the overlay with a CSS class still
+  // leaves message bubbles / contact names / avatars sitting in the DOM,
+  // inspectable via devtools even while the panel is visually closed.
+  ['dmConvList', 'dmFsConvList'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = '';
+  });
+  ['dmChatMessages', 'dmFsMessages'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = '';
+  });
+  const _profileTabName = document.getElementById('dmProfileTabName');
+  const _profileTabUsername = document.getElementById('dmProfileTabUsername');
+  const _profileTabAvatar = document.getElementById('dmProfileTabAvatar');
+  if (_profileTabName) _profileTabName.textContent = 'User';
+  if (_profileTabUsername) _profileTabUsername.textContent = '@username';
+  if (_profileTabAvatar) _profileTabAvatar.innerHTML = '';
+  activeDmProfileTarget = null;
+  activeDmNickname = null;
+  dmDesktopContact = null;
+  dmMobileContact = null;
   // Reset title immediately — no notifications when panel is closed
   document.title = "Hether - Code n' Arcade ";
   document.getElementById('dmOverlay').classList.remove('show');
@@ -7343,6 +7402,9 @@ async function closeDM() {
   document.getElementById('dmProfileTab')?.classList.remove('show');
   // Reset AI panel
   _dmAiOpen = false;
+  _dmAiHistory = [];
+  const _dmAiMsgs = document.getElementById('dmAiMessages');
+  if (_dmAiMsgs) _dmAiMsgs.innerHTML = '';
   const _aiPanel = document.getElementById('dmAiPanel');
   if (_aiPanel) _aiPanel.classList.remove('show');
   const _aiBtn = document.getElementById('dmAiToggleBtn');
@@ -10846,7 +10908,9 @@ function showApp() {
   // should never carry into a fresh login.
   currentView = null;
   newChat();
-  loadContacts();
+  // NOTE: dmContacts / other users' profiles must never load before the admin
+  // key is verified. loadContacts() now only runs inside openDM(), which is
+  // only reachable after a successful verifyAdmin() check.
 }
 
 // ── GUEST MODE ("Try for Free") ──
