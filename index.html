@@ -7679,41 +7679,6 @@ function _appendCompanionTyping() {
   return wrap;
 }
 
-function _streamCompanionMsg(text) {
-  const container = document.getElementById('companionMessages');
-  if (!container) return Promise.resolve(null);
-  const wrap = document.createElement('div');
-  wrap.className = 'companion-msg ai';
-  const av = document.createElement('div');
-  av.className = 'companion-avatar';
-  av.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>';
-  const bubble = document.createElement('div');
-  bubble.className = 'companion-bubble';
-  wrap.appendChild(av);
-  wrap.appendChild(bubble);
-  container.appendChild(wrap);
-  container.scrollTop = container.scrollHeight;
-
-  // Split into words while keeping whitespace/newlines so spacing is preserved
-  const tokens = text.split(/(\s+)/);
-  let i = 0;
-  return new Promise(resolve => {
-    function step() {
-      if (i >= tokens.length) {
-        bubble.innerHTML = typeof formatText === 'function' ? formatText(text) : text.replace(/\n/g, '<br>');
-        container.scrollTop = container.scrollHeight;
-        resolve(wrap);
-        return;
-      }
-      bubble.textContent += tokens[i];
-      i++;
-      container.scrollTop = container.scrollHeight;
-      setTimeout(step, 45);
-    }
-    step();
-  });
-}
-
 async function sendCompanionMessage() {
   const input = document.getElementById('companionInput');
   const btn = document.getElementById('companionSendBtn');
@@ -7737,7 +7702,7 @@ async function sendCompanionMessage() {
     if (typingEl && typingEl.parentNode) typingEl.parentNode.removeChild(typingEl);
     if (data.error) throw new Error(data.error);
     const reply = data.reply || 'No response received.';
-    await _streamCompanionMsg(reply);
+    _appendCompanionMsg('ai', reply);
     _companionHistory.push({ role: 'ai', content: reply });
   } catch (err) {
     if (typingEl && typingEl.parentNode) typingEl.parentNode.removeChild(typingEl);
