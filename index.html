@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
 :root {
   --radius: 8px;
@@ -24,8 +24,8 @@
   --surface2: #f0f0f4;
   --border: #e4e4ea;
   --text: #18181b;
-  --text2: #6b6b78;
-  --text3: #a0a0ad;
+  --text2: #3f3f47;
+  --text3: #6e6e78;
   --accent: #6664c2;
   --accent-hover: #5e58d7;
   --user-bubble: #eef0ff;
@@ -56,8 +56,8 @@
   --surface2: #222226;
   --border: #2a2a2e;
   --text: #e4e4e7;
-  --text2: #8c8c96;
-  --text3: #5a5a64;
+  --text2: #c4c4cd;
+  --text3: #9d9da6;
   --accent: #5c69cf;
   --accent-hover: #5f68d0;
   --user-bubble: #1e2044;
@@ -363,7 +363,7 @@ body {
   border-radius: var(--radius); background: var(--bg); color: var(--text);
   font-family: 'DM Sans', sans-serif; font-size: 13.5px; outline: none; transition: border-color var(--t);
 }
-.pe-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(91,106,240,0.1); }
+.pe-input:focus { border-color: var(--accent); }
 
 /* ── AVATAR CROP MODAL ── */
 .avatar-crop-modal {
@@ -652,15 +652,30 @@ body {
 }
 
 .companion-typing {
-  display: flex; gap: 5px; padding: 4px 2px;
+  display: flex; gap: 5px; padding: 6px 3px;
+  align-items: center;
 }
 .companion-typing span {
-  width: 5px; height: 5px; border-radius: 50%;
-  background: var(--text2);
-  animation: typingWave 1.4s ease-in-out infinite;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent);
+  opacity: 0;
+  animation:
+    companionDotPopIn 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) backwards,
+    companionDotBounce 1.2s ease-in-out infinite;
 }
-.companion-typing span:nth-child(2) { animation-delay: 0.18s; }
-.companion-typing span:nth-child(3) { animation-delay: 0.36s; }
+.companion-typing span:nth-child(1) { animation-delay: 0s,    0.28s; }
+.companion-typing span:nth-child(2) { animation-delay: 0.09s, 0.37s; }
+.companion-typing span:nth-child(3) { animation-delay: 0.18s, 0.46s; }
+
+@keyframes companionDotPopIn {
+  0%   { opacity: 0; transform: scale(0.2); }
+  70%  { opacity: 1; transform: scale(1.2); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes companionDotBounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.55; }
+  30%           { transform: translateY(-4px); opacity: 1; }
+}
 
 /* Input area */
 .companion-input-area {
@@ -836,7 +851,7 @@ body {
   transition: border-color var(--t), box-shadow var(--t);
   width: 100%;
 }
-.input-wrap:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(91,106,240,0.08); }
+.input-wrap:focus-within { border-color: var(--accent); }
 
 #userInput {
   flex: 1; background: transparent; border: none; outline: none;
@@ -1164,7 +1179,7 @@ body {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
   background-repeat: no-repeat; background-position: right 8px center;
 }
-.settings-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(91,106,240,0.1); }
+.settings-select:focus { border-color: var(--accent); }
 [data-theme="dark"] .settings-select { background-color: var(--surface2); }
 
 .settings-textarea {
@@ -1174,7 +1189,7 @@ body {
   font-family: 'DM Sans', sans-serif; font-size: 13px; line-height: 1.55;
   outline: none; resize: vertical; transition: border-color var(--t);
 }
-.settings-textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(91,106,240,0.1); }
+.settings-textarea:focus { border-color: var(--accent); }
 
 .kbd-combo {
   display: flex; align-items: center; gap: 3px; cursor: pointer; flex-shrink: 0;
@@ -1682,7 +1697,7 @@ kbd {
   outline: none;
   transition: border-color var(--t);
 }
-.flux-nickname-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(91,106,240,0.1); }
+.flux-nickname-input:focus { border-color: var(--accent); }
 
 .flux-nickname-editor-btns {
   display: flex;
@@ -2263,7 +2278,7 @@ kbd {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
   max-width: 100%;
 }
 
@@ -2276,16 +2291,14 @@ kbd {
 .flux-more-btn {
   opacity: 0;
   pointer-events: none;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 50%;
-  width: 28px; height: 28px;
+  background: transparent;
+  border: none;
+  width: 20px; height: 20px;
   flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer;
-  transition: opacity 0.15s ease, background var(--t), transform 0.15s ease;
-  color: var(--text3);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  transition: opacity 0.15s ease, color var(--t);
+  color: rgba(255,255,255,0.78);
 }
 .flux-bubble-wrap:hover .flux-reply-btn,
 .flux-bubble-wrap:hover .flux-more-btn {
@@ -2294,12 +2307,32 @@ kbd {
 }
 .flux-reply-btn:hover,
 .flux-more-btn:hover {
-  background: var(--surface2);
-  color: var(--accent);
-  transform: scale(1.1);
+  color: #ffffff;
 }
-.flux-reply-btn svg { width: 13px; height: 13px; }
-.flux-more-btn svg { width: 13px; height: 13px; }
+.flux-reply-btn svg { width: 15px; height: 15px; }
+.flux-more-btn svg { width: 15px; height: 15px; }
+.flux-reply-btn svg path,
+.flux-reply-btn svg polyline { stroke-width: 2.6; }
+.flux-more-btn svg circle { r: 1.9; }
+/* Bigger gap between the icon row and the bubble; small gap stays between the icons
+   themselves. Icon order flips (sent: more,reply,bubble / received: bubble,reply,more)
+   so we target whichever side is actually touching the bubble. */
+.flux-reply-btn + .flux-bubble,
+.flux-reply-btn + .flux-bubble-media-only,
+.flux-reply-btn + .flux-media-collage,
+.flux-more-btn + .flux-bubble,
+.flux-more-btn + .flux-bubble-media-only,
+.flux-more-btn + .flux-media-collage {
+  margin-left: 6px;
+}
+.flux-bubble + .flux-reply-btn,
+.flux-bubble-media-only + .flux-reply-btn,
+.flux-media-collage + .flux-reply-btn,
+.flux-bubble + .flux-more-btn,
+.flux-bubble-media-only + .flux-more-btn,
+.flux-media-collage + .flux-more-btn {
+  margin-left: 6px;
+}
 
 /* ── FLUX BUBBLE ── */
 .flux-bubble {
@@ -2558,8 +2591,7 @@ kbd {
   transition: border-color var(--t);
 }
 [data-theme="dark"] .flux-input-row { border-color: var(--border); }
-.flux-input-row:focus-within { border-color: rgb(43, 43, 43); }
-[data-theme="dark"] .flux-input-row:focus-within { border-color: var(--text2); }
+.flux-input-row:focus-within { border-color: rgba(255,255,255,0.35); }
 
 #fluxInput {
   flex: 1; background: transparent; border: none; outline: none;
@@ -2617,6 +2649,7 @@ kbd {
 }
 .emoji-btn:hover { color: #c2c2c2; background: none; }
 .emoji-btn.hidden { display: none; }
+label.emoji-btn { margin-right: 4px; }
 
 .emoji-picker-overlay { display: none; position: fixed; inset: 0; z-index: 9999; }
 .emoji-picker-overlay.show { display: block; }
@@ -3297,7 +3330,7 @@ kbd {
   font-family: 'DM Sans', sans-serif; font-size: 13.5px; outline: none;
   transition: border-color var(--t), box-shadow var(--t);
 }
-.auth-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(91,106,240,0.1); }
+.auth-input:focus { border-color: var(--accent); }
 .auth-input::placeholder { color: var(--text3); }
 
 .auth-submit-btn {
@@ -3499,7 +3532,7 @@ kbd {
   box-shadow: 0 1px 2px rgba(0,0,0,0.04);
 }
 .lang-select:hover { color: var(--text); }
-.lang-select:focus { box-shadow: 0 0 0 3px rgba(102,100,194,0.15); }
+.lang-select:focus { outline: none; }
 
 .code-toolbar-divider { width: 1px; align-self: stretch; margin: 2px 2px; background: var(--border); flex-shrink: 0; }
 
@@ -7646,6 +7679,41 @@ function _appendCompanionTyping() {
   return wrap;
 }
 
+function _streamCompanionMsg(text) {
+  const container = document.getElementById('companionMessages');
+  if (!container) return Promise.resolve(null);
+  const wrap = document.createElement('div');
+  wrap.className = 'companion-msg ai';
+  const av = document.createElement('div');
+  av.className = 'companion-avatar';
+  av.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>';
+  const bubble = document.createElement('div');
+  bubble.className = 'companion-bubble';
+  wrap.appendChild(av);
+  wrap.appendChild(bubble);
+  container.appendChild(wrap);
+  container.scrollTop = container.scrollHeight;
+
+  // Split into words while keeping whitespace/newlines so spacing is preserved
+  const tokens = text.split(/(\s+)/);
+  let i = 0;
+  return new Promise(resolve => {
+    function step() {
+      if (i >= tokens.length) {
+        bubble.innerHTML = typeof formatText === 'function' ? formatText(text) : text.replace(/\n/g, '<br>');
+        container.scrollTop = container.scrollHeight;
+        resolve(wrap);
+        return;
+      }
+      bubble.textContent += tokens[i];
+      i++;
+      container.scrollTop = container.scrollHeight;
+      setTimeout(step, 45);
+    }
+    step();
+  });
+}
+
 async function sendCompanionMessage() {
   const input = document.getElementById('companionInput');
   const btn = document.getElementById('companionSendBtn');
@@ -7669,7 +7737,7 @@ async function sendCompanionMessage() {
     if (typingEl && typingEl.parentNode) typingEl.parentNode.removeChild(typingEl);
     if (data.error) throw new Error(data.error);
     const reply = data.reply || 'No response received.';
-    _appendCompanionMsg('ai', reply);
+    await _streamCompanionMsg(reply);
     _companionHistory.push({ role: 'ai', content: reply });
   } catch (err) {
     if (typingEl && typingEl.parentNode) typingEl.parentNode.removeChild(typingEl);
@@ -10006,11 +10074,15 @@ async function fluxSend(mode) {
   } catch (e) { /* safe fallback */ }
 
   try {
+    let uploadedMediaUrl = null;
+    if (staged) {
+      uploadedMediaUrl = await uploadChatMedia(staged.dataUrl, staged.isVideo, user.id);
+    }
     const insertData = {
       sender_id: user.id,
       receiver_id: activeFluxId,
       content: (text && text.trim()) ? text.trim() : null,  // never send whitespace-only text
-      media_url: staged ? staged.dataUrl : null,
+      media_url: staged ? (uploadedMediaUrl || staged.dataUrl) : null,
       is_video: staged ? staged.isVideo : false
     };
     if (msgReplyTo) { insertData.reply_to_text = msgReplyTo.text; insertData.reply_to_author = msgReplyTo.author; if (msgReplyTo.id) insertData.reply_to_id = msgReplyTo.id; }
@@ -10050,6 +10122,29 @@ async function fluxSend(mode) {
 }
 
 // ── FLUX MEDIA STAGING ──
+// ── Upload chat media to Storage instead of storing raw base64 in the DB ──
+// Storing a full base64 data URL directly in the `messages` row makes that row
+// large enough that Supabase Realtime's postgres_changes payload either arrives
+// without the media_url value or doesn't arrive at all for the receiver — so the
+// receiver sees an empty bubble until the next full page load re-fetches the row
+// via a normal select(). Uploading to Storage keeps the row (and the realtime
+// payload) tiny — just a short URL — so the image/video shows up instantly.
+async function uploadChatMedia(dataUrl, isVideo, userId) {
+  try {
+    const res = await fetch(dataUrl);
+    const blob = await res.blob();
+    const ext = isVideo ? (blob.type.split('/')[1] || 'mp4') : (blob.type.split('/')[1] || 'jpg');
+    const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const { error: uploadError } = await supabaseClient.storage.from('chat-media').upload(path, blob, { contentType: blob.type, upsert: false });
+    if (uploadError) throw uploadError;
+    const { data } = supabaseClient.storage.from('chat-media').getPublicUrl(path);
+    return data?.publicUrl || null;
+  } catch (err) {
+    console.error('Chat media upload failed, falling back to inline data URL:', err);
+    return null;
+  }
+}
+
 function stageFluxMedia(e, mode) {
   const file = e.target.files[0];
   if (!file) return;
