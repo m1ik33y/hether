@@ -1252,7 +1252,7 @@ kbd {
   -webkit-text-security: disc;
   text-security: disc;
   font-family: 'DM Mono', monospace;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.04em;
 }
 
 .popup-error { font-size: 12px; color: #ef4444; margin-bottom: 10px; display: none; }
@@ -3618,10 +3618,38 @@ label.emoji-btn { margin-right: 4px; }
 
 .code-editor-mobile-stack .code-pane { border-right: none; border-bottom: 1px solid var(--border); }
 
+.mob-code-back-btn { display: none; }
+.mob-output-title { display: none; }
+
 @media (max-width: 640px) {
+  /* Editor takes the full screen — no split with output */
   .code-editor-body { flex-direction: column; }
-  .code-pane { border-right: none; border-bottom: 1px solid var(--border); max-height: 50%; }
-  .output-pane { max-height: 50%; }
+  .code-pane { border-right: none; border-bottom: none; max-height: none; height: 100%; flex: 1; }
+  .output-pane { border-right: none; max-height: none; height: 100%; flex: 1; display: none; }
+
+  /* Run navigates to a dedicated full-screen output view */
+  .code-editor-view.mob-output-active .code-pane { display: none; }
+  .code-editor-view.mob-output-active .output-pane { display: flex; }
+
+  /* Back button (top-left) — visible whenever the code editor is open on phone */
+  .mob-code-back-btn {
+    display: flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px; flex-shrink: 0; padding: 0; margin-right: 2px;
+    border: none; border-radius: 8px; background: transparent; color: var(--text); cursor: pointer;
+  }
+  .mob-code-back-btn:active { background: var(--surface2); }
+  .mob-code-back-btn svg { width: 22px; height: 22px; }
+
+  /* Swap header title between "Code Editor" and "Output" depending on screen */
+  .code-editor-header h2 { display: none; }
+  .code-editor-view:not(.mob-output-active) .code-editor-header h2:not(.mob-output-title) { display: flex; }
+  .code-editor-view.mob-output-active .mob-output-title { display: flex; }
+
+  /* Hide editor toolbar (incl. Save) on the output screen */
+  .code-editor-view.mob-output-active .code-editor-toolbar { display: none; }
+
+  /* No save button on phone */
+  .save-code-btn { display: none !important; }
 }
 
 /* ── MINI CALCULATOR WIDGET ── */
@@ -4194,7 +4222,11 @@ label.emoji-btn { margin-right: 4px; }
   <!-- CODE EDITOR VIEW -->
   <div class="code-editor-view" id="codeView">
     <div class="code-editor-header">
+      <button class="mob-code-back-btn" onclick="codeMobBack()" aria-label="Back">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-left-icon lucide-chevron-left"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
       <h2>Code Editor</h2>
+      <h2 class="mob-output-title">Output</h2>
       <div class="code-editor-toolbar">
         <select class="lang-select" id="langSelect" onchange="onLangChange()">
           <option value="html">HTML / CSS / JS</option>
@@ -4202,12 +4234,12 @@ label.emoji-btn { margin-right: 4px; }
         </select>
         <div class="code-toolbar-divider"></div>
         <button class="clear-output-btn" onclick="clearCodeOutput()">Clear</button>
-        <button class="clear-output-btn" onclick="saveCodeFile()" style="display:flex;align-items:center;gap:5px;">
+        <button class="clear-output-btn save-code-btn" onclick="saveCodeFile()" style="display:flex;align-items:center;gap:5px;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
           Save
         </button>
         <div class="code-toolbar-divider"></div>
-        <button class="run-btn" onclick="runCode()">
+        <button class="run-btn" onclick="runCodeMobile()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
           Run
         </button>
@@ -4594,14 +4626,14 @@ label.emoji-btn { margin-right: 4px; }
             <div class="settings-section-label">Access</div>
             <div class="setting-row clickable" onclick="openVaultPopup()">
               <div>
-                <div class="setting-label">Vault Key <span style="font-size:12px;color:var(--text3);font-weight:400;">(Authorized Personnel Only)</span></div>
+                <div class="setting-label">Admin Key <span style="font-size:12px;color:var(--text3);font-weight:400;">(Authorized Personnel Only)</span></div>
                 <div class="setting-sub">Restricted access — requires valid credentials</div>
               </div>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
             </div>
             <div class="setting-row clickable" onclick="openVaultTerminal()">
               <div>
-                <div class="setting-label">Vault Terminal <span style="font-size:12px;color:var(--text3);font-weight:400;">(Vault only)</span></div>
+                <div class="setting-label">Admin Terminal <span style="font-size:12px;color:var(--text3);font-weight:400;">(Authorized Personnel Only)</span></div>
                 <div class="setting-sub">Execute privileged commands — restricted access</div>
               </div>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
@@ -5503,9 +5535,9 @@ label.emoji-btn { margin-right: 4px; }
 <!-- VAULT KEY POPUP -->
 <div class="overlay" id="vaultOverlay">
   <div class="popup">
-    <h3>Vault Key</h3>
+    <h3>Admin Key</h3>
     <p>Enter your operator key to continue.</p>
-    <input type="text" id="vaultInput" name="vault-key-field" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Enter vault key" onkeydown="vaultKeyHandler(event)">
+    <input type="text" id="vaultInput" name="vault-key-field" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Enter administration key" onkeydown="vaultKeyHandler(event)">
     <div class="popup-error" id="vaultError">Incorrect key. Try again.</div>
     <div class="popup-btns">
       <button class="btn-cancel" onclick="closeVaultPopup()">Cancel</button>
@@ -6666,6 +6698,10 @@ function showView(view) {
     }
   }
   if (view === 'snippets') renderSnippets();
+  if (view === 'code' && prevView !== 'code') {
+    const codeViewEl = document.getElementById('codeView');
+    if (codeViewEl) codeViewEl.classList.remove('mob-output-active');
+  }
   if (isMobile()) hideSidebar();
 }
 
@@ -11420,6 +11456,25 @@ function runCode() {
   // Do NOT save code to localStorage — cleared on refresh
   // localStorage.setItem('aloft_code_' + lang, document.getElementById('codeInput').value);
   // localStorage.setItem('aloft_code_lang', lang);
+}
+
+// ── MOBILE CODE EDITOR: RUN → OUTPUT SCREEN, BACK BUTTON ──
+function runCodeMobile() {
+  runCode();
+  if (isMobile()) {
+    document.getElementById('codeView').classList.add('mob-output-active');
+  }
+}
+function codeMobBack() {
+  const view = document.getElementById('codeView');
+  if (view.classList.contains('mob-output-active')) {
+    // On the output screen — go back to the editor
+    view.classList.remove('mob-output-active');
+  } else {
+    // On the editor screen — leave the code editor
+    showView('relay');
+    updateMobNav('relay');
+  }
 }
 
 // ── SAVE CODE FILE ──
