@@ -6779,7 +6779,7 @@ async function sendMessage() {
   const typingEl = appendTyping();
   isTyping = true;
   try {
-    const res = await fetch('/api/relay', {
+    const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ messages: relayHistory })
@@ -7573,7 +7573,7 @@ async function sendFluxAiMessage() {
   _fluxAiTyping = true;
   const typingEl = _appendFluxAiTyping();
   try {
-    const res = await fetch('/api/relay', {
+    const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ messages: _fluxAiHistory })
@@ -7693,7 +7693,7 @@ async function sendCompanionMessage() {
   _companionTyping = true;
   const typingEl = _appendCompanionTyping();
   try {
-    const res = await fetch('/api/relay', {
+    const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ messages: _companionHistory })
