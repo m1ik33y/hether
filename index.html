@@ -9139,11 +9139,33 @@ async function deleteSingleCollageImage(bWrap, urlToDelete, mediaGroup, isSent, 
     return;
   }
 
-  // Rebuild collage with remaining URLs
+  // Rebuild with remaining URLs. A single leftover image should NOT go through
+  // the collage layout (its CSS grid assumes 2+ cells) — render it as a normal
+  // single-image bubble instead so it displays correctly and stays clickable.
   const newMediaGroup = { urls: newUrls, msgs: newMsgs, id: mediaGroup.id || (newMsgs[0] && newMsgs[0].id) || '' };
-  const newCollageEl = makeMediaCollageBubble(newMediaGroup, isSent, contact, currentUserId);
-  const newBWrap = newCollageEl.querySelector('.flux-bubble-wrap') || newCollageEl;
-  newBWrap.dataset.mediaUrls = newUrls.join('||');
+  let newCollageEl, newBWrap;
+  if (newUrls.length === 1) {
+    newBWrap = document.createElement('div');
+    newBWrap.className = 'flux-bubble-wrap';
+    newBWrap.dataset.msgId = newMediaGroup.id || '';
+    newBWrap.dataset.mediaUrls = newUrls[0];
+    const bubble = document.createElement('div');
+    bubble.className = 'flux-bubble flux-bubble-media-only';
+    const img = document.createElement('img');
+    img.src = newUrls[0];
+    img.style.cssText = 'max-width:220px;border-radius:10px;cursor:pointer;';
+    img.onclick = () => openLightbox(img.src, [img.src], newBWrap, newMediaGroup, isSent, contact, currentUserId);
+    bubble.appendChild(img);
+    newBWrap.appendChild(bubble);
+    newCollageEl = document.createElement('div');
+    newCollageEl.className = 'flux-bubble-outer';
+    newCollageEl.dataset.msgId = newMediaGroup.id || '';
+    newCollageEl.appendChild(newBWrap);
+  } else {
+    newCollageEl = makeMediaCollageBubble(newMediaGroup, isSent, contact, currentUserId);
+    newBWrap = newCollageEl.querySelector('.flux-bubble-wrap') || newCollageEl;
+    newBWrap.dataset.mediaUrls = newUrls.join('||');
+  }
   bOuter.replaceWith(newCollageEl);
 
   // Update lightbox to show remaining images
@@ -9627,7 +9649,16 @@ async function loadMoreMessagesDesktop() {
           if (!isSent) rowEl.appendChild(makeGroupAvatar(fluxDesktopContact));
           const bubblesWrap = document.createElement('div');
           bubblesWrap.className = 'flux-msg-bubbles';
-          item.messages.forEach(msg => { if (msg.id) renderedMsgIds.add(msg.id); bubblesWrap.appendChild(makeBubbleWrap(msg, isSent, fluxDesktopContact, fluxDesktopUser.id)); });
+          const collapsed = collapseMediaGroups(item.messages);
+          collapsed.forEach(msg => {
+            if (msg.type === 'mediaGroup') {
+              msg.msgs.forEach(m => { if (m.id) renderedMsgIds.add(m.id); });
+              bubblesWrap.appendChild(makeMediaCollageBubble(msg, isSent, fluxDesktopContact, fluxDesktopUser.id));
+            } else {
+              if (msg.id) renderedMsgIds.add(msg.id);
+              bubblesWrap.appendChild(makeBubbleWrap(msg, isSent, fluxDesktopContact, fluxDesktopUser.id));
+            }
+          });
           applyBubbleGrouping(bubblesWrap);
           rowEl.appendChild(bubblesWrap);
           groupEl.appendChild(rowEl);
@@ -9820,7 +9851,16 @@ async function loadMoreMessagesMobile() {
           if (!isSent) rowEl.appendChild(makeGroupAvatar(fluxMobileContact));
           const bubblesWrap = document.createElement('div');
           bubblesWrap.className = 'flux-msg-bubbles';
-          item.messages.forEach(msg => { if (msg.id) renderedMsgIds.add(msg.id); bubblesWrap.appendChild(makeBubbleWrap(msg, isSent, fluxMobileContact, fluxMobileUser.id)); });
+          const collapsed = collapseMediaGroups(item.messages);
+          collapsed.forEach(msg => {
+            if (msg.type === 'mediaGroup') {
+              msg.msgs.forEach(m => { if (m.id) renderedMsgIds.add(m.id); });
+              bubblesWrap.appendChild(makeMediaCollageBubble(msg, isSent, fluxMobileContact, fluxMobileUser.id));
+            } else {
+              if (msg.id) renderedMsgIds.add(msg.id);
+              bubblesWrap.appendChild(makeBubbleWrap(msg, isSent, fluxMobileContact, fluxMobileUser.id));
+            }
+          });
           applyBubbleGrouping(bubblesWrap);
           rowEl.appendChild(bubblesWrap);
           groupEl.appendChild(rowEl);
@@ -10384,25 +10424,27 @@ function _renderLightbox() {
   const next = document.getElementById('lightboxNext');
   const delBtn = document.getElementById('lightboxDeleteBtn');
   img.src = _lightboxUrls[_lightboxIdx];
+  // Header + footer (counter + thumbnail strip) always render, even for a single
+  // image, so a lone image gets the exact same lightbox chrome as a grouped one.
+  // Prev/Next arrows are the only thing that hide — there's nothing to step to.
   if (_lightboxUrls.length > 1) {
     prev.style.display = 'flex';
     next.style.display = 'flex';
-    counter.textContent = (_lightboxIdx + 1) + ' of ' + _lightboxUrls.length;
     prev.disabled = _lightboxIdx === 0;
     next.disabled = _lightboxIdx === _lightboxUrls.length - 1;
-    footer.style.display = 'flex';
-    strip.innerHTML = '';
-    _lightboxUrls.forEach((u, i) => {
-      const t = document.createElement('img');
-      t.src = u; t.className = 'lightbox-thumb' + (i === _lightboxIdx ? ' active' : '');
-      t.onclick = (e) => { e.stopPropagation(); _lightboxIdx = i; _renderLightbox(); };
-      strip.appendChild(t);
-    });
   } else {
     prev.style.display = 'none';
     next.style.display = 'none';
-    footer.style.display = 'none';
   }
+  counter.textContent = (_lightboxIdx + 1) + ' of ' + _lightboxUrls.length;
+  footer.style.display = 'flex';
+  strip.innerHTML = '';
+  _lightboxUrls.forEach((u, i) => {
+    const t = document.createElement('img');
+    t.src = u; t.className = 'lightbox-thumb' + (i === _lightboxIdx ? ' active' : '');
+    t.onclick = (e) => { e.stopPropagation(); _lightboxIdx = i; _renderLightbox(); };
+    strip.appendChild(t);
+  });
   // Show delete button only when collage context is available and sender is current user
   if (delBtn) {
     delBtn.style.display = (_lightboxBWrap && _lightboxIsSent) ? 'flex' : 'none';
