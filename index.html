@@ -2352,7 +2352,7 @@ kbd {
   padding: 9px 14px;
   display: inline-block;
   max-width: 100%;
-  white-space: normal;
+  white-space: pre-wrap;
   overflow-wrap: anywhere;
   word-break: normal;
   box-sizing: border-box;
@@ -2453,7 +2453,7 @@ kbd {
 
 .flux-reply-preview {
   display: block;
-  background: rgba(0,0,0,0.20);
+  background: rgba(0,0,0,0.34);
   border-radius: 6px;
   padding: 6px 10px;
   margin: -5.5px -10.5px 6px -10.5px;
@@ -2498,6 +2498,29 @@ kbd {
 .flux-msg-group.received .flux-reply-preview .flux-reply-author { color: #495cea; }
 .flux-msg-group.received .flux-reply-preview .flux-reply-text { color: rgba(255,255,255,0.85); }
 .flux-bubble:has(.flux-reply-preview) { display: block; width: fit-content; min-width: 100px; }
+/* media replies: no accent bar — thumbnail sits beside the content instead */
+.flux-msg-group.sent .flux-reply-preview.media-reply::after,
+.flux-msg-group.received .flux-reply-preview.media-reply::after { content: none; display: none; }
+.flux-reply-preview .flux-reply-media-icon { width: 12px; height: 12px; vertical-align: -2px; margin-right: 3px; flex-shrink: 0; }
+/* media replies: square thumbnail sits flush against the outer edge — left for received,
+   right for sent. Padding moves onto the text content so the thumbnail can bleed edge-to-edge
+   (clipped to the bubble's own rounded corners). */
+/* media replies: a small fixed-size square thumbnail sits in the corner (top, flush to the
+   outer edge — left for received, right for sent). The image fits/covers that square; text
+   gets its own padding so it doesn't touch the edges. */
+.flux-reply-preview.media-reply { display: flex; align-items: stretch; gap: 8px; padding: 0; height: 46px; overflow: hidden; }
+.flux-reply-preview.media-reply .flux-reply-preview-content { flex: 1; min-width: 0; padding: 6px 0; display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
+.flux-reply-preview .flux-reply-thumb { width: 46px; height: 46px; object-fit: cover; object-position: center; border-radius: 0; flex-shrink: 0; }
+.flux-msg-group.sent .flux-reply-preview.media-reply { flex-direction: row; }
+.flux-msg-group.sent .flux-reply-preview.media-reply .flux-reply-preview-content { padding-left: 10px; }
+.flux-msg-group.sent .flux-reply-preview.media-reply .flux-reply-thumb { border-radius: 0 6px 6px 0; }
+.flux-msg-group.sent .flux-bubble.bubble-first .flux-reply-preview.media-reply .flux-reply-thumb,
+.flux-msg-group.sent .flux-bubble.bubble-solo .flux-reply-preview.media-reply .flux-reply-thumb { border-radius: 0 14px 6px 0; }
+.flux-msg-group.received .flux-reply-preview.media-reply { flex-direction: row-reverse; }
+.flux-msg-group.received .flux-reply-preview.media-reply .flux-reply-preview-content { padding-right: 10px; }
+.flux-msg-group.received .flux-reply-preview.media-reply .flux-reply-thumb { border-radius: 6px 0 0 6px; }
+.flux-msg-group.received .flux-bubble.bubble-first .flux-reply-preview.media-reply .flux-reply-thumb,
+.flux-msg-group.received .flux-bubble.bubble-solo .flux-reply-preview.media-reply .flux-reply-thumb { border-radius: 14px 0 0 6px; }
 
 /* Per-theme received reply-preview author + bar color (matches theme's accent/sent color) */
 [data-relay-theme="default"] .flux-msg-group.received .flux-reply-preview .flux-reply-author    { color: #495cea !important; }
@@ -2559,6 +2582,7 @@ kbd {
 .flux-reply-bar-content { flex: 1; min-width: 0; }
 .flux-reply-bar-author { font-weight: 600; font-size: 11px; color: var(--accent); }
 .flux-reply-bar-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text2); }
+.flux-reply-bar-thumb { width: 34px; height: 34px; border-radius: 6px; object-fit: cover; flex-shrink: 0; margin: 0 4px; }
 .flux-reply-cancel { background: transparent; border: none; cursor: pointer; color: var(--text3); font-size: 18px; line-height: 1; transition: color var(--t); padding: 0 2px; }
 .flux-reply-cancel:hover { color: var(--text); }
 
@@ -3121,21 +3145,33 @@ label.emoji-btn { margin-right: 4px; }
 .pd-add-acc { display: flex; align-items: center; gap: 9px; padding: 7px 10px; border-radius: 7px; cursor: pointer; font-size: 12.5px; color: var(--text3); transition: all var(--t); border: 1px dashed var(--border); background: transparent; width: 100%; font-family: 'DM Sans', sans-serif; margin-top: 4px; }
 .pd-add-acc:hover { border-color: var(--accent); color: var(--accent); }
 
-.lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 999; align-items: center; justify-content: center; flex-direction: column; gap: 12px; }
+.lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 999; flex-direction: column; }
 .lightbox.show { display: flex; }
-.lightbox img { max-width: 92vw; max-height: 82vh; border-radius: 10px; box-shadow: 0 24px 60px rgba(0,0,0,0.4); object-fit: contain; cursor: default; }
-.lightbox-close { position: absolute; top: 18px; right: 22px; background: rgba(255,255,255,0.12); border: none; color: #fff; font-size: 22px; width: 38px; height: 38px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; z-index: 2; }
-.lightbox-close:hover { background: rgba(255,255,255,0.22); }
-.lightbox-delete-btn { position: absolute; top: 18px; left: 22px; background: rgba(239,68,68,0.18); border: 1px solid rgba(239,68,68,0.4); color: #ff6b6b; font-size: 13px; font-weight: 500; font-family: 'DM Sans', sans-serif; padding: 0 14px; height: 38px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 7px; transition: background 0.15s; z-index: 2; }
-.lightbox-delete-btn:hover { background: rgba(239,68,68,0.32); color: #fff; }
-.lightbox-nav { display: flex; align-items: center; gap: 16px; }
-.lightbox-nav-btn { background: rgba(255,255,255,0.12); border: none; color: #fff; font-size: 20px; width: 42px; height: 42px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; flex-shrink: 0; }
-.lightbox-nav-btn:hover { background: rgba(255,255,255,0.24); }
-.lightbox-nav-btn:disabled { opacity: 0.25; cursor: default; }
-.lightbox-counter { color: rgba(255,255,255,0.7); font-size: 13px; min-width: 48px; text-align: center; }
-.lightbox-strip { display: flex; gap: 6px; max-width: 92vw; overflow-x: auto; padding: 4px 0; }
+
+/* header tab — icon-only buttons, right-aligned */
+.lightbox-header { flex-shrink: 0; display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 16px 22px; }
+.lightbox-icon-btn { background: transparent; border: none; color: #fff; width: 38px; height: 38px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s, color 0.15s; flex-shrink: 0; }
+.lightbox-icon-btn:hover { background: rgba(255,255,255,0.14); }
+.lightbox-icon-btn svg { width: 22px; height: 22px; }
+.lightbox-icon-btn.danger:hover { background: rgba(239,68,68,0.2); color: #ff6b6b; }
+
+/* body — image centered, nav arrows pinned to edges */
+.lightbox-body { flex: 1; min-height: 0; position: relative; display: flex; align-items: center; justify-content: center; padding: 0 74px; }
+.lightbox-body img { max-width: 100%; max-height: 100%; border-radius: 10px; box-shadow: 0 24px 60px rgba(0,0,0,0.4); object-fit: contain; cursor: default; }
+.lightbox-nav-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.1); border: none; color: #fff; width: 42px; height: 42px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; z-index: 2; }
+.lightbox-nav-btn svg { width: 24px; height: 24px; }
+.lightbox-nav-btn:hover { background: rgba(255,255,255,0.22); }
+.lightbox-nav-btn:disabled { opacity: 0.2; cursor: default; }
+#lightboxPrev { left: 18px; }
+#lightboxNext { right: 18px; }
+
+/* footer — counter above thumbnail strip */
+.lightbox-footer { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 6px 22px 22px; }
+.lightbox-counter { color: rgba(255,255,255,0.65); font-size: 13px; text-align: center; }
+.lightbox-strip { display: flex; gap: 6px; max-width: 100%; overflow-x: auto; padding: 4px; }
 .lightbox-strip::-webkit-scrollbar { height: 0; }
-.lightbox-thumb { width: 48px; height: 48px; border-radius: 7px; object-fit: cover; cursor: pointer; opacity: 0.55; border: 2px solid transparent; transition: opacity 0.15s, border-color 0.15s; flex-shrink: 0; }
+.lightbox-thumb { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; cursor: pointer; opacity: 0.5; border: 2px solid transparent; transition: opacity 0.15s, border-color 0.15s; flex-shrink: 0; }
+.lightbox-thumb:hover { opacity: 0.85; }
 .lightbox-thumb.active { opacity: 1; border-color: #fff; }
 
 /* ── MEDIA COLLAGE ── */
@@ -5253,6 +5289,7 @@ label.emoji-btn { margin-right: 4px; }
               <div class="flux-reply-bar-author" id="fluxReplyBarAuthor"></div>
               <div class="flux-reply-bar-text" id="fluxReplyBarText"></div>
             </div>
+            <img class="flux-reply-bar-thumb" id="fluxReplyBarThumb" style="display:none;" alt="">
             <button class="flux-reply-cancel" onclick="cancelReply()">×</button>
           </div>
 
@@ -5425,6 +5462,7 @@ label.emoji-btn { margin-right: 4px; }
         <div class="flux-reply-bar-author" id="fluxFsReplyBarAuthor"></div>
         <div class="flux-reply-bar-text" id="fluxFsReplyBarText"></div>
       </div>
+      <img class="flux-reply-bar-thumb" id="fluxFsReplyBarThumb" style="display:none;" alt="">
       <button class="flux-reply-cancel" onclick="cancelReply('mobile')">×</button>
     </div>
 
@@ -5450,18 +5488,33 @@ label.emoji-btn { margin-right: 4px; }
 
 <!-- IMAGE LIGHTBOX -->
 <div class="lightbox" id="lightbox" onclick="if(event.target===this)closeLightbox()">
-  <button class="lightbox-close" onclick="closeLightbox()">&#x2715;</button>
-  <button class="lightbox-delete-btn" id="lightboxDeleteBtn" onclick="lightboxDeleteCurrentImage()" style="display:none;" title="Delete this image">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-    Delete
-  </button>
-  <img id="lightboxImg" src="" alt="" style="cursor:default;">
-  <div class="lightbox-nav" id="lightboxNav" style="display:none;">
-    <button class="lightbox-nav-btn" id="lightboxPrev" onclick="lightboxStep(-1)">&#8592;</button>
-    <span class="lightbox-counter" id="lightboxCounter"></span>
-    <button class="lightbox-nav-btn" id="lightboxNext" onclick="lightboxStep(1)">&#8594;</button>
+  <div class="lightbox-header">
+    <button class="lightbox-icon-btn" id="lightboxDownloadBtn" onclick="lightboxDownloadCurrentImage()" title="Download">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    </button>
+    <button class="lightbox-icon-btn" id="lightboxReplyBtn" onclick="lightboxReplyToCurrentImage()" title="Reply">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
+    </button>
+    <button class="lightbox-icon-btn" id="lightboxDeleteBtn" onclick="lightboxDeleteCurrentImage()" style="display:none;" title="Delete">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+    </button>
+    <button class="lightbox-icon-btn" onclick="closeLightbox()" title="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:26px;height:26px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
   </div>
-  <div class="lightbox-strip" id="lightboxStrip" style="display:none;"></div>
+  <div class="lightbox-body" onclick="if(event.target===this)closeLightbox()">
+    <button class="lightbox-nav-btn" id="lightboxPrev" onclick="lightboxStep(-1)" style="display:none;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-left-icon lucide-chevron-left"><path d="m15 18-6-6 6-6"/></svg>
+    </button>
+    <img id="lightboxImg" src="" alt="" style="cursor:default;">
+    <button class="lightbox-nav-btn" id="lightboxNext" onclick="lightboxStep(1)" style="display:none;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right-icon lucide-chevron-right"><path d="m9 18 6-6-6-6"/></svg>
+    </button>
+  </div>
+  <div class="lightbox-footer" id="lightboxFooter" style="display:none;" onclick="if(event.target===this)closeLightbox()">
+    <span class="lightbox-counter" id="lightboxCounter"></span>
+    <div class="lightbox-strip" id="lightboxStrip"></div>
+  </div>
 </div>
 
 <!-- EMOJI PICKER -->
@@ -7391,7 +7444,7 @@ async function openFLUX() {
             contact.unread = true;
             contact.unreadCount = (contact.unreadCount || 0) + 1;
             const d = parseSupabaseDate(msg.created_at);
-            contact.lastMessage = { type: 'received', text: msg.content, time: formatMsgTime(d) };
+            contact.lastMessage = { type: 'received', text: msg.content, media: !!msg.media_url, time: formatMsgTime(d) };
             contact.lastMessageTs = d.getTime();
             buildFLUXConvList();
           }
@@ -7832,16 +7885,19 @@ function buildFLUXConvList() {
 
       // Build preview text
       let previewHtml = '';
+      const mediaPreviewText = lastMsg && lastMsg.media && !(lastMsg.text || '').trim()
+        ? (lastMsg.type === 'sent' ? 'You sent an attachment' : `${c.name} sent an attachment`)
+        : null;
       if (isUnread && unreadCount >= 2) {
         const label = unreadCount > 4 ? '4+ new messages' : `${unreadCount} new messages`;
         previewHtml = `<div class="flux-conv-preview unread">${label}</div>`;
       } else if (isUnread && unreadCount === 1) {
         // Show the latest message content truncated
-        const msgText = lastMsg ? (lastMsg.type === 'sent' ? 'You: ' + (lastMsg.text || '') : (lastMsg.text || '')) : '';
+        const msgText = mediaPreviewText || (lastMsg ? (lastMsg.type === 'sent' ? 'You: ' + (lastMsg.text || '') : (lastMsg.text || '')) : '');
         const truncated = msgText.length > 38 ? msgText.substring(0, 38) + '…' : msgText;
         previewHtml = `<div class="flux-conv-preview unread">${escHtml(truncated)}</div>`;
       } else {
-        const msgText = lastMsg ? (lastMsg.type === 'sent' ? 'You: ' + (lastMsg.text || '') : (lastMsg.text || '')) : '';
+        const msgText = mediaPreviewText || (lastMsg ? (lastMsg.type === 'sent' ? 'You: ' + (lastMsg.text || '') : (lastMsg.text || '')) : '');
         previewHtml = `<div class="flux-conv-preview">${escHtml(msgText)}</div>`;
       }
 
@@ -8559,7 +8615,7 @@ function makeMediaCollageBubble(mediaGroup, isSent, contact, currentUserId) {
   const replyBtn = document.createElement('button');
   replyBtn.className = 'flux-reply-btn'; replyBtn.title = 'Reply';
   replyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>`;
-  replyBtn.onclick = (e) => { e.stopPropagation(); startReply('[media]', isSent ? (profile.username ? profile.username.slice(1) : 'me') : (contact ? (contact.username || contact.realName || contact.name) : 'User'), msg.id); };
+  replyBtn.onclick = (e) => { e.stopPropagation(); startReply('Photo', isSent ? (profile.username ? profile.username.slice(1) : 'me') : (contact ? (contact.username || contact.realName || contact.name) : 'User'), mediaGroup.id, urls[0]); };
 
   const moreBtn = document.createElement('button');
   moreBtn.className = 'flux-more-btn'; moreBtn.title = 'More options';
@@ -8768,7 +8824,7 @@ function makeBubbleWrap(msg, isSent, contact, currentUserId) {
   const replyBtn = document.createElement('button');
   replyBtn.className = 'flux-reply-btn'; replyBtn.title = 'Reply';
   replyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>`;
-  replyBtn.onclick = (e) => { e.stopPropagation(); startReply(msgText, msgSender, msg.id); };
+  replyBtn.onclick = (e) => { e.stopPropagation(); startReply(msg.media_url && !msgText ? 'Photo' : msgText, msgSender, msg.id, msg.media_url || null); };
 
   const moreBtn = document.createElement('button');
   moreBtn.className = 'flux-more-btn'; moreBtn.title = 'More options';
@@ -8781,10 +8837,8 @@ function makeBubbleWrap(msg, isSent, contact, currentUserId) {
   bubble.dataset.msgId = msg.id || '';
 
   if (msg.reply_to_text) {
-    const rp = document.createElement('div');
-    rp.className = 'flux-reply-preview';
+    const rp = _buildReplyPreview(msg.reply_to_text, msg.reply_to_author, msg.reply_to_media_url);
     rp.dataset.replyToId = msg.reply_to_id || '';
-    rp.innerHTML = `<div class="flux-reply-author">${escHtml(msg.reply_to_author || '')}</div><div class="flux-reply-text">${escHtml(msg.reply_to_text)}</div>`;
     rp.onclick = (e) => { e.stopPropagation(); scrollToReplyTarget(msg.reply_to_id, msg.reply_to_text, msg.reply_to_author || ''); };
     bubble.prepend(rp);
   }
@@ -9108,22 +9162,55 @@ async function deleteSingleCollageImage(bWrap, urlToDelete, mediaGroup, isSent, 
 function closeCtxMenu() { document.getElementById('fluxCtxMenu').style.display = 'none'; }
 document.addEventListener('click', () => closeCtxMenu());
 
-function startReply(text, author, msgId) {
+function _buildReplyPreview(text, author, mediaUrl) {
+  const rp = document.createElement('div');
+  rp.className = 'flux-reply-preview' + (mediaUrl ? ' media-reply' : '');
+  const content = document.createElement('div');
+  content.className = 'flux-reply-preview-content';
+  const mediaIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flux-reply-media-icon lucide lucide-image-icon lucide-image"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>';
+  content.innerHTML = `<div class="flux-reply-author">${escHtml(author || '')}</div><div class="flux-reply-text">${mediaUrl ? mediaIcon : ''}${escHtml(text || '')}</div>`;
+  rp.appendChild(content);
+  if (mediaUrl) {
+    const thumb = document.createElement('img');
+    thumb.className = 'flux-reply-thumb';
+    thumb.src = mediaUrl;
+    thumb.alt = '';
+    rp.appendChild(thumb);
+  }
+  return rp;
+}
+
+function startReply(text, author, msgId, imageUrl) {
   if (currentEditState) cancelEdit(currentEditState.mode);
-  replyingTo = { text, author, id: msgId || null };
+  replyingTo = { text, author, id: msgId || null, image: imageUrl || null };
   clearFluxStaging(); clearFluxFsStaging();
   const bar = document.getElementById('fluxReplyBar');
-  if (bar) { bar.classList.add('show'); document.getElementById('fluxReplyBarAuthor').textContent = author; document.getElementById('fluxReplyBarText').textContent = text; }
+  if (bar) {
+    bar.classList.add('show'); document.getElementById('fluxReplyBarAuthor').textContent = author; document.getElementById('fluxReplyBarText').textContent = text;
+    _setReplyBarThumb('fluxReplyBarThumb', imageUrl);
+  }
   const fsBar = document.getElementById('fluxFsReplyBar');
-  if (fsBar) { fsBar.classList.add('show'); document.getElementById('fluxFsReplyBarAuthor').textContent = author; document.getElementById('fluxFsReplyBarText').textContent = text; }
+  if (fsBar) {
+    fsBar.classList.add('show'); document.getElementById('fluxFsReplyBarAuthor').textContent = author; document.getElementById('fluxFsReplyBarText').textContent = text;
+    _setReplyBarThumb('fluxFsReplyBarThumb', imageUrl);
+  }
   const inputEl = isMobile() ? document.getElementById('fluxFsInput') : document.getElementById('fluxInput');
   if (inputEl) inputEl.focus();
+}
+
+function _setReplyBarThumb(id, imageUrl) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (imageUrl) { el.src = imageUrl; el.style.display = 'block'; }
+  else { el.removeAttribute('src'); el.style.display = 'none'; }
 }
 
 function cancelReply(mode) {
   replyingTo = null;
   document.getElementById('fluxReplyBar')?.classList.remove('show');
   document.getElementById('fluxFsReplyBar')?.classList.remove('show');
+  _setReplyBarThumb('fluxReplyBarThumb', null);
+  _setReplyBarThumb('fluxFsReplyBarThumb', null);
 }
 
 // Scroll to the message that was replied to and flash a WhatsApp-style highlight
@@ -9897,7 +9984,7 @@ function updateContactLastMsg(userId, msg, currentUserId) {
   const contact = fluxContacts.find(c => c.id === userId);
   if (!contact) return;
   const d = parseSupabaseDate(msg.created_at);
-  contact.lastMessage = { type: msg.sender_id === currentUserId ? 'sent' : 'received', text: msg.content, time: formatMsgTime(d) };
+  contact.lastMessage = { type: msg.sender_id === currentUserId ? 'sent' : 'received', text: msg.content, media: !!msg.media_url, time: formatMsgTime(d) };
   contact.lastMessageTs = d.getTime();
   if (msg.sender_id === currentUserId) contact.sentByMe = true;
   if (msg.sender_id !== currentUserId && activeFluxId !== userId) {
@@ -10044,10 +10131,8 @@ async function fluxSend(mode) {
   bubble.className = 'flux-bubble' + (optimisticEmojiOnly ? ' flux-bubble-emoji-only' : '') + ' sending';
 
   if (msgReplyTo) {
-    const rp = document.createElement('div');
-    rp.className = 'flux-reply-preview';
+    const rp = _buildReplyPreview(msgReplyTo.text, msgReplyTo.author, msgReplyTo.image);
     rp.dataset.replyToId = msgReplyTo.id || '';
-    rp.innerHTML = `<div class="flux-reply-author">${escHtml(msgReplyTo.author || '')}</div><div class="flux-reply-text">${escHtml(msgReplyTo.text)}</div>`;
     rp.onclick = (e) => { e.stopPropagation(); scrollToReplyTarget(msgReplyTo.id, msgReplyTo.text, msgReplyTo.author || ''); };
     bubble.prepend(rp);
   }
@@ -10124,7 +10209,7 @@ async function fluxSend(mode) {
       media_url: staged ? (uploadedMediaUrl || staged.dataUrl) : null,
       is_video: staged ? staged.isVideo : false
     };
-    if (msgReplyTo) { insertData.reply_to_text = msgReplyTo.text; insertData.reply_to_author = msgReplyTo.author; if (msgReplyTo.id) insertData.reply_to_id = msgReplyTo.id; }
+    if (msgReplyTo) { insertData.reply_to_text = msgReplyTo.text; insertData.reply_to_author = msgReplyTo.author; if (msgReplyTo.id) insertData.reply_to_id = msgReplyTo.id; if (msgReplyTo.image) insertData.reply_to_media_url = msgReplyTo.image; }
     const { data: inserted, error } = await supabaseClient.from('messages').insert(insertData).select().single();
     if (error) throw error;
 
@@ -10292,7 +10377,7 @@ function openLightbox(src, allUrls, bWrap, mediaGroup, isSent, contact, currentU
 
 function _renderLightbox() {
   const img = document.getElementById('lightboxImg');
-  const nav = document.getElementById('lightboxNav');
+  const footer = document.getElementById('lightboxFooter');
   const strip = document.getElementById('lightboxStrip');
   const counter = document.getElementById('lightboxCounter');
   const prev = document.getElementById('lightboxPrev');
@@ -10300,11 +10385,12 @@ function _renderLightbox() {
   const delBtn = document.getElementById('lightboxDeleteBtn');
   img.src = _lightboxUrls[_lightboxIdx];
   if (_lightboxUrls.length > 1) {
-    nav.style.display = 'flex';
-    counter.textContent = (_lightboxIdx + 1) + ' / ' + _lightboxUrls.length;
+    prev.style.display = 'flex';
+    next.style.display = 'flex';
+    counter.textContent = (_lightboxIdx + 1) + ' of ' + _lightboxUrls.length;
     prev.disabled = _lightboxIdx === 0;
     next.disabled = _lightboxIdx === _lightboxUrls.length - 1;
-    strip.style.display = 'flex';
+    footer.style.display = 'flex';
     strip.innerHTML = '';
     _lightboxUrls.forEach((u, i) => {
       const t = document.createElement('img');
@@ -10313,13 +10399,35 @@ function _renderLightbox() {
       strip.appendChild(t);
     });
   } else {
-    nav.style.display = 'none';
-    strip.style.display = 'none';
+    prev.style.display = 'none';
+    next.style.display = 'none';
+    footer.style.display = 'none';
   }
   // Show delete button only when collage context is available and sender is current user
   if (delBtn) {
     delBtn.style.display = (_lightboxBWrap && _lightboxIsSent) ? 'flex' : 'none';
   }
+}
+
+function lightboxDownloadCurrentImage() {
+  const url = _lightboxUrls[_lightboxIdx];
+  if (!url) return;
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = url.split('/').pop().split('?')[0] || 'image';
+  a.target = '_blank';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+function lightboxReplyToCurrentImage() {
+  const url = _lightboxUrls[_lightboxIdx];
+  if (!url) return;
+  const author = _lightboxIsSent ? (profile.username ? profile.username.slice(1) : 'me') : (_lightboxContact ? (_lightboxContact.username || _lightboxContact.realName || _lightboxContact.name) : 'User');
+  const msgId = _lightboxMediaGroup ? _lightboxMediaGroup.id : (_lightboxBWrap ? _lightboxBWrap.dataset.msgId : null);
+  startReply('Photo', author, msgId || null, url);
+  closeLightbox();
 }
 
 function lightboxStep(dir) {
@@ -11192,7 +11300,7 @@ async function preloadAllRelays() {
     const contact = fluxContacts.find(c => c.id === userId);
     if (!contact) return;
     const d = parseSupabaseDate(msg.created_at);
-    contact.lastMessage = { type: msg.sender_id === user.id ? 'sent' : 'received', text: msg.content, time: formatMsgTime(d) };
+    contact.lastMessage = { type: msg.sender_id === user.id ? 'sent' : 'received', text: msg.content, media: !!msg.media_url, time: formatMsgTime(d) };
     contact.lastMessageTs = d.getTime();
   });
 
@@ -12704,7 +12812,7 @@ async function saveRelayThemeToSupabase(themeId) {
   const themeObj = RELAY_THEMES.find(t => t.id === themeId);
   const themeName = themeObj ? themeObj.tag : themeId;
   const myName = (await supabaseClient.from('profiles').select('username').eq('id', user.id).single()).data?.username || 'Someone';
-  const systemText = `${myName} changed the relay theme to ${themeName}.`;
+  const systemText = `${myName} changed the theme to ${themeName}.`;
 
   if (activeFluxId && activeFluxProfileTarget) {
     await supabaseClient.from('messages').insert({
@@ -12849,7 +12957,7 @@ async function _rehydrateRealtime() {
               contact.unread = true;
               contact.unreadCount = (contact.unreadCount || 0) + 1;
               const d = parseSupabaseDate(msg.created_at);
-              contact.lastMessage = { type: 'received', text: msg.content, time: formatMsgTime(d) };
+              contact.lastMessage = { type: 'received', text: msg.content, media: !!msg.media_url, time: formatMsgTime(d) };
               contact.lastMessageTs = d.getTime();
               buildFLUXConvList();
             }
