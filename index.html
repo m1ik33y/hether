@@ -917,7 +917,7 @@ body {
 }
 
 .flux-conv-preview.typing {
-  color: var(--accent);
+  color: #21C063;
   font-weight: 600;
   font-size: 11.5px;
 }
@@ -1789,6 +1789,9 @@ kbd {
 [data-relay-theme="console"] .flux-msg-group.sent .flux-bubble:not(.flux-bubble-emoji-only)   { background: #738C29 !important; color: #fff !important; }
 [data-relay-theme="console"] .flux-msg-group.received .flux-bubble:not(.flux-bubble-emoji-only) { background: var(--surface2) !important; color: var(--text) !important; }
 
+[data-relay-theme="moss"] .flux-msg-group.sent .flux-bubble:not(.flux-bubble-emoji-only)   { background: #144D37 !important; color: #fff !important; }
+[data-relay-theme="moss"] .flux-msg-group.received .flux-bubble:not(.flux-bubble-emoji-only) { background: var(--surface2) !important; color: var(--text) !important; }
+
 /* ── THEME PICKER BUTTON ── */
 .flux-theme-toggle-btn {
   display: flex;
@@ -1831,7 +1834,7 @@ kbd {
   transition: background var(--t), border-color var(--t);
 }
 .flux-theme-item:hover { background: var(--surface2); }
-.flux-theme-item.active { border-color: var(--accent); background: var(--surface2); }
+.flux-theme-item.active { border-color: transparent; background: var(--border); }
 
 .flux-theme-item-label {
   font-size: 12.5px;
@@ -2062,6 +2065,11 @@ kbd {
   display: flex;
   flex-direction: column;
   max-width: 100%;
+  animation: bubbleAppear 0.15s ease-out;
+}
+@keyframes bubbleAppear {
+  from { opacity: 0; transform: translateY(6px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 .flux-msg-group.sent .flux-bubble-outer {
   align-items: flex-end;
@@ -2359,6 +2367,7 @@ kbd {
   vertical-align: top;
   position: relative;
   overflow: visible;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.08);
 }
 .flux-bubble:not(.flux-bubble-emoji-only):hover { opacity: 0.92; }
 .flux-msg-group.sent .flux-bubble:not(.flux-bubble-emoji-only) { background:#495cea; color: #fff; }
@@ -2411,6 +2420,55 @@ kbd {
 .flux-bubble.flux-bubble-media-only.bubble-middle,
 .flux-bubble.flux-bubble-media-only.bubble-last {
   border-radius: 18px !important;
+}
+
+/* ── SQUARED LAYOUT (WhatsApp-style bubbles, profiles.squared_bubble) ── */
+[data-squared-bubble] .flux-bubble { border-radius: 7px; font-size: 14px; padding: 8.25px 13px; }
+
+[data-squared-bubble] .flux-msg-group.sent .flux-bubble.bubble-first  { border-radius: 7px 0 4px 7px; }
+[data-squared-bubble] .flux-msg-group.sent .flux-bubble.bubble-middle { border-radius: 7px 4px 4px 7px; }
+[data-squared-bubble] .flux-msg-group.sent .flux-bubble.bubble-last   { border-radius: 7px 4px 7px 7px; }
+[data-squared-bubble] .flux-msg-group.sent .flux-bubble.bubble-solo   { border-radius: 7px 0 7px 7px; }
+
+[data-squared-bubble] .flux-msg-group.received .flux-bubble.bubble-first  { border-radius: 0 7px 7px 4px; }
+[data-squared-bubble] .flux-msg-group.received .flux-bubble.bubble-middle { border-radius: 4px 7px 7px 4px; }
+[data-squared-bubble] .flux-msg-group.received .flux-bubble.bubble-last   { border-radius: 4px 7px 7px 7px; }
+[data-squared-bubble] .flux-msg-group.received .flux-bubble.bubble-solo   { border-radius: 0 7px 7px 7px; }
+
+[data-squared-bubble] .flux-msg-group.sent .flux-reply-preview { border-radius: 5px 2px 2px 2px; }
+[data-squared-bubble] .flux-msg-group.sent .flux-bubble.bubble-first .flux-reply-preview,
+[data-squared-bubble] .flux-msg-group.sent .flux-bubble.bubble-solo .flux-reply-preview { border-radius: 5px 5px 2px 2px; }
+[data-squared-bubble] .flux-msg-group.received .flux-reply-preview { border-radius: 2px 5px 2px 2px; }
+[data-squared-bubble] .flux-msg-group.received .flux-bubble.bubble-first .flux-reply-preview,
+[data-squared-bubble] .flux-msg-group.received .flux-bubble.bubble-solo .flux-reply-preview { border-radius: 5px 5px 2px 2px; }
+
+/* pointy nub — top of message group only (WhatsApp-style), squared layout */
+[data-squared-bubble] .flux-msg-group.sent .flux-bubble.bubble-first:not(.flux-bubble-emoji-only):not(.flux-bubble-media-only)::before,
+[data-squared-bubble] .flux-msg-group.sent .flux-bubble.bubble-solo:not(.flux-bubble-emoji-only):not(.flux-bubble-media-only)::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: -7px;
+  width: 7px;
+  height: 9px;
+  background: inherit;
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+  border-radius: 0 4px 0 0;
+  pointer-events: none;
+}
+
+[data-squared-bubble] .flux-msg-group.received .flux-bubble.bubble-first:not(.flux-bubble-emoji-only):not(.flux-bubble-media-only)::before,
+[data-squared-bubble] .flux-msg-group.received .flux-bubble.bubble-solo:not(.flux-bubble-emoji-only):not(.flux-bubble-media-only)::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -7px;
+  width: 7px;
+  height: 9px;
+  background: inherit;
+  clip-path: polygon(100% 0, 0 0, 100% 100%);
+  border-radius: 4px 0 0 0;
+  pointer-events: none;
 }
 
 .flux-bubble.sending { opacity: 0.6; }
@@ -2538,6 +2596,7 @@ kbd {
 [data-relay-theme="sakura"] .flux-msg-group.received .flux-reply-preview .flux-reply-author     { color: #e88faa !important; }
 [data-relay-theme="obsidian"] .flux-msg-group.received .flux-reply-preview .flux-reply-author   { color: #312D87 !important; }
 [data-relay-theme="console"] .flux-msg-group.received .flux-reply-preview .flux-reply-author    { color: #738C29 !important; }
+[data-relay-theme="moss"] .flux-msg-group.received .flux-reply-preview .flux-reply-author       { color: #144D37 !important; }
 
 [data-relay-theme="default"] .flux-msg-group.received .flux-reply-preview::after    { background: #495cea !important; }
 [data-relay-theme="lovecore"] .flux-msg-group.received .flux-reply-preview::after   { background: #e8265a !important; }
@@ -2554,6 +2613,7 @@ kbd {
 [data-relay-theme="sakura"] .flux-msg-group.received .flux-reply-preview::after     { background: #e88faa !important; }
 [data-relay-theme="obsidian"] .flux-msg-group.received .flux-reply-preview::after   { background: #312D87 !important; }
 [data-relay-theme="console"] .flux-msg-group.received .flux-reply-preview::after    { background: #738C29 !important; }
+[data-relay-theme="moss"] .flux-msg-group.received .flux-reply-preview::after       { background: #144D37 !important; }
 
 .flux-group-time { font-size: 10.5px; color: var(--text3); padding: 2px 4px; margin-top: 2px; text-align: center; display: none; }
 
@@ -2673,6 +2733,7 @@ kbd {
 [data-relay-theme="sakura"] .flux-send-btn     { background: #e88faa !important; }
 [data-relay-theme="obsidian"] .flux-send-btn   { background: #312D87 !important; }
 [data-relay-theme="console"] .flux-send-btn    { background: #738C29 !important; }
+[data-relay-theme="moss"]    .flux-send-btn    { background: #144D37 !important; }
 [data-relay-theme] .flux-send-btn:hover { filter: brightness(1.12); }
 
 .emoji-btn {
@@ -4449,10 +4510,10 @@ label.emoji-btn { margin-right: 4px; }
             <div class="settings-section-label">Layout</div>
             <div class="setting-row">
               <div>
-                <div class="setting-label">Compact Mode</div>
-                <div class="setting-sub">Reduce spacing and padding across the interface</div>
+                <div class="setting-label">Squared Layout</div>
+                <div class="setting-sub">Toggles square layout</div>
               </div>
-              <button class="toggle" id="compactToggle" onclick="toggleSetting('compact')"></button>
+              <button class="toggle" id="squaredBubbleToggle" onclick="toggleSquaredBubble()"></button>
             </div>
           </div>
         </div>
@@ -5341,7 +5402,7 @@ label.emoji-btn { margin-right: 4px; }
         <!-- Relay Theme Picker -->
         <button class="flux-theme-toggle-btn" id="fluxThemeToggleBtn" onclick="toggleThemePicker()">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20C6.48 22 2 17.52 2 12"/><path d="M12 8v4l3 3"/></svg>
-          Relay Theme
+          Theme
           <svg id="fluxThemeChevron" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform 0.2s;"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
 
@@ -7530,6 +7591,11 @@ async function closeFLUX() {
   // Also dismiss the vault overlay UI in case it was open simultaneously
   _dismissVaultOverlay();
 
+  // Stop typing FIRST, while activeFluxId/typingChannel are still set — otherwise
+  // broadcastTyping(false) silently no-ops (it requires activeFluxId) and the
+  // other person's DM sidebar is left stuck showing "Typing…".
+  stopTypingBroadcast();
+
   // ── Everything below closes the panel SYNCHRONOUSLY, with no awaits ──
   // This must stay await-free. Background tabs throttle network/websocket
   // activity, so if the visual close waited on an awaited call (like the
@@ -7578,7 +7644,7 @@ async function closeFLUX() {
   if (_aiBtn) _aiBtn.classList.remove('active');
   const _relayPanel = document.getElementById('fluxRelayPanel');
   if (_relayPanel) _relayPanel.style.display = '';
-  closeMsgActionMenu(); hideRemoteTyping(); stopTypingBroadcast(); resetPresenceDots();
+  closeMsgActionMenu(); hideRemoteTyping(); resetPresenceDots();
 
   // ── Async network/channel teardown — fire-and-forget, runs in the
   // background so it can never delay the visual close above. ──
@@ -10085,6 +10151,7 @@ async function openFsRelay(id) {
 function fluxFsBack() {
   document.getElementById('fluxFsRelayView').style.display = 'none';
   document.getElementById('fluxFsListView').style.display = 'flex';
+  stopTypingBroadcast(); // must run before activeFluxId is cleared, or the recipient never gets the "stopped typing" signal
   activeFluxId = null; hideRemoteTyping(); resetPresenceDots(); buildFLUXConvList();
 }
 
@@ -11365,6 +11432,7 @@ async function loadUserProfile() {
   renderProfileEverywhere();
   loadGhostMode();
   loadNotifications();
+  loadSquaredBubble();
 }
 
 window.addEventListener('load', async function() {
@@ -12017,7 +12085,7 @@ function clearNetworkCache() {
 }
 
 function initSettings() {
-  const keys = ['compact', 'saveRelay', 'enterSend', 'autosave', 'lineNumbers', 'wordWrap',
+  const keys = ['saveRelay', 'enterSend', 'autosave', 'lineNumbers', 'wordWrap',
     'snippetBadges','snippetHighlight','snippetCompact','snippetClickCopy','snippetDoubleOpen',
     'highContrast','reduceMotion','focusRing',
     'msgAnim','blurEffects','personalGreet'
@@ -12753,6 +12821,15 @@ const RELAY_THEMES = [
     sentText: '#ffffff',
     recvText: '#18181b',
   },
+  {
+    id: 'moss',
+    label: 'Sap',
+    tag: 'Sap artifact',
+    sent: '#144D37',
+    recv: '#e4e4ea',
+    sentText: '#ffffff',
+    recvText: '#18181b',
+  },
 ];
 
 let _themePickerOpen = false;
@@ -12786,7 +12863,7 @@ function renderThemePicker() {
         <div class="flux-theme-item-label">${t.tag}</div>
         <div class="flux-theme-item-sub">${t.label}</div>
       </div>
-      ${t.id === _currentAppliedTheme ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+      
     `;
     picker.appendChild(item);
   });
@@ -12929,6 +13006,7 @@ async function subscribeToRelayTheme(otherUserId) {
 // triggering the BroadcastChannel event so the sender sees the "Seen" tag instantly.
 // ── GHOST MODE ──
 let _ghostModeEnabled = true; // default on (mirrors DB default)
+let _squaredBubbleEnabled = false; // default off (mirrors DB default)
 
 function _isVaultPanelOpen() {
   const vaultOv = document.getElementById('vaultOverlay');
@@ -13189,6 +13267,37 @@ async function toggleGhostMode() {
     // Revert on failure
     _ghostModeEnabled = !_ghostModeEnabled;
     _syncGhostToggleUI();
+  }
+}
+
+async function loadSquaredBubble() {
+  try {
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if (!user) return;
+    const { data } = await supabaseClient.from('profiles').select('squared_bubble').eq('id', user.id).single();
+    // DB default is false; treat null/undefined as false
+    _squaredBubbleEnabled = data?.squared_bubble === true;
+    _syncSquaredBubbleUI();
+  } catch(e) {}
+}
+
+function _syncSquaredBubbleUI() {
+  const btn = document.getElementById('squaredBubbleToggle');
+  if (btn) btn.classList.toggle('on', _squaredBubbleEnabled);
+  document.documentElement.toggleAttribute('data-squared-bubble', _squaredBubbleEnabled);
+}
+
+async function toggleSquaredBubble() {
+  _squaredBubbleEnabled = !_squaredBubbleEnabled;
+  _syncSquaredBubbleUI();
+  try {
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if (!user) return;
+    await supabaseClient.from('profiles').update({ squared_bubble: _squaredBubbleEnabled }).eq('id', user.id);
+  } catch(e) {
+    // Revert on failure
+    _squaredBubbleEnabled = !_squaredBubbleEnabled;
+    _syncSquaredBubbleUI();
   }
 }
 
@@ -13453,7 +13562,7 @@ if (typeof _originalCloseFLUX === 'function') {
     <div class="flux-profile-tab-section" style="margin-top:14px;">
       <button class="flux-theme-toggle-btn" id="mobThemeToggleBtn" onclick="mobToggleThemePicker()" style="width:100%;padding:10px 0;">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20C6.48 22 2 17.52 2 12"/><path d="M12 8v4l3 3"/></svg>
-        Relay Theme
+        Theme
         <svg id="mobThemeChevron" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform 0.2s;"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
       <div class="flux-theme-picker" id="mobThemePicker"></div>
@@ -13623,8 +13732,7 @@ function mobRenderThemePicker() {
       '<div>' +
         '<div class="flux-theme-item-label">' + theme.tag + '</div>' +
         '<div class="flux-theme-item-sub">' + (theme.sub || '') + '</div>' +
-      '</div>' +
-      (_currentAppliedTheme === theme.id ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>' : '');
+      '</div>';
     picker.appendChild(item);
   });
 }
