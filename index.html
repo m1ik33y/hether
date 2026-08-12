@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="light" data-accent="green">
 <head>
     <link rel="icon" type="image/png" href="hether_logo.png">
   <link rel="icon" type="image/png" href="hether_logo.png">
@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hether - Code n' Arcade </title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,200;0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
@@ -65,6 +65,14 @@
   --input-bg: #18181b;
   --scrollbar: #2a2a2e;
 }
+
+/* ── ACCENT COLOR (user-selectable, defaults to green) ── */
+html[data-accent="green"] {
+  --accent: #21C063 !important;
+  --accent-hover: #1ba854 !important;
+}
+html[data-accent="green"] #vaultVerifyBtn { background: #498723 !important; }
+html[data-accent="green"] #vaultVerifyBtn:hover { background: #3a6c1c !important; }
 
 body {
   font-family: 'DM Sans', sans-serif;
@@ -581,7 +589,6 @@ body {
 }
 .companion-titlebar-close:hover { background: #c42b1c; color: #fff; }
 
-/* Relay header inside popup */
 .companion-relay-header {
   display: flex;
   align-items: center;
@@ -594,7 +601,6 @@ body {
   position: relative;
 }
 
-/* Messages area */
 .companion-messages {
   flex: 1;
   overflow-y: auto;
@@ -735,7 +741,6 @@ body {
 }
 .main.sidebar-mini { margin-left: var(--sidebar-mini); width: calc(100% - var(--sidebar-mini)); }
 
-/* ── RELAY VIEW ── */
 .relay-view { flex: 1; display: flex; flex-direction: column; overflow: hidden; width: 100%; min-width: 0; }
 
 .relay-header {
@@ -811,7 +816,6 @@ body {
   flex-shrink: 0;
 }
 
-/* Welcome mode: messages collapses, input-area fills and centers */
 .relay-view.welcome-mode .messages {
   flex: 0 0 0;
   overflow: hidden;
@@ -905,7 +909,6 @@ body {
 }
 .media-staging-send:hover { background: var(--accent-hover); }
 
-/* ── EMOJI-ONLY MESSAGES ── */
 .flux-bubble-emoji-only {
   background: transparent !important;
   border: none !important;
@@ -922,7 +925,6 @@ body {
   font-size: 11.5px;
 }
 
-/* ── NEW MESSAGES PILL (WhatsApp-style) ── */
 .flux-new-msgs-pill {
   position: absolute;
   bottom: 68px;
@@ -968,7 +970,6 @@ body {
   100% { background: #a3e635; }
 }
 
-/* ── FLUX TYPING INDICATOR ── */
 .flux-typing-indicator {
   display: inline-flex;
   align-self: flex-start;
@@ -1026,7 +1027,6 @@ body {
   30%            { transform: translateY(-4px); opacity: 1; }
 }
 
-/* ── FLUX TOPBAR PRESENCE DOT ── */
 .flux-presence-dot {
   width: 13px; height: 13px; border-radius: 50%;
   position: absolute; bottom: -3px; right: -3px;
@@ -1170,6 +1170,16 @@ body {
 .setting-label { font-size: 14px; font-weight: 500; color: var(--text); transition: color var(--t); }
 .setting-sub { font-size: 12.5px; color: var(--text2); margin-top: 3px; line-height: 1.5; }
 
+.accent-swatch-row { display: flex; align-items: center; gap: 12px; }
+.accent-swatch {
+  width: 22px; height: 22px; border-radius: 50%;
+  border: none; cursor: pointer; padding: 0; flex-shrink: 0;
+  transition: transform var(--t), box-shadow var(--t);
+  position: relative;
+}
+.accent-swatch:hover { transform: scale(1.1); }
+.accent-swatch.active { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--text); }
+
 .toggle { width: 38px; height: 21px; background: var(--border); border-radius: 11px; position: relative; cursor: pointer; border: none; transition: background var(--t); flex-shrink: 0; }
 .toggle.on { background: var(--accent); }
 .toggle::after { content: ''; position: absolute; width: 15px; height: 15px; border-radius: 50%; background: #fff; top: 3px; left: 3px; transition: left var(--t); box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
@@ -1247,7 +1257,6 @@ kbd {
 .popup input { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13.5px; outline: none; margin-bottom: 12px; transition: border-color var(--t); }
 .popup input:focus { border-color: rgba(160,160,176,0.45); }
 
-/* Vault key input — styled to look like password dots but remains type=text */
 #vaultInput {
   -webkit-text-security: disc;
   text-security: disc;
@@ -1271,7 +1280,6 @@ kbd {
 }
 @keyframes btn-spin { to { transform: rotate(360deg); } }
 
-/* ── VAULT FLUX ── */
 .flux-overlay {
   display: none; position: fixed; inset: 0;
   background: rgba(0,0,0,0.55); z-index: 400;
@@ -1295,7 +1303,6 @@ kbd {
   position: relative;
 }
 
-/* ── VAULT POPUP TITLE BAR ── */
 .flux-titlebar {
   display: flex;
   align-items: center;
@@ -1369,7 +1376,6 @@ kbd {
 }
 .flux-titlebar-close:hover { background: #c42b1c; color: #fff; }
 
-/* ── FLUX BODY (sidebar + relay panel, below titlebar) ── */
 .flux-body {
   display: flex;
   flex: 1;
@@ -1377,7 +1383,6 @@ kbd {
   overflow: hidden;
 }
 
-/* ── AI RELAY PANEL (full panel, replaces sidebar+relay when active) ── */
 .flux-ai-panel {
   display: none;
   flex: 1;
@@ -1394,7 +1399,6 @@ kbd {
 }
 .flux-ai-panel.show { display: flex; }
 
-/* Relay background pattern — same as fluxActiveRelayWrap */
 .flux-ai-panel::before {
   content: '';
   position: absolute;
@@ -1497,7 +1501,6 @@ kbd {
 .flux-ai-typing span:nth-child(2) { animation-delay: 0.18s; }
 .flux-ai-typing span:nth-child(3) { animation-delay: 0.36s; }
 
-/* AI input area — exact same as .flux-relay-input-area */
 .flux-ai-input-area {
   padding: 10px 14px 10px;
   background: transparent;
@@ -1582,24 +1585,24 @@ kbd {
 }
 
 .flux-profile-tab-close {
-  width: 28px;
-  height: 28px;
+  width: 20px;
+  height: 40px;
   border-radius: 10px;
   border: none;
-  background: var(--surface2);
-  color: var(--text3);
+  background: transparent;
+  color: #fff;
   cursor: pointer;
-  font-size: 16px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 40px;
+  font-weight: 200;
   line-height: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background var(--t), color var(--t);
   flex-shrink: 0;
   position: absolute;
-  right: 0;
+  left: 0;
 }
-.flux-profile-tab-close:hover { background: var(--border); color: var(--text); }
 
 .flux-profile-tab-avatar {
   width: 80px;
@@ -1628,6 +1631,10 @@ kbd {
   color: var(--text);
   margin-bottom: 4px;
   line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 6px;
 }
 
 .flux-profile-tab-username {
@@ -1635,6 +1642,10 @@ kbd {
   font-size: 12.5px;
   color: var(--text3);
   margin-bottom: 20px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 6px;
 }
 
 /* Nickname section inside profile tab */
@@ -1642,6 +1653,86 @@ kbd {
   border-top: 1px solid var(--border);
   padding-top: 14px;
 }
+
+.flux-mutual-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 0 20px;
+  margin-bottom: 4px;
+  flex-shrink: 0;
+}
+
+.flux-mutual-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex-shrink: 0;
+}
+
+.flux-mutual-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--surface2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flux-mutual-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+
+.flux-mutual-name-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.flux-mutual-name-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.flux-mutual-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.flux-mutual-username {
+  font-size: 11.5px;
+  color: var(--text3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.flux-mutual-edit-pencil {
+  border: none;
+  background: none;
+  color: var(--text3);
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity var(--t), color var(--t);
+}
+.flux-mutual-row:hover .flux-mutual-edit-pencil { opacity: 1; }
+.flux-mutual-edit-pencil:hover { color: var(--text); }
+.flux-mutual-edit-pencil svg { width: 13px; height: 13px; display: block; }
 
 .flux-profile-tab-section-label {
   font-size: 10.5px;
@@ -1734,8 +1825,6 @@ kbd {
   color: var(--text3);
 }
 
-/* ── RELAY THEMES ── */
-/* Default CSS vars for FLUX bubbles (overridden by data-relay-theme) */
 :root {
   --flux-sent-bg: #495cea;
   --flux-sent-color: #ffffff;
@@ -1887,7 +1976,6 @@ kbd {
 
 .flux-sidebar-header {
   padding: 18px 18px 12px;
-  border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1895,7 +1983,7 @@ kbd {
 }
 
 .flux-sidebar-title {
-  font-size: 15px;
+  font-size: 20px;
   font-weight: 600;
   letter-spacing: -0.3px;
   color: var(--text);
@@ -1906,13 +1994,13 @@ kbd {
 
 .flux-secure-badge {
   font-size: 9px;
-  background: rgba(91,106,240,0.12);
-  color: var(--accent);
+  background: rgba(71,176,106,0.15);
+  color: #47b06a;
   padding: 2px 6px;
   border-radius: 4px;
   font-weight: 700;
   letter-spacing: 0.8px;
-  border: 1px solid rgba(91,106,240,0.2);
+  border: 1px solid rgba(71,176,106,0.4);
   text-transform: uppercase;
 }
 
@@ -1925,8 +2013,7 @@ kbd {
 .flux-close-btn:hover { background: transparent; color: var(--text); }
 
 .flux-search-wrap {
-  padding: 10px 12px 8px;
-  border-bottom: 1px solid var(--border);
+  padding: 10px 12px 4px;
   position: relative;
   flex-shrink: 0;
 }
@@ -1937,8 +2024,9 @@ kbd {
   gap: 7px;
   background: var(--surface2);
   border: 1px solid var(--border);
-  border-radius: 9px;
-  padding: 6px 10px;
+  border-radius: 999px;
+  height: 34px;
+  padding: 0 14px;
   transition: border-color var(--t);
 }
 .flux-search-input-row:focus-within {
@@ -1994,8 +2082,7 @@ kbd {
 .flux-search-empty { padding: 12px; text-align: center; font-size: 12.5px; color: var(--text3); }
 
 .flux-fs-search-wrap {
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--border);
+  padding: 8px 12px 4px;
   position: relative;
   flex-shrink: 0;
 }
@@ -2005,14 +2092,70 @@ kbd {
 .flux-conv-list::-webkit-scrollbar { width: 3px; }
 .flux-conv-list::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 2px; }
 
+/* ── PRIMARY / GENERAL TABS (pill/chip style, WhatsApp-esque) ── */
+.flux-tab-bar {
+  display: flex; gap: 8px; padding: 4px 12px 10px;
+  flex-shrink: 0; flex-wrap: wrap;
+}
+.flux-tab-btn {
+  flex: none; background: transparent; cursor: pointer;
+  height: 30px; padding: 0 13px; font-family: 'DM Sans', sans-serif;
+  font-size: 12px; font-weight: 600; color: var(--text2);
+  border: 1px solid var(--border); border-radius: 999px;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: background var(--t), border-color var(--t), color var(--t);
+}
+.flux-tab-btn:hover { background: var(--surface2); }
+.flux-tab-btn.active {
+  color: #d8f5e6; border-color: rgb(25 80 62 / 90%);
+  background: rgb(31 117 89 / 25%);
+}
+.flux-tab-count {
+  font-size: 12.5px; font-weight: 600; color: inherit;
+}
+.flux-tab-count[data-zero="true"] { display: none; }
+
+/* ── MOVE-TO (PRIMARY/GENERAL) ACTION ON A CONV ROW ── */
+.flux-conv-menu-btn {
+  position: absolute; right: 8px; bottom: 8px; z-index: 999;
+  width: 20px; height: 20px;
+  background: transparent; border: none; cursor: pointer;
+  color: var(--text3); display: flex; align-items: center; justify-content: center;
+  opacity: 0; transform: translateX(10px); pointer-events: none;
+  transition: opacity .07s ease, transform .07s ease;
+}
+.flux-conv-item:hover .flux-conv-menu-btn { opacity: 1; transform: translateX(0); pointer-events: auto; }
+.flux-conv-item.menu-open .flux-conv-menu-btn { opacity: 1; transform: translateX(0); pointer-events: auto; }
+.flux-conv-item.menu-open .flux-conv-bottomrow { padding-right: 24px; }
+.flux-conv-menu-btn svg { width: 15px; height: 15px; }
+
+.flux-conv-menu {
+  position: fixed; z-index: 9999; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.18); overflow: hidden;
+  min-width: 168px; display: none; padding: 6px;
+}
+.flux-conv-menu.show { display: block; }
+.flux-conv-menu-item {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  border-radius: 8px;
+  padding: 10px 12px; background: none; border: none; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; font-size: 13.5px; font-weight: 600; color: var(--text);
+  text-align: left; transition: background var(--t);
+}
+.flux-conv-menu-item:hover { background: var(--surface2); color: var(--text); }
+.flux-conv-menu-item svg { width: 15px; height: 15px; flex-shrink: 0; }
+.flux-conv-menu-item[disabled] { opacity: 0.4; cursor: default; pointer-events: none; }
+
 .flux-conv-item {
   display: flex; align-items: center; gap: 11px;
   padding: 10px 10px; border-radius: 10px;
-  cursor: pointer; transition: background var(--t);
+  cursor: pointer;
   position: relative;
+  margin-bottom: 2px;
 }
 .flux-conv-item:hover { background: var(--surface2); }
-.flux-conv-item.active { background: rgba(91,106,240,0.1); }
+.flux-conv-item.active { background: rgba(120,120,130,0.16); }
 
 .flux-conv-avatar {
   width: 40px; height: 40px; border-radius: 50%;
@@ -2022,7 +2165,6 @@ kbd {
 }
 .flux-conv-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 
-/* ── PRESENCE DOT ON FLUX LIST AVATARS ── */
 .flux-conv-avatar-wrap {
   position: relative;
   flex-shrink: 0;
@@ -2044,10 +2186,14 @@ kbd {
 .flux-conv-presence-dot.online { display: block; }
 
 .flux-conv-info { flex: 1; min-width: 0; }
-.flux-conv-name { font-size: 13.5px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.flux-conv-preview { font-size: 12px; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+.flux-conv-toprow { display: flex; align-items: baseline; gap: 8px; }
+.flux-conv-bottomrow { display: flex; align-items: center; gap: 8px; margin-top: 1px; transition: padding-right .07s ease; }
+.flux-conv-item:hover .flux-conv-bottomrow { padding-right: 24px; }
+.flux-conv-name { flex: 1; min-width: 0; font-size: 13.5px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.flux-conv-preview { flex: 1; min-width: 0; font-size: 12px; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .flux-conv-preview.unread { color: var(--text); font-weight: 700; }
 .flux-conv-time { font-size: 11px; color: var(--text3); flex-shrink: 0; }
+.flux-conv-meta { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
 
 .flux-unread-dot {
   width: 8px; height: 8px; border-radius: 50%;
@@ -2078,7 +2224,6 @@ kbd {
   align-items: flex-start;
 }
 
-/* ── RELAY PANEL ── */
 .flux-relay-panel {
   flex: 1;
   display: flex;
@@ -2097,7 +2242,7 @@ kbd {
 .flux-empty-state p { font-size: 14px; font-weight: 500; opacity: 0.6; }
 
 .flux-relay-topbar {
-  padding: 14px 18px;
+  padding: 11.7px 18px;
   border-bottom: 1px solid var(--border);
   background: var(--surface);
   display: flex; align-items: center; gap: 12px;
@@ -2106,17 +2251,15 @@ kbd {
   z-index: 2;
 }
 .flux-relay-topbar-avatar {
-  width: 34px; height: 34px; border-radius: 50%;
+  width: 38.6px; height: 38.6px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  font-size: 13px; font-weight: 700; color: #fff;
+  font-size: 14.5px; font-weight: 700; color: #fff;
   flex-shrink: 0; overflow: hidden; position: relative;
 }
 .flux-relay-topbar-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
-.flux-relay-topbar-info { flex: 1; min-width: 0; }
-.flux-relay-topbar-name { font-size: 14px; font-weight: 600; color: var(--text); }
-/* .flux-relay-topbar-status removed — presence dot now on avatar */
+.flux-relay-topbar-info { flex: 1; min-width: 0; padding-right: 8px; }
+.flux-relay-topbar-name { font-size: 15px; font-weight: 600; color: var(--text); line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* ── FLUX LOADING BARS (relay + sidebar) ── */
 .flux-relay-load-bar,
 .flux-sidebar-load-bar {
   height: 2px;
@@ -2153,12 +2296,10 @@ kbd {
   box-shadow: 2px 0 6px 0px rgba(0, 210, 255, 0.2);
 }
 
-/* Hide messages while relay loading bar is active */
 .flux-relay-messages.flux-loading {
   visibility: hidden;
 }
 
-/* ── CLEAR RELAY LOADING OVERLAY ── */
 .flux-clearing-overlay {
   position: absolute;
   inset: 0;
@@ -2227,7 +2368,6 @@ kbd {
   display: none;
 }
 
-/* ── SYSTEM MESSAGE (nickname change, etc.) ── */
 .flux-system-msg {
   display: flex;
   align-items: center;
@@ -2353,7 +2493,6 @@ kbd {
   margin-left: 6px;
 }
 
-/* ── FLUX BUBBLE ── */
 .flux-bubble {
   font-size: 13.5px;
   border-radius: 18px;
@@ -2373,7 +2512,6 @@ kbd {
 .flux-msg-group.sent .flux-bubble:not(.flux-bubble-emoji-only) { background:#495cea; color: #fff; }
 .flux-msg-group.received .flux-bubble:not(.flux-bubble-emoji-only) { background: var(--surface2); color: var(--text); border: none; }
 
-/* ── INSTAGRAM/iMESSAGE-STYLE GROUPED BUBBLE CORNERS ── */
 /*
   SENT (right side) — tight corner on the RIGHT side toward the tail:
     first  → top-right corner stays 18, bottom-right collapses to 6
@@ -2442,7 +2580,6 @@ kbd {
 [data-squared-bubble] .flux-msg-group.received .flux-bubble.bubble-first .flux-reply-preview,
 [data-squared-bubble] .flux-msg-group.received .flux-bubble.bubble-solo .flux-reply-preview { border-radius: 5px 5px 2px 2px; }
 
-/* pointy nub — top of message group only (WhatsApp-style), squared layout */
 [data-squared-bubble] .flux-msg-group.sent .flux-bubble.bubble-first:not(.flux-bubble-emoji-only):not(.flux-bubble-media-only)::before,
 [data-squared-bubble] .flux-msg-group.sent .flux-bubble.bubble-solo:not(.flux-bubble-emoji-only):not(.flux-bubble-media-only)::before {
   content: "";
@@ -2717,7 +2854,6 @@ kbd {
 .flux-send-btn.hidden { display: none; }
 .flux-send-btn svg { width: 12px; height: 12px; }
 
-/* Send button follows the active relay theme's accent color */
 [data-relay-theme="default"] .flux-send-btn    { background: #495cea !important; }
 [data-relay-theme="lovecore"] .flux-send-btn   { background: #e8265a !important; }
 [data-relay-theme="solarized"] .flux-send-btn  { background: #F5F5F5 !important; color: #18181b !important; }
@@ -2733,7 +2869,7 @@ kbd {
 [data-relay-theme="sakura"] .flux-send-btn     { background: #e88faa !important; }
 [data-relay-theme="obsidian"] .flux-send-btn   { background: #312D87 !important; }
 [data-relay-theme="console"] .flux-send-btn    { background: #738C29 !important; }
-[data-relay-theme="moss"]    .flux-send-btn    { background: #144D37 !important; }
+[data-relay-theme="moss"]    .flux-send-btn    { background: #21C063 !important; color: #000000 !important; }
 [data-relay-theme] .flux-send-btn:hover { filter: brightness(1.12); }
 
 .emoji-btn {
@@ -2777,7 +2913,6 @@ label.emoji-btn { margin-right: 4px; }
 }
 .emoji-item:hover { background: var(--surface2); transform: scale(1.18); }
 
-/* ── FULLSCREEN FLUX (mobile) ── */
 .flux-fullscreen {
   display: none;
   position: fixed;
@@ -2788,7 +2923,6 @@ label.emoji-btn { margin-right: 4px; }
   height: 100%;
   overflow: hidden;
 }
-/* Relay body + input share one bg layer — header and list excluded */
 .flux-fs-body {
   position: relative;
   flex: 1;
@@ -2992,7 +3126,6 @@ label.emoji-btn { margin-right: 4px; }
 }
 .clear-relay-overlay.show { display: flex; }
 
-/* ── FLUX LOADING SKELETON ── */
 .flux-conv-skeleton {
   padding: 10px 10px;
   display: flex;
@@ -3014,7 +3147,6 @@ label.emoji-btn { margin-right: 4px; }
 .flux-sk-line.short { width: 55%; }
 .flux-sk-line.long { width: 85%; }
 
-/* ── FLUX MESSAGE ACTION MENU ── */
 .flux-msg-action-menu {
   position: fixed;
   background: var(--surface);
@@ -3189,7 +3321,6 @@ label.emoji-btn { margin-right: 4px; }
   .sidebar-spacer { flex: 1; min-height: 8px; }
 }
 
-  /* Hide bottom nav when FLUX fullscreen relay is open — it lifts with keyboard otherwise */
   .flux-fullscreen.show ~ .mobile-bottom-nav,
   body:has(.flux-fullscreen.show) .mobile-bottom-nav { display: none !important; }
 
@@ -3236,7 +3367,6 @@ label.emoji-btn { margin-right: 4px; }
 .lightbox-thumb.active { opacity: 1; border-color: #fff; }
 
 /* ── MEDIA COLLAGE ── */
-/* The collage IS the bubble — no extra flux-bubble wrapper around it */
 .flux-media-collage {
   display: grid;
   gap: 2px;
@@ -3330,7 +3460,6 @@ label.emoji-btn { margin-right: 4px; }
   pointer-events: none;
 }
 
-/* Collage acting as a standalone bubble — no extra flux-bubble padding/bg */
 .flux-bubble-collage-wrap {
   padding: 0 !important;
   background: transparent !important;
@@ -3496,7 +3625,6 @@ label.emoji-btn { margin-right: 4px; }
   position: relative;
 }
 
-/* Relay background pattern — only on the messages+input area, not topbar */
 #fluxActiveRelayWrap::before {
   content: '';
   position: absolute;
@@ -3890,7 +4018,6 @@ label.emoji-btn { margin-right: 4px; }
 .flux-msg-group.sent .flux-edited-tag { text-align: right; }
 .flux-msg-group.received .flux-edited-tag { text-align: left; }
 
-/* ── VAULT TERMINAL ── */
 #vaultTerminal {
   display: none;
   position: fixed;
@@ -3909,7 +4036,6 @@ label.emoji-btn { margin-right: 4px; }
   flex-direction: column;
 }
 #vaultTerminal.show { display: flex; }
-/* Faint background pattern behind the terminal output — same asset used across relay surfaces */
 #vaultTerminal::before {
   content: '';
   position: absolute;
@@ -4371,7 +4497,6 @@ label.emoji-btn { margin-right: 4px; }
     <div style="flex:1;overflow-y:auto;padding:20px 24px;" id="snippetsContent"></div>
   </div>
 
-  <!-- RELAY HISTORY VIEW -->
   <div class="history-view" id="historyView">
     <div class="history-header">
       <button class="hamburger" style="display:flex;" onclick="toggleSidebarMobile()">
@@ -4507,6 +4632,20 @@ label.emoji-btn { margin-right: 4px; }
           </div>
 
           <div class="settings-section">
+            <div class="settings-section-label">Accent Color</div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Accent Color</div>
+                <div class="setting-sub">Choose the highlight color used across the app</div>
+              </div>
+              <div class="accent-swatch-row">
+                <button class="accent-swatch" id="accentSwatchBlue" style="background:#6664c2;" onclick="setAccentColor('blue')" title="Blue" aria-label="Blue accent"></button>
+                <button class="accent-swatch" id="accentSwatchGreen" style="background:#21C063;" onclick="setAccentColor('green')" title="Green" aria-label="Green accent"></button>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-section">
             <div class="settings-section-label">Layout</div>
             <div class="setting-row">
               <div>
@@ -4548,7 +4687,6 @@ label.emoji-btn { margin-right: 4px; }
         </div>
       </div>
 
-      <!-- ── RELAY & AI ── -->
       <div class="settings-panel" id="panel-relay">
         <div class="mob-settings-panel-header">
           <button class="mob-settings-back-btn" onclick="mobSettingsBack()" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
@@ -5227,7 +5365,6 @@ label.emoji-btn { margin-right: 4px; }
     <span class="companion-titlebar-label">Hether — AI Companion</span>
     <button class="companion-titlebar-close" onclick="closeCompanion()" title="Close">×</button>
   </div>
-  <!-- Relay header -->
   <div class="companion-relay-header">
     <div style="width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
       <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>
@@ -5237,7 +5374,6 @@ label.emoji-btn { margin-right: 4px; }
       <div style="font-size:11px;color:var(--text3);line-height:1.2;">AI Companion</div>
     </div>
   </div>
-  <!-- Messages -->
   <div class="companion-messages" id="companionMessages"></div>
   <!-- Input -->
   <div class="companion-input-area">
@@ -5255,7 +5391,6 @@ label.emoji-btn { margin-right: 4px; }
   </div>
 </div>
 
-<!-- VAULT FLUX — DESKTOP -->
 <div class="flux-overlay" id="fluxOverlay" onclick="fluxOverlayClick(event)">
   <div class="flux-popup" id="fluxPopup">
 
@@ -5288,6 +5423,12 @@ label.emoji-btn { margin-right: 4px; }
           <div class="flux-search-dropdown" id="fluxSearchDropdown"></div>
         </div>
 
+        <div class="flux-tab-bar" id="fluxTabBar">
+          <button class="flux-tab-btn active" data-tab="primary" onclick="switchFluxTab('primary','desktop')">Primary <span class="flux-tab-count" id="fluxPrimaryCount" data-zero="true">0</span></button>
+          <button class="flux-tab-btn" data-tab="general" onclick="switchFluxTab('general','desktop')">General <span class="flux-tab-count" id="fluxGeneralCount" data-zero="true">0</span></button>
+          <button class="flux-tab-btn" data-tab="all" onclick="switchFluxTab('all','desktop')">All</button>
+        </div>
+
         <div class="flux-sidebar-load-bar" id="fluxSidebarLoadBar"><div class="flux-load-bar-fill" id="fluxSidebarLoadFill"></div></div>
 
         <div class="flux-conv-list" id="fluxConvList"></div>
@@ -5299,7 +5440,6 @@ label.emoji-btn { margin-right: 4px; }
           <p>Select a conversation</p>
         </div>
         <div id="fluxActiveRelayWrap" style="display:none;position:relative;">
-          <!-- Clear relay loading overlay -->
           <div class="flux-clearing-overlay" id="fluxClearingOverlay">
             <div class="flux-clearing-label">Getting things done…</div>
             <div class="flux-clearing-bar-wrap">
@@ -5313,7 +5453,7 @@ label.emoji-btn { margin-right: 4px; }
             </div>
             <div class="flux-relay-topbar-info" onclick="openNicknamePanel()">
               <div class="flux-relay-topbar-name" id="fluxTopbarName"></div>
-              <div id="fluxTopbarUsername" style="font-size:11.5px;color:var(--text2);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;"></div>
+              <div id="fluxTopbarUsername" style="font-size:11.5px;color:var(--text2);line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;"></div>
             </div>
             <button class="flux-delete-relay-btn" id="fluxDeleteRelayBtn" onclick="openClearRelayConfirm()" title="Clear relay (Alt+Backspace)">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><line x1="15" x2="9" y1="9" y2="15"/><line x1="9" x2="15" y1="9" y2="15"/></svg>
@@ -5372,20 +5512,18 @@ label.emoji-btn { margin-right: 4px; }
         </div>
       </div>
 
-    </div><!-- /flux-relay-panel -->
+    </div>
 
       <div class="flux-profile-tab" id="fluxProfileTab">
         <div class="flux-profile-tab-header">
           <div class="flux-profile-tab-title">Profile</div>
-          <button class="flux-profile-tab-close" onclick="closeNicknamePanel()" title="Close">×</button>
+          <button class="flux-profile-tab-close" onclick="closeNicknamePanel()" title="Close">
+            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
         </div>
         <div class="flux-profile-tab-avatar default-avatar" id="fluxProfileTabAvatar"></div>
         <div class="flux-profile-tab-name" id="fluxProfileTabName">User</div>
-        <div class="flux-profile-tab-username" id="fluxProfileTabUsername">@username</div>
-
-        <button class="flux-nickname-edit-btn" id="fluxNicknameEditBtn" onclick="showNicknameEditor()" style="margin:14px auto 0;">
-          Edit Nickname
-        </button>
+        <div class="flux-profile-tab-username" id="fluxProfileTabUsername">username</div>
 
         <div class="flux-nickname-editor" id="fluxNicknameEditor" style="display:none;margin-top:14px;">
           <input type="text" class="flux-nickname-input" id="fluxNicknameInput" placeholder="Add a nickname…" maxlength="40" onkeydown="nicknameInputKey(event)">
@@ -5399,7 +5537,39 @@ label.emoji-btn { margin-right: 4px; }
           <div class="flux-nickname-hint">Only visible to you</div>
         </div>
 
-        <!-- Relay Theme Picker -->
+        <button class="flux-nickname-edit-btn" id="fluxProfileCloseBtn" onclick="closeNicknamePanel()" style="margin:14px auto 0;">
+          Close
+        </button>
+
+        <div class="flux-profile-tab-divider" style="height:1px;background:var(--border);margin:16px 5px;flex-shrink:0;"></div>
+
+        <!-- Mutual names section -->
+        <div class="flux-mutual-section" id="fluxMutualSection">
+          <div class="flux-mutual-row">
+            <div class="flux-mutual-avatar" id="fluxMutualTheirAvatar"></div>
+            <div class="flux-mutual-name-col">
+              <div class="flux-mutual-name-wrap">
+                <div class="flux-mutual-name" id="fluxMutualTheirName">User</div>
+                <button class="flux-mutual-edit-pencil" onclick="showNicknameEditor()" title="Edit nickname">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-tags-icon lucide-tags"><path d="M13.172 2a2 2 0 0 1 1.414.586l6.71 6.71a2.4 2.4 0 0 1 0 3.408l-4.592 4.592a2.4 2.4 0 0 1-3.408 0l-6.71-6.71A2 2 0 0 1 6 9.172V3a1 1 0 0 1 1-1z"/><path d="M2 7v6.172a2 2 0 0 0 .586 1.414l6.71 6.71a2.4 2.4 0 0 0 3.191.193"/><circle cx="10.5" cy="6.5" r=".5" fill="currentColor"/></svg>
+                </button>
+              </div>
+              <div class="flux-mutual-username" id="fluxMutualTheirUsername">username</div>
+            </div>
+          </div>
+          <div class="flux-mutual-row">
+            <div class="flux-mutual-avatar" id="fluxMutualMyAvatar"></div>
+            <div class="flux-mutual-name-col">
+              <div class="flux-mutual-name-wrap">
+                <div class="flux-mutual-name" id="fluxMutualMyName">You</div>
+              </div>
+              <div class="flux-mutual-username" id="fluxMutualMyUsername">username</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flux-profile-tab-divider" style="height:1px;background:var(--border);margin:16px 10px;flex-shrink:0;"></div>
+
         <button class="flux-theme-toggle-btn" id="fluxThemeToggleBtn" onclick="toggleThemePicker()">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20C6.48 22 2 17.52 2 12"/><path d="M12 8v4l3 3"/></svg>
           Theme
@@ -5410,11 +5580,10 @@ label.emoji-btn { margin-right: 4px; }
           <!-- populated by JS -->
         </div>
 
-      </div><!-- /flux-profile-tab -->
+      </div>
 
-    </div><!-- /flux-body -->
+    </div>
 
-    <!-- AI Relay Panel (full panel, absolute over flux-body) -->
     <div class="flux-ai-panel" id="fluxAiPanel">
       <div class="flux-relay-topbar" style="border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface);position:relative;z-index:2;">
         <div style="display:flex;align-items:center;gap:8px;flex:1;">
@@ -5446,13 +5615,12 @@ label.emoji-btn { margin-right: 4px; }
       </div>
     </div>
 
-  </div><!-- /flux-popup -->
-</div><!-- /flux-overlay -->
+  </div>
+</div>
 
-<!-- VAULT FLUX — MOBILE -->
 <div class="flux-fullscreen" id="fluxFullscreen">
   <div id="fluxFsListView" style="display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;">
-    <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);flex-shrink:0;">
+    <div style="padding:14px 16px;display:flex;align-items:center;justify-content:space-between;background:var(--surface);flex-shrink:0;">
       <div style="font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px;">
         Messages <span class="flux-secure-badge">SECURE</span>
       </div>
@@ -5465,11 +5633,15 @@ label.emoji-btn { margin-right: 4px; }
       </div>
       <div class="flux-search-dropdown" id="fluxFsSearchDropdown"></div>
     </div>
+    <div class="flux-tab-bar" id="fluxFsTabBar">
+      <button class="flux-tab-btn active" data-tab="primary" onclick="switchFluxTab('primary','mobile')">Primary <span class="flux-tab-count" id="fluxFsPrimaryCount" data-zero="true">0</span></button>
+      <button class="flux-tab-btn" data-tab="general" onclick="switchFluxTab('general','mobile')">General <span class="flux-tab-count" id="fluxFsGeneralCount" data-zero="true">0</span></button>
+      <button class="flux-tab-btn" data-tab="all" onclick="switchFluxTab('all','mobile')">All</button>
+    </div>
     <div class="flux-sidebar-load-bar" id="fluxFsSidebarLoadBar"><div class="flux-load-bar-fill" id="fluxFsSidebarLoadFill"></div></div>
     <div class="flux-conv-list" id="fluxFsConvList" style="flex:1;overflow-y:auto;padding:8px;"></div>
   </div>
   <div id="fluxFsRelayView" style="display:none;flex-direction:column;flex:1;min-height:0;overflow:hidden;position:relative;">
-    <!-- Clear relay loading overlay -->
     <div class="flux-clearing-overlay" id="fluxFsClearingOverlay">
       <div class="flux-clearing-label">Getting things done…</div>
       <div class="flux-clearing-bar-wrap">
@@ -5543,7 +5715,7 @@ label.emoji-btn { margin-right: 4px; }
         </button>
       </div>
     </div>
-    </div><!-- /.flux-fs-body -->
+    </div>
   </div>
 </div>
 
@@ -5585,8 +5757,8 @@ label.emoji-btn { margin-right: 4px; }
 <!-- Context menu (right-click) -->
 <div class="flux-ctx-menu" id="fluxCtxMenu" style="display:none;"></div>
 
-<!-- Message action menu -->
 <div class="flux-msg-action-menu" id="fluxMsgActionMenu"></div>
+<div class="flux-conv-menu" id="fluxConvMenu"></div>
 
 <!-- AVATAR CROP MODAL -->
 <div class="overlay" id="avatarCropOverlay" style="z-index:500;">
@@ -5646,7 +5818,6 @@ label.emoji-btn { margin-right: 4px; }
   </div>
 </div>
 
-<!-- VAULT KEY POPUP -->
 <div class="overlay" id="vaultOverlay">
   <div class="popup">
     <h3>Admin Key</h3>
@@ -5708,7 +5879,6 @@ label.emoji-btn { margin-right: 4px; }
   </div>
 </div>
 
-<!-- CLEAR RELAY CONFIRM -->
 <div class="clear-relay-overlay" id="clearRelayOverlay">
   <div class="confirm-popup" id="clearRelayPopup">
     <h3>Clear relay?</h3>
@@ -5722,7 +5892,6 @@ label.emoji-btn { margin-right: 4px; }
 
 </div><!-- /mainApp -->
 
-<!-- VAULT TERMINAL -->
 <div id="terminalOverlay" onclick="closeVaultTerminal()"></div>
 <div id="vaultTerminal" role="dialog" aria-label="Vault Terminal">
   <div class="term-titlebar">
@@ -5787,7 +5956,6 @@ const subscriptionManager = {
 // ── PRESENCE SYSTEM ──
 // Uses broadcast heartbeats instead of Supabase Presence to get instant
 // online/offline detection. Each user pings their own channel every 5s while
-// the FLUX panel is open. Watchers clear the dot after 10s of no ping.
 let presenceChannel = null;       // my outgoing heartbeat channel
 let onlineUsers = new Set();
 let _presenceWatchChannels = {};  // userId -> { channel, timer }
@@ -5837,7 +6005,6 @@ async function leavePresence() {
   updatePresenceDots();
 }
 
-// Watch a specific user's heartbeat channel. Called when we open a relay or load contacts.
 function watchUserPresence(userId) {
   if (!userId || _presenceWatchChannels[userId]) return;
 
@@ -5868,7 +6035,6 @@ function watchUserPresence(userId) {
     if (offlineTimer) { clearTimeout(offlineTimer); offlineTimer = null; }
     onlineUsers.delete(userId);
     updatePresenceDots();
-    // If this is the active relay partner, clear their typing indicator immediately
     if (userId === activeFluxId) hideRemoteTyping();
   })
   .subscribe();
@@ -5894,7 +6060,6 @@ function unwatchAllPresence() {
 }
 
 function updatePresenceDots() {
-  // Update active relay topbar dot
   if (activeFluxId) {
     const isOnline = onlineUsers.has(activeFluxId);
     const dot = document.getElementById('fluxPresenceDot');
@@ -5902,7 +6067,6 @@ function updatePresenceDots() {
     const fsDot = document.getElementById('fluxFsPresenceDot');
     if (fsDot) { fsDot.classList.toggle('online', isOnline); fsDot.classList.toggle('offline', !isOnline); }
   }
-  // Update all FLUX conv list presence dots (both desktop + mobile FS list)
   document.querySelectorAll('.flux-conv-presence-dot[data-presence-user]').forEach(dot => {
     const userId = dot.dataset.presenceUser;
     dot.classList.toggle('online', onlineUsers.has(userId));
@@ -6010,7 +6174,6 @@ function showRemoteTyping(userId) {
     if (wasAtBottom) setTimeout(() => { msgs.scrollTop = msgs.scrollHeight; }, 0);
   });
 
-  // Show "Typing…" text in the FLUX conv list under the contact's name
   ['fluxConvList', 'fluxFsConvList'].forEach(listId => {
     const list = document.getElementById(listId);
     if (!list) return;
@@ -6063,7 +6226,6 @@ function broadcastTyping(isTyping) {
   const payload = { userId: currentUser.id, isTyping };
   typingChannel.send({ type: 'broadcast', event: 'typing', payload });
   // Also notify the recipient's global typing-sidebar channel so they see
-  // "Typing…" in the conv list even if they're currently in a different relay
   const recipientChannel = supabaseClient.channel(`typing-notify:${activeFluxId}`);
   recipientChannel.send({ type: 'broadcast', event: 'typing', payload });
 
@@ -6086,7 +6248,6 @@ function onFluxInputChange(mode) {
   toggleFluxSendBtn();
   const expectedInputId = mode === 'mobile' ? 'fluxFsInput' : 'fluxInput';
   const inputEl = document.getElementById(expectedInputId);
-  // Only act if the element that fired is actually the focused FLUX input
   if (!inputEl || document.activeElement !== inputEl) return;
   const val = inputEl.value;
   if (val.trim() === '') {
@@ -6115,7 +6276,6 @@ function onFluxInputBlur(mode) {
 }
 
 function onFluxKeypress(e, mode) {
-  // Typing start/stop is now handled entirely in onFluxInputChange (oninput),
   // which fires reliably on both desktop and mobile (Android/iOS).
   // This function is kept as a no-op to avoid breaking the onkeydown wiring.
 }
@@ -6126,7 +6286,6 @@ function stopTypingBroadcast() {
   broadcastTyping(false);
 }
 
-// ── CLEAR RELAY UI ──
 function clearRelayUI() {
   const msgsEl = document.getElementById('fluxRelayMessages');
   if (msgsEl) msgsEl.innerHTML = '';
@@ -6134,12 +6293,11 @@ function clearRelayUI() {
   if (fsMsgsEl) fsMsgsEl.innerHTML = '';
   renderedMsgIds.clear();
   const contact = fluxContacts.find(c => c.id === activeFluxId);
-  if (contact) { contact.lastMessage = null; contact.lastMessageTs = 0; contact.unread = false; }
+  if (contact) { contact.lastMessage = null; contact.lastMessageTs = 0; contact.unread = false; contact.sentByMe = false; }
   if (!isMobile()) { showFluxEmptyState(); activeFluxId = null; document.querySelectorAll('#fluxConvList .flux-conv-item, #fluxFsConvList .flux-conv-item').forEach(el => el.classList.remove('active')); }
   buildFLUXConvList();
 }
 
-// Called on the RECEIVER's side when the other user clears the relay in real time
 function _handleRemoteRelayCleared(clearerId) {
   if (!fluxOpen) return;
   const contact = fluxContacts.find(c => c.id === clearerId);
@@ -6148,8 +6306,8 @@ function _handleRemoteRelayCleared(clearerId) {
     contact.lastMessageTs = 0;
     contact.unread = false;
     contact.unreadCount = 0;
+    contact.sentByMe = false;
   }
-  // If currently in that relay, clear messages and exit to empty state
   if (activeFluxId === clearerId) {
     const msgsEl = document.getElementById('fluxRelayMessages');
     if (msgsEl) msgsEl.innerHTML = '';
@@ -6157,7 +6315,6 @@ function _handleRemoteRelayCleared(clearerId) {
     if (fsMsgsEl) fsMsgsEl.innerHTML = '';
     renderedMsgIds.clear();
     if (isMobile()) {
-      // On mobile, close the fullscreen relay view back to the conv list
       const fluxFs = document.getElementById('fluxFullscreen');
       const fluxFsRelayView = document.getElementById('fluxFsRelayView');
       const fluxFsConvView = document.getElementById('fluxFsConvView');
@@ -6174,8 +6331,12 @@ function _handleRemoteRelayCleared(clearerId) {
   buildFLUXConvList();
 }
 
-function openClearRelayConfirm() {
-  if (!activeFluxId) return;
+let _pendingClearTargetId = null;
+
+function openClearRelayConfirm(targetId) {
+  const id = targetId || activeFluxId;
+  if (!id) return;
+  _pendingClearTargetId = id;
   document.getElementById('clearRelayOverlay').classList.add('show');
   setTimeout(() => document.getElementById('clearRelayConfirmBtn').focus(), 50);
 }
@@ -6183,27 +6344,28 @@ function closeClearRelayConfirm() { document.getElementById('clearRelayOverlay')
 
 async function confirmClearRelay() {
   closeClearRelayConfirm();
-  if (!activeFluxId) return;
+  const targetId = _pendingClearTargetId || activeFluxId;
+  _pendingClearTargetId = null;
+  if (!targetId) return;
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (!user) return;
 
-  const targetId = activeFluxId;
-
-  // Show overlay and lock in the clearing state
-  _clearingRelayForUserId = targetId;
-  _showClearingOverlay();
+  // Show overlay and lock in the clearing state (only meaningful when this
+  const clearingActiveRelay = targetId === activeFluxId;
+  if (clearingActiveRelay) {
+    _clearingRelayForUserId = targetId;
+    _showClearingOverlay();
+  }
 
   const { error } = await supabaseClient.from('messages').delete()
     .or(`and(sender_id.eq.${user.id},receiver_id.eq.${targetId}),and(sender_id.eq.${targetId},receiver_id.eq.${user.id})`);
 
   if (error) {
-    _clearingRelayForUserId = null;
-    _hideClearingOverlay();
+    if (clearingActiveRelay) { _clearingRelayForUserId = null; _hideClearingOverlay(); }
     alert('Failed to clear relay: ' + error.message);
     return;
   }
 
-  // Poll until the backend confirms 0 messages remain, then update UI
   const MAX_POLLS = 12;
   const POLL_MS = 300;
   for (let i = 0; i < MAX_POLLS; i++) {
@@ -6213,9 +6375,16 @@ async function confirmClearRelay() {
     if (count === 0) break;
   }
 
-  clearRelayUI();
-  _clearingRelayForUserId = null;
-  _hideClearingOverlay();
+  if (clearingActiveRelay) {
+    clearRelayUI();
+    _clearingRelayForUserId = null;
+    _hideClearingOverlay();
+  } else {
+    // Cleared a conversation that isn't currently open — just update its
+    const contact = fluxContacts.find(c => c.id === targetId);
+    if (contact) { contact.lastMessage = null; contact.lastMessageTs = 0; contact.unread = false; contact.unreadCount = 0; contact.sentByMe = false; }
+    buildFLUXConvList();
+  }
 
   // Notify the other user in real time so their UI clears immediately
   try {
@@ -6293,8 +6462,6 @@ document.getElementById('clearRelayOverlay').addEventListener('keydown', functio
 });
 
 // ── CONSTANTS & STATE ──
-// Vault key is no longer stored in the frontend in any form (not even masked).
-// Verification now happens against the "pass" table in Supabase — see verifyVault().
 let vaultAuthenticated = false;
 let currentView = 'relay';
 let isTyping = false;
@@ -6304,10 +6471,16 @@ let sidebarMini = false;
 const isMobile = () => window.innerWidth <= 640;
 
 const fluxContacts = [];
+const fluxCategories = new Map();
+const fluxMuted = new Map();
+const fluxPinned = new Map();
+const fluxArchived = new Map();
+let fluxActiveTab = 'primary';
+let _fluxMyUserId = null;
 let activeFluxId = null;
 let activeFluxProfileTarget = null;
 let activeFluxNickname = null;
-let _fluxLoadToken = 0; // incremented on every FLUX switch to cancel stale loads
+let _fluxLoadToken = 0;
 let replyingTo = null;
 
 let fluxStagedMedia = null;
@@ -6338,7 +6511,6 @@ function showMsgActionMenu(e, bWrap, msg, isSent) {
   menu.appendChild(copyBtn);
 
   if (isSent && msg && msg.id) {
-    // Only show Edit for text messages (not media-only)
     if (bWrap.dataset.text && bWrap.dataset.text.trim()) {
       const editBtn = document.createElement('button');
       editBtn.className = 'flux-msg-action-item';
@@ -6380,7 +6552,124 @@ async function unsendMessage(msgId) {
   if (error) alert('Failed to unsend message: ' + error.message);
 }
 
-// ── EDIT MESSAGE ──
+// ── PER-CONVERSATION MENU (Clear / Move / Mute) ──
+let _convMenuOpen = false;
+let _convMenuActiveItem = null;
+
+function openFluxConvMenu(e, contactId) {
+  e.stopPropagation();
+  const menu = document.getElementById('fluxConvMenu');
+  const currentCategory = _fluxCategoryOf(contactId);
+  const isMuted = _fluxMutedOf(contactId);
+  const isPinned = _fluxPinnedOf(contactId);
+  const isArchived = _fluxArchivedOf(contactId);
+  menu.innerHTML = '';
+
+  const makeItem = (label, iconPath, onClick, opts) => {
+    opts = opts || {};
+    const btn = document.createElement('button');
+    btn.className = 'flux-conv-menu-item' + (opts.danger ? ' danger' : '');
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${iconPath}</svg> ${label}`;
+    btn.onclick = (ev) => { ev.stopPropagation(); closeFluxConvMenu(); onClick(); };
+    return btn;
+  };
+
+  // Move to the other category — only one direction shown at a time,
+  // matching wherever the conversation currently lives.
+  if (currentCategory === 'primary') {
+    menu.appendChild(makeItem('Move to General',
+      '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18"/>',
+      () => moveFluxContact(contactId, 'general')));
+  } else {
+    menu.appendChild(makeItem('Move to Primary',
+      '<path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>',
+      () => moveFluxContact(contactId, 'primary')));
+  }
+
+  // Mute / unmute — silences the notification sound for this person only.
+  menu.appendChild(makeItem(isMuted ? 'Unmute' : 'Mute',
+    isMuted
+      ? '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>'
+      : '<path d="M8.7 3A6 6 0 0 1 18 8c0 2.1.8 3.9 1.6 5.2"/><path d="M17 17H3s3-2 3-9c0-.7.1-1.4.3-2"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/><path d="m2 2 20 20"/>',
+    () => toggleFluxMute(contactId)));
+
+  // Pin / unpin — pinned conversations always sort to the top of the list.
+  menu.appendChild(makeItem(isPinned ? 'Unpin' : 'Pin',
+    isPinned
+      ? '<path d="M12 17v5"/><path d="M15 9.34V6a1 1 0 0 1 1-1 2 2 0 0 0 0-4H9.31"/><path d="M16.13 16.13A2 2 0 0 1 15 17H5a1 1 0 0 1-.71-1.71l.87-.87A2 2 0 0 0 6 13.03V10a1 1 0 0 1 .61-.92"/><line x1="2" x2="22" y1="2" y2="22"/>'
+      : '<path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/>',
+    () => toggleFluxPin(contactId)));
+
+  menu.appendChild(makeItem(isArchived ? 'Unarchive' : 'Archive',
+    '<path d="M21 8v13H3V8"/><rect x="1" y="3" width="22" height="5" rx="1"/><path d="M10 12h4"/>',
+    () => toggleFluxArchive(contactId)));
+
+  menu.appendChild(makeItem('Clear all',
+    '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>',
+    () => openClearRelayConfirm(contactId)));
+
+  const btn = e.currentTarget || e.target;
+  const rect = btn.getBoundingClientRect ? btn.getBoundingClientRect() : { left: e.clientX, top: e.clientY, width: 0, height: 0 };
+  menu.style.display = 'block';
+  menu.classList.add('show');
+  _convMenuOpen = true;
+
+  // Keep the chevron visible on its row while the menu is open, even if the
+  // mouse leaves that row.
+  const item = btn.closest ? btn.closest('.flux-conv-item') : null;
+  if (_convMenuActiveItem && _convMenuActiveItem !== item) _convMenuActiveItem.classList.remove('menu-open');
+  if (item) item.classList.add('menu-open');
+  _convMenuActiveItem = item;
+
+  requestAnimationFrame(() => {
+    const mw = menu.offsetWidth, mh = menu.offsetHeight;
+    let left = rect.left - mw + rect.width;
+    if (left < 8) left = 8;
+    if (left + mw > window.innerWidth - 8) left = window.innerWidth - mw - 8;
+    let top = rect.bottom + 4;
+    if (top + mh > window.innerHeight - 8) top = rect.top - mh - 4;
+    menu.style.left = left + 'px';
+    menu.style.top = top + 'px';
+  });
+}
+
+function closeFluxConvMenu() {
+  const menu = document.getElementById('fluxConvMenu');
+  if (!menu) return;
+  menu.classList.remove('show'); menu.style.display = 'none'; _convMenuOpen = false;
+  if (_convMenuActiveItem) { _convMenuActiveItem.classList.remove('menu-open'); _convMenuActiveItem = null; }
+}
+
+document.addEventListener('click', (e) => {
+  if (_convMenuOpen && !document.getElementById('fluxConvMenu').contains(e.target) && !e.target.closest('.flux-conv-menu-btn')) closeFluxConvMenu();
+});
+
+async function moveFluxContact(contactId, category) {
+  const ownerId = _fluxMyUserId || (await supabaseClient.auth.getUser()).data?.user?.id;
+  if (!ownerId) return;
+
+  const previousCategory = _fluxCategoryOf(contactId);
+
+  // Optimistic local update so the row jumps tabs immediately
+  fluxCategories.set(contactId, category);
+  buildFLUXConvList();
+
+  const { error } = await supabaseClient
+    .from('chat_categories')
+    .upsert(
+      { owner_id: ownerId, contact_id: contactId, category, muted: _fluxMutedOf(contactId), pinned: _fluxPinnedOf(contactId), updated_at: new Date().toISOString() },
+      { onConflict: 'owner_id,contact_id' }
+    );
+
+  if (error) {
+    console.error('Failed to move conversation:', error.message);
+    // Roll back on failure
+    fluxCategories.set(contactId, previousCategory);
+    buildFLUXConvList();
+    alert('Could not move the conversation. Please try again.');
+  }
+}
+
 // Tracks current edit state: { msgId, bWrap, mode }
 let currentEditState = null;
 
@@ -6394,7 +6683,6 @@ function editMessage(msgId, bWrap) {
   // Store edit state
   currentEditState = { msgId, bWrap, mode };
 
-  // Populate the input box with current message text
   const inputEl = document.getElementById(mode === 'mobile' ? 'fluxFsInput' : 'fluxInput');
   if (inputEl) {
     inputEl.value = currentText;
@@ -6508,23 +6796,66 @@ function closeConfirm() { document.getElementById('confirmOverlay').classList.re
 function confirmAction() { closeConfirm(); if (_confirmCallback) _confirmCallback(); }
 
 // ── SEARCH ──
-function onFluxSearch(val) {
+// Bump this on every keystroke so a slow RPC response from an older
+// keystroke can't clobber the dropdown after a newer one already rendered.
+let _fluxSearchToken = 0;
+
+// Everything before the first '-' is sent to the server as a candidate;
+async function _tryArchiveUpgrade(trimmed, myToken) {
+  const dashIdx = trimmed.indexOf('-');
+  if (dashIdx <= 0) return null; // no dash, or nothing before it — not an attempt
+
+  const prefixCandidate = trimmed.slice(0, dashIdx);
+  const remainderTerm = trimmed.slice(dashIdx + 1).toLowerCase();
+  if (!remainderTerm) return null; // nothing typed after the dash yet
+
+  let unlocked = false;
+  try {
+    const { data, error } = await supabaseClient.rpc('verify_archive_prefix', { candidate: prefixCandidate });
+    if (error) throw error;
+    unlocked = data === true;
+  } catch (e) {
+    console.warn('[Archive search] prefix verification failed', e);
+  }
+  if (myToken !== _fluxSearchToken) return null;
+  if (!unlocked) return null;
+
+  return { pool: fluxContacts, term: remainderTerm };
+}
+
+async function onFluxSearch(val) {
   const dropdown = document.getElementById('fluxSearchDropdown');
-  val = val.trim().toLowerCase();
-  if (!val) { dropdown.classList.remove('show'); return; }
-  // Always search by real username, not nickname
-  const matches = fluxContacts.filter(c => (c.realName || c.name).toLowerCase().startsWith(val));
+  const myToken = ++_fluxSearchToken;
+  const trimmed = val.trim();
+  if (!trimmed) { dropdown.classList.remove('show'); return; }
+
+  const term = trimmed.toLowerCase();
+  const immediateMatches = fluxContacts.filter(c => !_fluxArchivedOf(c.id) && (c.realName || c.name).toLowerCase().startsWith(term));
+  renderSearchDropdown(dropdown, immediateMatches, 'desktop');
+
+  // Then, in the background, check (server-side) whether this could be the
+  const upgrade = await _tryArchiveUpgrade(trimmed, myToken);
+  if (!upgrade) return;
+  const matches = upgrade.pool.filter(c => (c.realName || c.name).toLowerCase().startsWith(upgrade.term));
   renderSearchDropdown(dropdown, matches, 'desktop');
 }
 
-function onFluxFsSearch(val) {
+async function onFluxFsSearch(val) {
   const dropdown = document.getElementById('fluxFsSearchDropdown');
-  val = val.trim().toLowerCase();
-  if (!val) { dropdown.classList.remove('show'); return; }
-  // Always search by real username, not nickname
-  const matches = fluxContacts.filter(c => (c.realName || c.name).toLowerCase().startsWith(val));
+  const myToken = ++_fluxSearchToken;
+  const trimmed = val.trim();
+  if (!trimmed) { dropdown.classList.remove('show'); return; }
+
+  const term = trimmed.toLowerCase();
+  const immediateMatches = fluxContacts.filter(c => !_fluxArchivedOf(c.id) && (c.realName || c.name).toLowerCase().startsWith(term));
+  renderSearchDropdown(dropdown, immediateMatches, 'mobile');
+
+  const upgrade = await _tryArchiveUpgrade(trimmed, myToken);
+  if (!upgrade) return;
+  const matches = upgrade.pool.filter(c => (c.realName || c.name).toLowerCase().startsWith(upgrade.term));
   renderSearchDropdown(dropdown, matches, 'mobile');
 }
+
 
 function renderSearchDropdown(dropdown, matches, mode) {
   dropdown.innerHTML = '';
@@ -6681,6 +7012,25 @@ function _updateSolarizedRow(isDark) {
   }
 }
 initTheme();
+
+// ── ACCENT COLOR ──
+function _updateAccentSwatches(color) {
+  const blueBtn = document.getElementById('accentSwatchBlue');
+  const greenBtn = document.getElementById('accentSwatchGreen');
+  if (blueBtn) blueBtn.classList.toggle('active', color === 'blue');
+  if (greenBtn) greenBtn.classList.toggle('active', color === 'green');
+}
+function setAccentColor(color) {
+  document.documentElement.setAttribute('data-accent', color);
+  localStorage.setItem('aloft_accent', color);
+  _updateAccentSwatches(color);
+}
+function initAccentColor() {
+  const saved = localStorage.getItem('aloft_accent') || 'green';
+  document.documentElement.setAttribute('data-accent', saved);
+  _updateAccentSwatches(saved);
+}
+initAccentColor();
 
 // ── MINI CALCULATOR WIDGET ──
 let miniCalcExpr = '';
@@ -6899,7 +7249,6 @@ function newRelay() {
   showView('relay');
 }
 
-// ── AI RELAY ──
 async function sendMessage() {
   const input = document.getElementById('userInput');
   const text = input.value.trim();
@@ -6992,7 +7341,6 @@ function appendMediaMessage(role, dataUrl, isVideo, caption) {
     captionDiv.appendChild(captionBubble);
     msgs.appendChild(captionDiv);
   }
-  // Scroll down by one message bubble height only
   const bubbleEl = mediaBubble || mediaDiv;
   if (bubbleEl) {
     const delta = (bubbleEl.offsetHeight || mediaDiv.offsetHeight || 0);
@@ -7111,12 +7459,10 @@ function sendStagedMedia() {
   clearAIStaging();
 }
 
-// ── VAULT (HIGH SECURITY) ──
 // Session-only flags — never stored in localStorage/sessionStorage
 let _vaultSessionValid = false;
 
 // Internal: only hides the overlay UI, does NOT touch auth flags.
-// Used after successful verification so openFLUX() can still read the valid flags.
 function _dismissVaultOverlay() {
   const overlay = document.getElementById('vaultOverlay');
   const input = document.getElementById('vaultInput');
@@ -7127,7 +7473,6 @@ function _dismissVaultOverlay() {
 }
 
 // Public close — called by Cancel button, ESC, clicking outside, browser events.
-// Always wipes auth so vault panel can never reopen without the key.
 function closeVaultPopup() {
   _vaultSessionValid = false;
   vaultAuthenticated = false;
@@ -7191,7 +7536,7 @@ async function verifyVault() {
     _vaultSessionValid = true;
     vaultAuthenticated = true;
     _dismissVaultOverlay(); // just hides UI, flags stay true
-    openFLUX();               // now openFLUX runs with valid flags
+    openFLUX();
   } else {
     err.style.display = 'block';
     input.value = '';
@@ -7199,7 +7544,6 @@ async function verifyVault() {
   }
 }
 
-// ── SECURITY: block fluxOverlay/fluxFullscreen from showing without valid auth ──
 // Uses a flag-check function so it reads live variable values, not closures.
 function _isFluxAuthValid() { return vaultAuthenticated === true && _vaultSessionValid === true; }
 
@@ -7229,7 +7573,6 @@ function _isFluxAuthValid() { return vaultAuthenticated === true && _vaultSessio
     };
   }
 
-  // Clicking outside the vault popup box cancels it (wipes flags)
   const vaultOvEl = document.getElementById('vaultOverlay');
   if (vaultOvEl) {
     vaultOvEl.addEventListener('click', (e) => {
@@ -7238,13 +7581,11 @@ function _isFluxAuthValid() { return vaultAuthenticated === true && _vaultSessio
   }
 })();
 
-// ── FLUX ──
-let _seenChannel = null; // Persistent channel for seen updates — lives for the whole FLUX session
+let _seenChannel = null;
 let _seenBroadcast = null; // BroadcastChannel for cross-tab/window instant seen sync
 let _seenPollInterval = null; // Fallback polling for when realtime UPDATE events don't fire
 let _seenMyUserId = null; // Stored so polling can use it
 
-// Apply a seen update for a specific message ID to all active relay containers
 function applySeen(updatedId, myUserId) {
   const containers = ['fluxRelayMessages', 'fluxFsMessages']
     .map(id => document.getElementById(id))
@@ -7258,7 +7599,6 @@ function applySeen(updatedId, myUserId) {
     }
 
     if (outer) {
-      // Mark this message and all prior sent messages as seen
       const allSentOuters = [...msgsEl.querySelectorAll('.flux-msg-group.sent .flux-bubble-outer')];
       let found = false;
       for (let i = allSentOuters.length - 1; i >= 0; i--) {
@@ -7266,7 +7606,6 @@ function applySeen(updatedId, myUserId) {
         if (found) allSentOuters[i].dataset.seen = 'true';
       }
     } else {
-      // Message not in view — mark all rendered sent bubbles as seen
       msgsEl.querySelectorAll('.flux-msg-group.sent .flux-bubble-outer').forEach(o => {
         o.dataset.seen = 'true';
       });
@@ -7275,12 +7614,9 @@ function applySeen(updatedId, myUserId) {
   });
 }
 
-// Poll Supabase for seen status of recently sent messages — fallback when realtime UPDATE events
-// don't fire (requires REPLICA IDENTITY FULL on the messages table, which may not be set).
 async function pollSeenStatus(myUserId) {
   if (!activeFluxId) return;
   try {
-    // Only query the last 30 sent messages in the active conversation
     const { data } = await supabaseClient.from('messages')
       .select('id, seen')
       .eq('sender_id', myUserId)
@@ -7320,7 +7656,6 @@ async function pollSeenStatus(myUserId) {
   } catch(e) {}
 }
 
-// Called once when FLUX opens. Uses three complementary mechanisms:
 // 1. Supabase realtime UPDATE (works if REPLICA IDENTITY FULL is set)
 // 2. BroadcastChannel (works when both users are on same origin in different tabs/windows)
 // 3. Polling every 3 seconds (universal fallback for real-time seen updates)
@@ -7365,7 +7700,6 @@ async function startSeenChannel(myUserId) {
     _seenBroadcast.onmessage = (e) => {
       const { type, receiverId, senderId, msgId } = e.data || {};
       if (type !== 'SEEN' || senderId !== myUserId) return;
-      // The receiver just saw our messages — update UI immediately
       if (msgId) {
         applySeen(msgId, myUserId);
       } else {
@@ -7388,7 +7722,6 @@ async function startSeenChannel(myUserId) {
   // ── Polling fallback REMOVED ──
   // This used to re-check seen-status every 3s as a fallback for when realtime
   // UPDATE events don't fire (missing REPLICA IDENTITY FULL). Removed per request —
-  // it was firing a request every 3 seconds the entire time a relay was open, which
   // adds up in egress for no real benefit here. Mechanisms 1 (realtime UPDATE) and
   // 2 (BroadcastChannel, for same-browser cross-tab sync) still run and cover the
   // normal case; the tab-focus/visibility one-shot calls to pollSeenStatus() also
@@ -7424,13 +7757,11 @@ function showFluxListSkeleton() {
   if (mobileList) mobileList.innerHTML = skeleton;
 }
 
-// ── MARK MESSAGES AS SEEN ──
 async function markConversationSeen(senderId) {
   try {
     const { data: { user } } = await supabaseClient.auth.getUser();
     if (!user) return;
 
-    // Find the latest unseen message to know what to broadcast
     const { data: unseenMsgs } = await supabaseClient.from('messages')
       .select('id')
       .eq('sender_id', senderId)
@@ -7455,7 +7786,6 @@ async function markConversationSeen(senderId) {
       bc.close();
     } catch(e) {}
 
-    // Refresh seen labels in active relay containers
     ['fluxRelayMessages', 'fluxFsMessages'].forEach(id => {
       const el = document.getElementById(id);
       if (el) fixSeenLabels(el);
@@ -7473,7 +7803,6 @@ async function openFLUX() {
     document.getElementById('fluxOverlay').classList.add('show');
     showFluxEmptyState();
   }
-  // Show sidebar loading bar while contacts load
   _startLoadBar('fluxSidebarLoadBar', 'fluxSidebarLoadFill');
   _startLoadBar('fluxFsSidebarLoadBar', 'fluxFsSidebarLoadFill');
   showFluxListSkeleton();
@@ -7484,11 +7813,9 @@ async function openFLUX() {
   } catch (e) {
     buildFLUXConvList();
   }
-  // Hide sidebar loading bar once contacts are ready
   _finishLoadBar('fluxSidebarLoadBar', 'fluxSidebarLoadFill');
   _finishLoadBar('fluxFsSidebarLoadBar', 'fluxFsSidebarLoadFill');
   if (typeof _updateTitleUnreadBadge === 'function') _updateTitleUnreadBadge();
-  // Global listener: catch new messages for any FLUX not currently open
   try {
     const { data: { user } } = await supabaseClient.auth.getUser();
     if (user) {
@@ -7497,7 +7824,6 @@ async function openFLUX() {
           filter: `receiver_id=eq.${user.id}` }, (payload) => {
           if (!fluxOpen) return; // panel closed — ignore all incoming events
           const msg = payload.new;
-          // Skip only if the per-relay channel will handle it AND the user can actually see it
           if (msg.sender_id === activeFluxId && _isRelayVisibleFor(msg.sender_id)) return;
           _maybePlayMessageSound(msg.sender_id, user.id);
           const contact = fluxContacts.find(c => c.id === msg.sender_id);
@@ -7514,8 +7840,6 @@ async function openFLUX() {
       // Store so we can remove on close
       window._fluxGlobalChannel = globalCh;
       // ── GLOBAL TYPING SIDEBAR ──
-      // Subscribe to typing notifications directed at this user from ANY contact.
-      // This lets the sidebar show "Typing…" even when you're in a different relay.
       // Each user broadcasts to `typing-notify:{recipientId}` so we only need one channel here.
       const globalTypingCh = supabaseClient.channel(`typing-notify:${user.id}`, {
         config: { broadcast: { self: false } }
@@ -7525,7 +7849,6 @@ async function openFLUX() {
           const senderId = payload.userId;
           if (!senderId) return;
           if (payload.isTyping) {
-            // Show in sidebar regardless of active relay
             ['fluxConvList', 'fluxFsConvList'].forEach(listId => {
               const list = document.getElementById(listId);
               if (!list) return;
@@ -7539,10 +7862,8 @@ async function openFLUX() {
                 preview.textContent = 'Typing\u2026';
               }
             });
-            // Also show in-relay typing indicator if this is the active relay
             if (senderId === activeFluxId) showRemoteTyping(senderId);
           } else {
-            // If it's the active relay, use the full hide
             if (senderId === activeFluxId) {
               hideRemoteTyping();
             } else {
@@ -7565,7 +7886,6 @@ async function openFLUX() {
         })
         .subscribe();
       window._fluxGlobalTypingChannel = globalTypingCh;
-      // Subscribe to real-time "relay cleared" notifications from other users
       const relayClearedCh = supabaseClient.channel(`relay-cleared:${user.id}`, {
         config: { broadcast: { self: false } }
       });
@@ -7588,12 +7908,8 @@ async function closeFLUX() {
   // Wipe auth flags unconditionally — no path should leave these true after close
   vaultAuthenticated = false;
   _vaultSessionValid = false;
-  // Also dismiss the vault overlay UI in case it was open simultaneously
   _dismissVaultOverlay();
 
-  // Stop typing FIRST, while activeFluxId/typingChannel are still set — otherwise
-  // broadcastTyping(false) silently no-ops (it requires activeFluxId) and the
-  // other person's DM sidebar is left stuck showing "Typing…".
   stopTypingBroadcast();
 
   // ── Everything below closes the panel SYNCHRONOUSLY, with no awaits ──
@@ -7605,10 +7921,8 @@ async function closeFLUX() {
   // panel staying open while the tab was switched away, then closing a few
   // seconds after coming back instead of closing the instant focus was lost.
   activeFluxId = null;
-  // Clear FLUX contacts so stale unread state can't linger
   if (typeof fluxContacts !== 'undefined') { fluxContacts.length = 0; }
   // Wipe the RENDERED DOM too — hiding the overlay with a CSS class still
-  // leaves message bubbles / contact names / avatars sitting in the DOM,
   // inspectable via devtools even while the panel is visually closed.
   ['fluxConvList', 'fluxFsConvList'].forEach(id => {
     const el = document.getElementById(id);
@@ -7622,7 +7936,7 @@ async function closeFLUX() {
   const _profileTabUsername = document.getElementById('fluxProfileTabUsername');
   const _profileTabAvatar = document.getElementById('fluxProfileTabAvatar');
   if (_profileTabName) _profileTabName.textContent = 'User';
-  if (_profileTabUsername) _profileTabUsername.textContent = '@username';
+  if (_profileTabUsername) _profileTabUsername.textContent = 'username';
   if (_profileTabAvatar) _profileTabAvatar.innerHTML = '';
   activeFluxProfileTarget = null;
   activeFluxNickname = null;
@@ -7666,7 +7980,6 @@ async function closeFLUX() {
 
 function fluxOverlayClick(e) { if (e.target === document.getElementById('fluxOverlay')) closeFLUX(); }
 
-// ── VAULT AI PANEL ──
 let _fluxAiOpen = false;
 let _fluxAiHistory = [];
 let _fluxAiTyping = false;
@@ -7917,10 +8230,133 @@ function autoResizeCompanion(el) {
 
 
 
-// ── BUILD FLUX CONV LIST ──
+function _fluxCategoryOf(contactId) {
+  return fluxCategories.get(contactId) || 'primary';
+}
+
+function _fluxMutedOf(contactId) {
+  return fluxMuted.get(contactId) === true;
+}
+
+function _fluxPinnedOf(contactId) {
+  return fluxPinned.get(contactId) === true;
+}
+
+function _fluxArchivedOf(contactId) {
+  return fluxArchived.get(contactId) === true;
+}
+
+async function toggleFluxArchive(contactId) {
+  const ownerId = _fluxMyUserId || (await supabaseClient.auth.getUser()).data?.user?.id;
+  if (!ownerId) return;
+
+  const wasArchived = _fluxArchivedOf(contactId);
+  const newArchived = !wasArchived;
+
+  // Optimistic local update
+  fluxArchived.set(contactId, newArchived);
+  buildFLUXConvList();
+
+  const { error } = await supabaseClient
+    .from('chat_categories')
+    .upsert(
+      { owner_id: ownerId, contact_id: contactId, category: _fluxCategoryOf(contactId), muted: _fluxMutedOf(contactId), pinned: _fluxPinnedOf(contactId), archived: newArchived, updated_at: new Date().toISOString() },
+      { onConflict: 'owner_id,contact_id' }
+    );
+
+  if (error) {
+    console.error('Failed to update archive state:', error.message);
+    fluxArchived.set(contactId, wasArchived);
+    buildFLUXConvList();
+    alert('Could not update archive setting. Please try again.');
+  }
+}
+
+async function toggleFluxPin(contactId) {
+  const ownerId = _fluxMyUserId || (await supabaseClient.auth.getUser()).data?.user?.id;
+  if (!ownerId) return;
+
+  const wasPinned = _fluxPinnedOf(contactId);
+  const newPinned = !wasPinned;
+
+  // Optimistic local update
+  fluxPinned.set(contactId, newPinned);
+  buildFLUXConvList();
+
+  const { error } = await supabaseClient
+    .from('chat_categories')
+    .upsert(
+      { owner_id: ownerId, contact_id: contactId, category: _fluxCategoryOf(contactId), muted: _fluxMutedOf(contactId), pinned: newPinned, updated_at: new Date().toISOString() },
+      { onConflict: 'owner_id,contact_id' }
+    );
+
+  if (error) {
+    console.error('Failed to update pin state:', error.message);
+    fluxPinned.set(contactId, wasPinned);
+    buildFLUXConvList();
+    alert('Could not update pin setting. Please try again.');
+  }
+}
+
+async function toggleFluxMute(contactId) {
+  const ownerId = _fluxMyUserId || (await supabaseClient.auth.getUser()).data?.user?.id;
+  if (!ownerId) return;
+
+  const wasMuted = _fluxMutedOf(contactId);
+  const newMuted = !wasMuted;
+
+  // Optimistic local update
+  fluxMuted.set(contactId, newMuted);
+  buildFLUXConvList();
+
+  const { error } = await supabaseClient
+    .from('chat_categories')
+    .upsert(
+      { owner_id: ownerId, contact_id: contactId, category: _fluxCategoryOf(contactId), muted: newMuted, pinned: _fluxPinnedOf(contactId), updated_at: new Date().toISOString() },
+      { onConflict: 'owner_id,contact_id' }
+    );
+
+  if (error) {
+    console.error('Failed to update mute state:', error.message);
+    fluxMuted.set(contactId, wasMuted);
+    buildFLUXConvList();
+    alert('Could not update mute setting. Please try again.');
+  }
+}
+
+function _updateFluxTabCounts(withSentMessages) {
+  const isUnreadConvo = c => c.unread && !(c.id === activeFluxId && _isRelayVisibleFor(c.id));
+  const primaryCount = withSentMessages.filter(c => _fluxCategoryOf(c.id) === 'primary' && isUnreadConvo(c)).length;
+  const generalCount = withSentMessages.filter(c => _fluxCategoryOf(c.id) === 'general' && isUnreadConvo(c)).length;
+  [['fluxPrimaryCount', primaryCount], ['fluxFsPrimaryCount', primaryCount],
+   ['fluxGeneralCount', generalCount], ['fluxFsGeneralCount', generalCount]].forEach(([id, count]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = count;
+    el.dataset.zero = count === 0 ? 'true' : 'false';
+  });
+}
+
+function switchFluxTab(tab, mode) {
+  fluxActiveTab = tab;
+  ['fluxTabBar', 'fluxFsTabBar'].forEach(barId => {
+    const bar = document.getElementById(barId);
+    if (!bar) return;
+    bar.querySelectorAll('.flux-tab-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tab));
+  });
+  buildFLUXConvList();
+}
+
 function buildFLUXConvList() {
-  const withSentMessages = fluxContacts.filter(c => c.sentByMe === true);
-  const sorted = [...withSentMessages].sort((a, b) => {
+  const withSentMessages = fluxContacts.filter(c => c.sentByMe === true && !_fluxArchivedOf(c.id));
+  _updateFluxTabCounts(withSentMessages);
+  const inActiveTab = fluxActiveTab === 'all'
+    ? withSentMessages
+    : withSentMessages.filter(c => _fluxCategoryOf(c.id) === fluxActiveTab);
+  const sorted = [...inActiveTab].sort((a, b) => {
+    const aPinned = _fluxPinnedOf(a.id) ? 1 : 0;
+    const bPinned = _fluxPinnedOf(b.id) ? 1 : 0;
+    if (bPinned !== aPinned) return bPinned - aPinned;
     const aUnread = a.unread && !(a.id === activeFluxId && _isRelayVisibleFor(a.id)) ? 1 : 0;
     const bUnread = b.unread && !(b.id === activeFluxId && _isRelayVisibleFor(b.id)) ? 1 : 0;
     if (bUnread !== aUnread) return bUnread - aUnread;
@@ -7934,8 +8370,13 @@ function buildFLUXConvList() {
     list.innerHTML = '';
 
     if (sorted.length === 0) {
+      const emptyMsg = withSentMessages.length === 0
+        ? 'No conversations yet.<br><span style="font-size:11.5px;opacity:0.7;">Search above to start relayting.</span>'
+        : (fluxActiveTab === 'general'
+            ? 'No general chats.<br><span style="font-size:11.5px;opacity:0.7;">Chats you move here will show up in this tab.</span>'
+            : 'No primary chats.<br><span style="font-size:11.5px;opacity:0.7;">Check the General tab.</span>');
       list.innerHTML = `<div style="padding:28px 16px;text-align:center;font-size:12.5px;color:var(--text3);line-height:1.7;">
-        No conversations yet.<br><span style="font-size:11.5px;opacity:0.7;">Search above to start relayting.</span>
+        ${emptyMsg}
       </div>`;
       return;
     }
@@ -7958,7 +8399,6 @@ function buildFLUXConvList() {
         const label = unreadCount > 4 ? '4+ new messages' : `${unreadCount} new messages`;
         previewHtml = `<div class="flux-conv-preview unread">${label}</div>`;
       } else if (isUnread && unreadCount === 1) {
-        // Show the latest message content truncated
         const msgText = mediaPreviewText || (lastMsg ? (lastMsg.type === 'sent' ? 'You: ' + (lastMsg.text || '') : (lastMsg.text || '')) : '');
         const truncated = msgText.length > 38 ? msgText.substring(0, 38) + '…' : msgText;
         previewHtml = `<div class="flux-conv-preview unread">${escHtml(truncated)}</div>`;
@@ -7985,13 +8425,23 @@ function buildFLUXConvList() {
           <div class="flux-conv-presence-dot${isOnlineInList ? ' online' : ''}" data-presence-user="${c.id}"></div>
         </div>
         <div class="flux-conv-info">
-          <div class="flux-conv-name">${escHtml(c.name)}</div>
-          ${previewHtml}
+          <div class="flux-conv-toprow">
+            <div class="flux-conv-name">${escHtml(c.name)}</div>
+            <div class="flux-conv-time">${lastMsg ? lastMsg.time : ''}</div>
+          </div>
+          <div class="flux-conv-bottomrow">
+            ${previewHtml}
+            <div class="flux-conv-meta">
+              ${_fluxMutedOf(c.id) ? '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.7 3A6 6 0 0 1 18 8c0 2.1.8 3.9 1.6 5.2"/><path d="M17 17H3s3-2 3-9c0-.7.1-1.4.3-2"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/><path d="m2 2 20 20"/></svg>' : ''}
+              ${_fluxPinnedOf(c.id) ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg>' : ''}
+              ${_fluxArchivedOf(c.id) ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="5" rx="1"/><path d="M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9"/><line x1="10" y1="13" x2="14" y2="13"/></svg>' : ''}
+              ${badgeHtml}
+            </div>
+          </div>
         </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
-          <div class="flux-conv-time">${lastMsg ? lastMsg.time : ''}</div>
-          ${badgeHtml}
-        </div>
+        <button class="flux-conv-menu-btn" onclick="event.stopPropagation(); openFluxConvMenu(event, '${c.id}')">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
       `;
       list.appendChild(item);
     });
@@ -8001,11 +8451,23 @@ function buildFLUXConvList() {
 async function loadContacts() {
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (!user) return;
-  const [{ data }, { data: nicknameRows }] = await Promise.all([
+  _fluxMyUserId = user.id;
+  const [{ data }, { data: nicknameRows }, { data: categoryRows }] = await Promise.all([
     supabaseClient.from('profiles').select('id, username, display_name, avatar_url'),
-    supabaseClient.from('nicknames').select('target_id, nickname').eq('setter_id', user.id)
+    supabaseClient.from('nicknames').select('target_id, nickname').eq('setter_id', user.id),
+    supabaseClient.from('chat_categories').select('contact_id, category, muted, pinned, archived').eq('owner_id', user.id)
   ]);
   if (!data) return;
+  fluxCategories.clear();
+  fluxMuted.clear();
+  fluxPinned.clear();
+  fluxArchived.clear();
+  (categoryRows || []).forEach(row => {
+    fluxCategories.set(row.contact_id, row.category);
+    if (row.muted) fluxMuted.set(row.contact_id, true);
+    if (row.pinned) fluxPinned.set(row.contact_id, true);
+    if (row.archived) fluxArchived.set(row.contact_id, true);
+  });
   // Build a quick lookup: target_id -> nickname
   const nicknameMap = {};
   (nicknameRows || []).forEach(row => { nicknameMap[row.target_id] = row.nickname; });
@@ -8043,7 +8505,6 @@ async function loadContacts() {
     });
     colorIdx++;
   });
-  // Start watching heartbeat channels for all contacts so presence dots update in real time
   fluxContacts.forEach(c => watchUserPresence(c.id));
 }
 
@@ -8067,18 +8528,15 @@ function showSkeletonMessages(container) {
   }
 }
 
-// ── OPEN DESKTOP RELAY ──
 async function openDesktopRelay(id) {
   const contact = fluxContacts.find(c => c.id === id);
   if (!contact) return;
   contact.unread = false;
   contact.unreadCount = 0;
-  // Clear any leftover remote typing indicator from the previous relay
   hideRemoteTyping();
   document.getElementById('fluxProfileTab')?.classList.remove('show');
   activeFluxId = id;
 
-  // Increment token — any in-flight loadMessages for a different id will bail
   const myToken = ++_fluxLoadToken;
 
   document.querySelectorAll('#fluxConvList .flux-conv-item').forEach(el => el.classList.toggle('active', el.dataset.id === id));
@@ -8102,7 +8560,6 @@ async function openDesktopRelay(id) {
   const themePromise = loadRelayThemeFromSupabase(id);
   subscribeToRelayTheme(id);
 
-  // Show the loading bar and hide messages right away
   _startLoadBar('fluxRelayLoadBar', 'fluxRelayLoadFill');
   _startLoadBar('fluxFsRelayLoadBar', 'fluxFsRelayLoadFill');
   const fsMsgsEl = document.getElementById('fluxFsMessages');
@@ -8118,7 +8575,6 @@ async function openDesktopRelay(id) {
   if (user) await setupTypingChannel(user.id, id);
   if (_fluxLoadToken !== myToken) return;
 
-  // Await theme before messages render so bubbles already have the right color
   await themePromise;
   if (_fluxLoadToken !== myToken) return;
 
@@ -8147,22 +8603,39 @@ async function loadNicknameSideTab(targetId) {
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (!user) return;
 
-  const [{ data: profileData }, { data: nicknameRows }] = await Promise.all([
+  const [{ data: profileData }, { data: nicknameRows }, { data: theirNicknameForMeRows }] = await Promise.all([
     supabaseClient.from('profiles').select('username, display_name, avatar_url').eq('id', targetId).single(),
-    supabaseClient.from('nicknames').select('nickname').eq('setter_id', user.id).eq('target_id', targetId).order('created_at', { ascending: false }).limit(1)
+    supabaseClient.from('nicknames').select('nickname').eq('setter_id', user.id).eq('target_id', targetId).order('created_at', { ascending: false }).limit(1),
+    supabaseClient.from('nicknames').select('nickname').eq('setter_id', targetId).eq('target_id', user.id).order('created_at', { ascending: false }).limit(1)
   ]);
 
   const rawUsername = profileData?.username || 'User';
   const profileName = profileData?.display_name || rawUsername;
   activeFluxNickname = nicknameRows?.[0]?.nickname || null;
   const displayName = activeFluxNickname || profileName;
-  const actualUsername = profileData?.username ? `@${profileData.username}` : 'Unknown user';
+  const actualUsername = profileData?.username || 'Unknown user';
 
   document.getElementById('fluxProfileTabName').textContent = displayName;
   document.getElementById('fluxProfileTabUsername').textContent = actualUsername;
   const avatarEl = document.getElementById('fluxProfileTabAvatar');
   setAvatarEl(avatarEl, profileData?.avatar_url || null);
   avatarEl.style.borderRadius = '50%';
+
+  // Mutual names section: their pfp + name (top), my pfp + what they call me (bottom)
+  const theirMutualAvatar = document.getElementById('fluxMutualTheirAvatar');
+  if (theirMutualAvatar) setAvatarEl(theirMutualAvatar, profileData?.avatar_url || null);
+  const theirMutualName = document.getElementById('fluxMutualTheirName');
+  if (theirMutualName) theirMutualName.textContent = displayName;
+  const theirMutualUsername = document.getElementById('fluxMutualTheirUsername');
+  if (theirMutualUsername) theirMutualUsername.textContent = actualUsername;
+
+  const myMutualAvatar = document.getElementById('fluxMutualMyAvatar');
+  if (myMutualAvatar) setAvatarEl(myMutualAvatar, profile?.avatarUrl || null);
+  const theirNicknameForMe = theirNicknameForMeRows?.[0]?.nickname || null;
+  const myMutualName = document.getElementById('fluxMutualMyName');
+  if (myMutualName) myMutualName.textContent = theirNicknameForMe || profile?.name || 'You';
+  const myMutualUsername = document.getElementById('fluxMutualMyUsername');
+  if (myMutualUsername) myMutualUsername.textContent = (profile?.username ? profile.username.replace(/^@/, '') : 'you');
 
   // Reset editor state (button visible, editor hidden)
   hideNicknameEditor();
@@ -8220,7 +8693,6 @@ async function saveNicknameForTarget(nickname) {
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (!user || !activeFluxProfileTarget) return;
 
-  // Get the target's real username for the system message
   const contact = fluxContacts.find(c => c.id === activeFluxProfileTarget);
   const targetRealName = contact?.realName || contact?.name || 'them';
   const myName = (await supabaseClient.from('profiles').select('username').eq('id', user.id).single()).data?.username || 'You';
@@ -8242,7 +8714,6 @@ async function saveNicknameForTarget(nickname) {
     systemText = `${myName} set the nickname for ${targetRealName} to "${nickname}".`;
   }
 
-  // Insert system message so both users see it in relay
   if (systemText && activeFluxId === activeFluxProfileTarget) {
     await supabaseClient.from('messages').insert({
       sender_id: user.id,
@@ -8252,7 +8723,6 @@ async function saveNicknameForTarget(nickname) {
     });
   }
 
-  // Update the in-memory contact so sidebar + topbar reflect the new nickname immediately
   if (contact) {
     contact.nickname = activeFluxNickname;
     contact.name = activeFluxNickname || contact.realName || contact.name;
@@ -8308,7 +8778,6 @@ function parseSupabaseDate(rawTs) {
 }
 
 // A stable string key representing the local minute + sender.
-// Two messages have the same key → they belong in the same group.
 // Uses local time to stay consistent with formatTimeSeparator (which also uses local time).
 function msgMinuteKey(rawTs, senderId) {
   const d = parseSupabaseDate(rawTs);
@@ -8319,7 +8788,6 @@ function _isMsgMediaOnly(msg) {
   return !!(msg.media_url && !msg.is_video && !(msg.content && msg.content.trim()));
 }
 
-// Max gap (ms) within which consecutive image-only messages from the same sender
 // are merged into the same group to form a gallery collage (5 minutes).
 const MEDIA_GROUP_GAP_MS = 5 * 60 * 1000;
 
@@ -8339,7 +8807,6 @@ function groupMessages(messages) {
       currentGroup = null;
     }
 
-    // System messages are always their own item — never grouped with bubbles
     if (msg.message_type === 'system') {
       currentGroup = null;
       groups.push({ type: 'system', content: msg.content || '', ts: rawTs });
@@ -8349,14 +8816,12 @@ function groupMessages(messages) {
     const mKey = msgMinuteKey(rawTs, msg.sender_id);
     const isMediaOnly = _isMsgMediaOnly(msg);
 
-    // Check if this message can join the current group
     if (currentGroup && currentGroup.sender_id === msg.sender_id) {
       const lastMsg = currentGroup.messages[currentGroup.messages.length - 1];
       const lastRawTs = lastMsg.created_at || lastMsg.ts || null;
       const lastD = parseSupabaseDate(lastRawTs);
       const gap = ts - lastD.getTime();
 
-      // Group if same sender AND within 5 minutes of the last message in the group.
       // A different sender always starts a new group regardless of time.
       const withinWindow = gap <= MEDIA_GROUP_GAP_MS; // 5 * 60 * 1000
       const canMergeAsMedia = isMediaOnly && _isMsgMediaOnly(lastMsg) && withinWindow;
@@ -8388,22 +8853,18 @@ function groupMessages(messages) {
   return groups;
 }
 
-// Given a group's messages array, collapse consecutive image-only messages into
-// mediaGroup pseudo-messages so renderGroupedMessages can render them as collages.
 function collapseMediaGroups(messages) {
   const result = [];
   let i = 0;
   while (i < messages.length) {
     const msg = messages[i];
     if (_isMsgMediaOnly(msg)) {
-      // Collect consecutive image-only messages
       const run = [msg];
       while (i + 1 < messages.length && _isMsgMediaOnly(messages[i + 1])) {
         i++;
         run.push(messages[i]);
       }
       if (run.length >= 2) {
-        // Bundle into a mediaGroup pseudo-message
         result.push({
           type: 'mediaGroup',
           urls: run.map(m => m.media_url),
@@ -8423,10 +8884,6 @@ function collapseMediaGroups(messages) {
   return result;
 }
 
-/* ────────────────────────────────────────────
-   FIX 1: helper to build avatar element
-   used inside renderGroupedMessages
-──────────────────────────────────────────── */
 function makeGroupAvatar(contact) {
   const av = document.createElement('div');
   av.className = 'flux-group-avatar';
@@ -8522,7 +8979,6 @@ function isEmojiOnly(str) {
   return emojiRegex.test(str.trim());
 }
 
-// Scan the container and merge any two consecutive flux-msg-group elements
 // that belong to the same sender AND share the same minute-key —
 // moving all bubbles from the later group into the earlier one.
 function mergeAdjacentGroups(container) {
@@ -8545,7 +9001,6 @@ function mergeAdjacentGroups(container) {
       }
 
       // Use timestamp gap for merging: same sender + within 5 minutes = same group.
-      // aTs is the LAST message time in group A; bFirstTs is the FIRST message time in group B.
       const aTs = parseInt(a.dataset.groupTs || '0', 10);
       const bCreatedAt = b.dataset.createdAt;
       const bFirstTs = bCreatedAt ? parseSupabaseDate(bCreatedAt).getTime() : parseInt(b.dataset.groupTs || '0', 10);
@@ -8591,18 +9046,15 @@ function mergeAdjacentGroups(container) {
   }
 }
 
-// Apply Instagram-style corner classes to all bubble siblings in a .flux-msg-bubbles container
 function applyBubbleGrouping(bubblesWrap) {
   if (!bubblesWrap) return;
-  // Direct children may be .flux-bubble-outer (which wraps .flux-bubble-wrap)
-  // or .flux-bubble-wrap directly. Support both.
   const children = Array.from(bubblesWrap.children).filter(el =>
     el.classList.contains('flux-bubble-outer') || el.classList.contains('flux-bubble-wrap')
   );
   const total = children.length;
   children.forEach((child, i) => {
     const bubble = child.querySelector('.flux-bubble');
-    if (!bubble) return; // collage-only bWrap (no flux-bubble) — skip corner styling
+    if (!bubble) return;
     // Skip emoji-only and media-only bubbles (keep fully round)
     if (bubble.classList.contains('flux-bubble-emoji-only') || bubble.classList.contains('flux-bubble-media-only')) {
       bubble.classList.remove('bubble-first','bubble-middle','bubble-last','bubble-solo');
@@ -8630,7 +9082,6 @@ function makeMediaCollageBubble(mediaGroup, isSent, contact, currentUserId) {
   bWrap.dataset.msgId = mediaGroup.id || '';
   bWrap.dataset.mediaUrls = urls.join('||');
 
-  // Collage is the visual — no flux-bubble padding/bg wrapper around it
   const collage = document.createElement('div');
   const countClass = count === 2 ? 'count-2' : count === 3 ? 'count-3' : count === 4 ? 'count-4' : 'count-5up';
   collage.className = 'flux-media-collage ' + countClass;
@@ -8704,7 +9155,6 @@ function makeMediaCollageBubble(mediaGroup, isSent, contact, currentUserId) {
 // Re-collapse any consecutive image-only bubble-outers in bubblesWrap into collages.
 // Called after appending a new image-only bubble to an existing group.
 function _recollapseMediaInBubbles(bubblesWrap, isSent, contact, currentUserId) {
-  // Collect all current children as message descriptors
   const children = Array.from(bubblesWrap.children);
   const msgs = [];
   let hasNewMedia = false;
@@ -8767,7 +9217,6 @@ function _recollapseMediaInBubbles(bubblesWrap, isSent, contact, currentUserId) 
   }
 }
 
-// Append a single image-only message to an existing bubblesWrap by merging it
 // into the last media collage (or upgrading a single image into a collage).
 function _appendMediaToGroup(bubblesWrap, msg, isSent, contact, currentUserId) {
   if (!msg.media_url) return;
@@ -8813,7 +9262,6 @@ function _appendMediaToGroup(bubblesWrap, msg, isSent, contact, currentUserId) {
 }
 
 // ── SWIPE-TO-REPLY (mobile) ──
-// Sent bubbles swipe LEFT, received bubbles swipe RIGHT — matching iMessage/WhatsApp.
 function addSwipeToReply(bWrap, isSent, onReply) {
   const THRESHOLD = 52;   // px to trigger reply
   const MAX_DRAG  = 72;   // px cap so it doesn't slide too far
@@ -8976,7 +9424,6 @@ function makeBubbleWrap(msg, isSent, contact, currentUserId) {
   return bOuter;
 }
 
-// In-memory cache of reactions per message id for optimistic updates
 const _reactionCache = {};
 
 async function addReaction(bWrap, emoji) {
@@ -9164,13 +9611,11 @@ function showCollageActionMenu(e, bWrap, mediaGroup, isSent) {
   });
 }
 
-// Delete all messages in a collage group from DOM and DB
 function deleteMediaGroup(bWrap, mediaGroup) {
   const bOuter = bWrap.closest('.flux-bubble-outer') || bWrap;
   const parentGroup = bWrap.closest('.flux-msg-group');
   bOuter.remove();
   if (parentGroup && parentGroup.querySelectorAll('.flux-bubble-wrap').length === 0) parentGroup.remove();
-  // Delete all individual message IDs from DB
   const ids = (mediaGroup.msgs || []).map(m => m.id).filter(Boolean);
   if (ids.length > 0) {
     supabaseClient.from('messages').delete().in('id', ids).then(() => {});
@@ -9184,7 +9629,6 @@ async function deleteSingleCollageImage(bWrap, urlToDelete, mediaGroup, isSent, 
   const allUrls = bWrap.dataset.mediaUrls ? bWrap.dataset.mediaUrls.split('||') : (mediaGroup.urls || []);
   const allMsgs = mediaGroup.msgs || [];
 
-  // Find the message with this URL and delete from DB
   const targetMsg = allMsgs.find(m => m.media_url === urlToDelete);
   if (targetMsg && targetMsg.id) {
     await supabaseClient.from('messages').delete().eq('id', targetMsg.id);
@@ -9301,7 +9745,6 @@ function cancelReply(mode) {
   _setReplyBarThumb('fluxFsReplyBarThumb', null);
 }
 
-// Scroll to the message that was replied to and flash a WhatsApp-style highlight
 async function scrollToReplyTarget(replyMsgId, replyText, replyAuthor) {
   console.log('[scrollToReply] called', { replyMsgId, replyText, replyAuthor });
   const isMob = isMobile();
@@ -9314,7 +9757,6 @@ async function scrollToReplyTarget(replyMsgId, replyText, replyAuthor) {
   }
 
   function findInDOM() {
-    // Match by message ID only — never fall back to text content
     if (!replyMsgId) return null;
     for (const c of containers) {
       const w = c.querySelector(`.flux-bubble-wrap[data-msg-id="${replyMsgId}"]`);
@@ -9328,8 +9770,6 @@ async function scrollToReplyTarget(replyMsgId, replyText, replyAuthor) {
   console.log('[scrollToReply] findInDOM:', existing);
   if (existing) { flashWrap(existing); return; }
 
-  // Target is not rendered yet — need to load older messages until we find it.
-  // Only possible if we have a replyMsgId and there are more messages to load.
   console.log('[scrollToReply] not in DOM, will load');
   if (!replyMsgId) return;
 
@@ -9349,7 +9789,6 @@ async function scrollToReplyTarget(replyMsgId, replyText, replyAuthor) {
   const _findIsDark = document.documentElement.getAttribute('data-theme') === 'dark';
   if (_findFill) { _findFill.dataset.origBg = _findFill.style.background; _findFill.dataset.origShadow = _findFill.style.boxShadow; _findFill.style.background = _findIsDark ? '#ffffff' : '#000000'; _findFill.style.boxShadow = 'none'; }
 
-  // Fetch the target message's created_at so we know its position
   try {
     const { data: targetMsg } = await supabaseClient.from('messages').select('id, created_at').eq('id', replyMsgId).single();
     console.log('[scrollToReply] targetMsg:', targetMsg);
@@ -9360,7 +9799,6 @@ async function scrollToReplyTarget(replyMsgId, replyText, replyAuthor) {
     const contact= isMob ? fluxMobileContact: fluxDesktopContact;
     if (!userId || !user) { _finishLoadBar(_findBarId, _findFillId); setTimeout(() => { if (_findFill) { _findFill.style.background = _findFill.dataset.origBg || ''; _findFill.style.boxShadow = _findFill.dataset.origShadow || ''; } }, 560); return; }
 
-    // Count how many messages exist UP TO AND INCLUDING the target (by created_at)
     const { count: posCount } = await supabaseClient.from('messages')
       .select('*', { count: 'exact', head: true })
       .or(`and(sender_id.eq.${user.id},receiver_id.eq.${userId}),and(sender_id.eq.${userId},receiver_id.eq.${user.id})`)
@@ -9376,7 +9814,6 @@ async function scrollToReplyTarget(replyMsgId, replyText, replyAuthor) {
     const currentOffset = isMob ? fluxMobileOffset : fluxDesktopOffset;
     console.log('[scrollToReply] newStart:', newStart, 'currentOffset:', currentOffset);
     if (newStart >= currentOffset) {
-      // Message is actually within the already-loaded range — just wasn't found by text fallback
       _finishLoadBar(_findBarId, _findFillId); setTimeout(() => { if (_findFill) { _findFill.style.background = _findFill.dataset.origBg || ''; _findFill.style.boxShadow = _findFill.dataset.origShadow || ''; } }, 560); return;
     }
 
@@ -9398,7 +9835,6 @@ async function scrollToReplyTarget(replyMsgId, replyText, replyAuthor) {
       if (newStart <= 0) fluxDesktopAllLoaded = true;
     }
 
-    // Render and prepend gap messages
     const prevScrollHeight = msgsEl.scrollHeight;
     const groups = groupMessages(gapData.map(m => ({ ...m, ts: m.created_at })));
     const frag = document.createDocumentFragment();
@@ -9460,7 +9896,6 @@ async function scrollToReplyTarget(replyMsgId, replyText, replyAuthor) {
   }
 }
 
-// ── LOAD MESSAGES (desktop) ──
 const FLUX_PAGE_SIZE = 15;
 const FLUX_LOAD_MORE = 10;
 let fluxDesktopOffset = 0;
@@ -9518,7 +9953,6 @@ async function loadMessages(userId, loadToken) {
     } else { msgsEl.innerHTML = ''; }
   } catch (err) { msgsEl.innerHTML = ''; }
 
-  // Reveal messages and hide loading bar
   _hideLoadBar();
 
   // Scroll listener for pagination
@@ -9543,7 +9977,6 @@ async function loadMessages(userId, loadToken) {
           updateContactLastMsg(userId, newMsg, user.id);
           buildFLUXConvList();
           // Only mark as seen if the tab is actually visible & focused.
-          // If the user is in another tab, treat it like any other unread message.
           if (_isRelayVisibleFor(userId)) {
             markConversationSeen(userId).then(() => fixSeenLabels(msgsEl));
           } else {
@@ -9594,9 +10027,7 @@ async function loadMessages(userId, loadToken) {
             bWrap.remove();
             if (parentGroup && parentGroup.querySelectorAll('.flux-bubble-wrap').length === 0) parentGroup.remove();
           }
-          // Already removed optimistically by deleteMessage() — nothing left to do in DOM.
         }
-        // Update the conversation list preview to reflect the new last message.
         const { data: lastMsg } = await supabaseClient.from('messages').select('*')
           .or(`and(sender_id.eq.${user.id},receiver_id.eq.${userId}),and(sender_id.eq.${userId},receiver_id.eq.${user.id})`)
           .order('created_at', { ascending: false }).limit(1).single();
@@ -9750,7 +10181,6 @@ async function loadMoreMessagesDesktop() {
   fluxDesktopLoadingMore = false;
 }
 
-// ── LOAD MESSAGES (mobile) ──
 let fluxMobileOffset = 0;
 let fluxMobileAllLoaded = false;
 let fluxMobileLoadingMore = false;
@@ -9862,9 +10292,7 @@ async function loadFsMessages(userId) {
             bWrap.remove();
             if (parentGroup && parentGroup.querySelectorAll('.flux-bubble-wrap').length === 0) parentGroup.remove();
           }
-          // Already removed optimistically by deleteMessage() — nothing left to do in DOM.
         }
-        // Update the conversation list preview to reflect the new last message.
         const { data: lastMsg } = await supabaseClient.from('messages').select('*')
           .or(`and(sender_id.eq.${user.id},receiver_id.eq.${userId}),and(sender_id.eq.${userId},receiver_id.eq.${user.id})`)
           .order('created_at', { ascending: false }).limit(1).single();
@@ -9958,7 +10386,6 @@ async function loadMoreMessagesMobile() {
    Also removes matching optimistic bubble first.
 ──────────────────────────────────────────── */
 function appendIncomingMessage(container, msg, currentUserId, contact) {
-  // System messages render as a centered pill, not a bubble
   if (msg.message_type === 'system') {
     const el = makeSystemMsgEl(msg.content || '');
     const typingEl = document.getElementById('fluxTypingSlot') || document.getElementById('fluxFsTypingSlot')
@@ -9973,7 +10400,6 @@ function appendIncomingMessage(container, msg, currentUserId, contact) {
   const d = parseSupabaseDate(msg.created_at || new Date().toISOString());
   const ts = d.getTime();
 
-  // Remove matching optimistic bubble (sent messages already shown optimistically)
   if (isSent) {
     const msgText = msg.content || '';
     container.querySelectorAll('.flux-bubble.sending').forEach(b => {
@@ -10025,7 +10451,6 @@ function appendIncomingMessage(container, msg, currentUserId, contact) {
     const lastBubbleOuter = bubblesWrap ? bubblesWrap.lastElementChild : null;
     const lastBubbleIsMedia = lastBubbleOuter && (lastBubbleOuter.querySelector('.flux-bubble-media-only') !== null || lastBubbleOuter.querySelector('.flux-media-collage') !== null);
     const lastGroupTs = parseInt(lastGroup.dataset.groupTs || '0', 10);
-    // Group if same sender AND within 5 minutes of the last message. Different sender always starts a new group.
     const withinWindow = (ts - lastGroupTs) <= MEDIA_GROUP_GAP_MS;
     const withinMediaGap = isIncomingMediaOnly && lastBubbleIsMedia && withinWindow;
 
@@ -10100,13 +10525,11 @@ function updateContactLastMsg(userId, msg, currentUserId) {
   buildFLUXConvList();
 }
 
-// ── OPEN MOBILE RELAY ──
 async function openFsRelay(id) {
   const contact = fluxContacts.find(c => c.id === id);
   if (!contact) return;
   contact.unread = false;
   contact.unreadCount = 0;
-  // Clear any leftover remote typing indicator from the previous relay
   hideRemoteTyping();
   activeFluxId = id;
 
@@ -10127,7 +10550,6 @@ async function openFsRelay(id) {
   const themePromise = loadRelayThemeFromSupabase(id);
   subscribeToRelayTheme(id);
 
-  // Switch to relay view immediately so user sees the transition right away
   document.getElementById('fluxFsListView').style.display = 'none';
   const relayView = document.getElementById('fluxFsRelayView');
   relayView.style.display = 'flex'; relayView.style.flexDirection = 'column'; relayView.style.height = '100%';
@@ -10138,7 +10560,6 @@ async function openFsRelay(id) {
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (user) await setupTypingChannel(user.id, id);
 
-  // Await theme before messages render so bubbles already have the right color
   await themePromise;
 
   loadFsMessages(id);
@@ -10151,7 +10572,7 @@ async function openFsRelay(id) {
 function fluxFsBack() {
   document.getElementById('fluxFsRelayView').style.display = 'none';
   document.getElementById('fluxFsListView').style.display = 'flex';
-  stopTypingBroadcast(); // must run before activeFluxId is cleared, or the recipient never gets the "stopped typing" signal
+  stopTypingBroadcast();
   activeFluxId = null; hideRemoteTyping(); resetPresenceDots(); buildFLUXConvList();
 }
 
@@ -10160,13 +10581,7 @@ function fluxHandleKey(e, mode) {
   if (e.key === 'Escape' && currentEditState) { e.preventDefault(); cancelEdit(mode); }
 }
 
-/* ────────────────────────────────────────────
-   FIX 2: fluxSend — optimistic bubble now stores
-   the same minuteKey as the real message will
-   have, so appendIncomingMessage merges them.
-──────────────────────────────────────────── */
 async function fluxSend(mode) {
-  // If in edit mode, commit the edit instead of sending a new message
   if (currentEditState) {
     const inputId = mode === 'mobile' ? 'fluxFsInput' : 'fluxInput';
     const input = document.getElementById(inputId);
@@ -10296,7 +10711,6 @@ async function fluxSend(mode) {
   }
 
   mergeAdjacentGroups(msgsEl);
-  // Scroll down by the height of one appended message bubble only
   try {
     const bubbleForScroll = bWrap && (bWrap.querySelector('.flux-bubble') || bWrap);
     const delta = (bubbleForScroll && bubbleForScroll.offsetHeight) || 0;
@@ -10338,13 +10752,11 @@ async function fluxSend(mode) {
     buildFLUXConvList();
     // Remove media loading indicator now that upload is confirmed
     if (window._fluxMediaLoadingRemover) { window._fluxMediaLoadingRemover(); window._fluxMediaLoadingRemover = null; }
-    // Re-run seen labels now that the real message ID is stamped on the bubble outer
     if (msgsEl) fixSeenLabels(msgsEl);
   } catch (err) {
     if (window._fluxMediaLoadingRemover) { window._fluxMediaLoadingRemover(); window._fluxMediaLoadingRemover = null; }
     spin.remove(); bubble.classList.remove('sending'); bubble.style.opacity = '0.5'; bubble.title = 'Failed to send';
   } finally {
-    // Unlock send button
     if (sendBtn) { delete sendBtn.dataset.sending; sendBtn.style.opacity = ''; sendBtn.disabled = false; }
     // On mobile, re-focus to keep keyboard up
     if (mode === 'mobile') input.focus();
@@ -10352,9 +10764,6 @@ async function fluxSend(mode) {
   }
 }
 
-// ── FLUX MEDIA STAGING ──
-// ── Upload chat media to Storage instead of storing raw base64 in the DB ──
-// Storing a full base64 data URL directly in the `messages` row makes that row
 // large enough that Supabase Realtime's postgres_changes payload either arrives
 // without the media_url value or doesn't arrive at all for the receiver — so the
 // receiver sees an empty bubble until the next full page load re-fetches the row
@@ -11272,20 +11681,13 @@ function showApp() {
   document.getElementById('authPage').style.display = 'none';
   document.getElementById('mainApp').style.display = 'flex';
   closeLogout(); closeVaultPopup(); closeProfileEdit();
-  // Always land on the home / AI relay view with a clean conversation —
-  // whatever view or leftover relay the previous session left behind
   // should never carry into a fresh login.
   currentView = null;
   newRelay();
-  // NOTE: fluxContacts / other users' profiles must never load before the vault
-  // key is verified. loadContacts() now only runs inside openFLUX(), which is
-  // only reachable after a successful verifyVault() check.
 }
 
 // ── GUEST MODE ("Try for Free") ──
 // No data is stored, saved, or loaded — locally or remotely. No profile is
-// loaded. Vault key entry (Alt+K or the settings button) is fully disabled,
-// and AI relay is replaced with a prompt to sign up.
 window._guestMode = false;
 
 function enterGuestMode() {
@@ -11310,8 +11712,6 @@ function enterGuestMode() {
   // Show the green Sign Up button in the header
   const headerBtn = document.getElementById('guestHeaderSignupBtn');
   if (headerBtn) headerBtn.style.display = 'flex';
-  // Land on the home / AI relay view with a clean conversation, same as a
-  // real login — no leftover view state or messages from a prior session.
   currentView = null;
   newRelay();
 }
@@ -11368,7 +11768,6 @@ async function preloadAllRelays() {
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (!user) return;
 
-  // Fetch last 15 messages per conversation + unseen count from DB
   const { data, error } = await supabaseClient.from('messages').select('*')
     .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
     .order('created_at', { ascending: false });
@@ -11383,11 +11782,9 @@ async function preloadAllRelays() {
     const otherId = msg.sender_id === user.id ? msg.receiver_id : msg.sender_id;
     if (!latestMap.has(otherId)) latestMap.set(otherId, msg);
     if (msg.sender_id === user.id) sentByMeSet.add(otherId);
-    // Count unseen messages sent TO me by this contact
     if (msg.sender_id === otherId && msg.receiver_id === user.id && msg.seen === false) {
       unseenCountMap.set(otherId, (unseenCountMap.get(otherId) || 0) + 1);
     }
-    // Collect last 15 messages per conversation
     if (!last15Map.has(otherId)) last15Map.set(otherId, []);
     const arr = last15Map.get(otherId);
     if (arr.length < 15) arr.push(msg);
@@ -11400,7 +11797,6 @@ async function preloadAllRelays() {
       c.unread = true;
       c.unreadCount = count;
     }
-    // Store last 15 messages (reverse to ascending order)
     const msgs = last15Map.get(c.id);
     if (msgs) c.preloadedMsgs = [...msgs].reverse();
   });
@@ -11443,7 +11839,6 @@ window.addEventListener('load', async function() {
 document.getElementById('fluxInput')?.addEventListener('blur', () => { stopTypingBroadcast(); });
 </script>
 
-<!-- NEW FEATURES: Code Editor, Calculator, Relay History, Settings extras -->
 <script>
 
 // ── CODE EDITOR LINE NUMBERS & AUTO-INDENT ──
@@ -11788,7 +12183,6 @@ document.addEventListener('keydown', function(e) {
   calcAction(action);
 });
 
-// ── RELAY HISTORY (session-only — cleared on refresh) ──
 let _relayHistoryStore = [];
 
 function saveRelayTurn(question, answer) {
@@ -11819,7 +12213,6 @@ function renderHistoryList() {
 }
 
 function loadHistoryItem(item) {
-  // Load the Q&A into relay view
   showView('relay');
   const welcome = document.getElementById('welcomeScreen');
   if (welcome) welcome.remove();
@@ -12095,7 +12488,6 @@ function initSettings() {
     const val = localStorage.getItem('aloft_setting_' + key) || defaults[key] || 'off';
     const btn = document.getElementById(key + 'Toggle');
     if (btn) btn.classList.toggle('on', val === 'on');
-    // Sync duplicate toggles (e.g. saveRelayToggle2 mirrors saveRelayToggle)
     const btn2 = document.getElementById(key + 'Toggle2');
     if (btn2) btn2.classList.toggle('on', val === 'on');
   });
@@ -12678,7 +13070,6 @@ function copySnippet(index) {
 }
 
 // ══════════════════════════════════════════════════════════
-// ── RELAY THEMES ──
 // ══════════════════════════════════════════════════════════
 
 const RELAY_THEMES = [
@@ -12871,7 +13262,6 @@ function renderThemePicker() {
 
 function applyRelayTheme(themeId) {
   _currentAppliedTheme = themeId || 'default';
-  // Desktop FLUX panel
   const relayWrap = document.getElementById('fluxActiveRelayWrap');
   if (relayWrap) relayWrap.dataset.relayTheme = _currentAppliedTheme;
   // Desktop overlay wrapper
@@ -12880,7 +13270,6 @@ function applyRelayTheme(themeId) {
   // Mobile fullscreen — set on the outer container so CSS selectors reach bubbles inside
   const fluxFullscreen = document.getElementById('fluxFullscreen');
   if (fluxFullscreen) fluxFullscreen.dataset.relayTheme = _currentAppliedTheme;
-  // Mobile relay view and messages container as fallbacks
   const fsRelayView = document.getElementById('fluxFsRelayView');
   if (fsRelayView) fsRelayView.dataset.relayTheme = _currentAppliedTheme;
   const fsMessages = document.getElementById('fluxFsMessages');
@@ -12927,7 +13316,6 @@ async function saveRelayThemeToSupabase(themeId) {
     });
   }
 
-  // Insert a system message so both users see it in relay
   const themeObj = RELAY_THEMES.find(t => t.id === themeId);
   const themeName = themeObj ? themeObj.tag : themeId;
   const myName = (await supabaseClient.from('profiles').select('username').eq('id', user.id).single()).data?.username || 'Someone';
@@ -13020,7 +13408,6 @@ function _isVaultPanelOpen() {
 function _ghostTrigger() {
   if (!_ghostModeEnabled) return;
   if (!_isVaultPanelOpen()) return;
-  // Full close — same as user pressing Cancel on vault popup
   closeVaultPopup();
   if (typeof closeFLUX === 'function') closeFLUX();
 }
@@ -13028,7 +13415,6 @@ function _ghostTrigger() {
 // ── REALTIME REHYDRATION ──
 // Supabase WebSockets can silently drop when a tab is hidden, throttled by
 // the browser, or idle for a long time. This rebuilds every dead channel so
-// presence, messages, and typing all resume the moment the tab is visible.
 let _rehydrating = false;
 async function _rehydrateRealtime() {
   if (!fluxOpen || _rehydrating) return;
@@ -13039,7 +13425,6 @@ async function _rehydrateRealtime() {
       await joinPresence();
     }
 
-    // 2. Watcher channels for all contacts — replace any that died
     const deadWatchers = Object.keys(_presenceWatchChannels).filter(uid => {
       const entry = _presenceWatchChannels[uid];
       return !entry.channel || entry.channel.state === 'closed' || entry.channel.state === 'errored';
@@ -13062,7 +13447,6 @@ async function _rehydrateRealtime() {
     if (!window._fluxGlobalChannel || globalChState === 'closed' || globalChState === 'errored') {
       try { if (window._fluxGlobalChannel) await supabaseClient.removeChannel(window._fluxGlobalChannel); } catch(e) {}
       window._fluxGlobalChannel = null;
-      // Re-bootstrap global channels the same way openFLUX does
       const { data: { user } } = await supabaseClient.auth.getUser();
       if (user) {
         const globalCh = supabaseClient.channel(`global-inbox:${user.id}`)
@@ -13141,12 +13525,9 @@ async function _rehydrateRealtime() {
       }
     }
 
-    // 5. Per-relay message channel — rebuild if dead
     const relayChState = subscriptionManager.activeSubscription?.state;
     if (activeFluxId && (!subscriptionManager.activeSubscription || relayChState === 'closed' || relayChState === 'errored')) {
       // Re-open without resetting the UI — just restore the realtime subscription.
-      // We use a lightweight approach: re-run loadMessages for the current relay only
-      // if the channel is confirmed dead. This also catches any messages missed while offline.
       const isMobile = document.getElementById('fluxFullscreen')?.classList.contains('show');
       if (isMobile) {
         if (typeof openFsRelay === 'function') await openFsRelay(activeFluxId);
@@ -13172,7 +13553,6 @@ async function _rehydrateRealtime() {
       }
     }
 
-    // 8. Relay theme channel — rebuild if dead
     if (activeFluxId) {
       const themeChState = _relayThemeChannel?.state;
       if (!_relayThemeChannel || themeChState === 'closed' || themeChState === 'errored') {
@@ -13180,7 +13560,6 @@ async function _rehydrateRealtime() {
       }
     }
 
-    // 9. Relay-cleared broadcast channel — rebuild if dead
     const clearedChState = window._fluxRelayClearedChannel?.state;
     if (!window._fluxRelayClearedChannel || clearedChState === 'closed' || clearedChState === 'errored') {
       try { if (window._fluxRelayClearedChannel) await supabaseClient.removeChannel(window._fluxRelayClearedChannel); } catch(e) {}
@@ -13301,7 +13680,6 @@ async function toggleSquaredBubble() {
   }
 }
 
-// ── NOTIFICATIONS (vault unread title badge) ──
 let _notificationsEnabled = false; // default off (mirrors DB default=false)
 let _soundEnabled = false;         // default off (mirrors DB default=false)
 
@@ -13338,13 +13716,11 @@ function _playLowBlip() {
   }
 }
 
-// Play sound unless: actively looking at that exact person's relay right now.
-// All other cases (different FLUX selected, switched tabs, no FLUX open, etc.) → play.
 function _maybePlayMessageSound(senderId, currentUserId) {
-  if (!fluxOpen) return; // vault panel must be open
+  if (!fluxOpen) return;
   if (!_notificationsEnabled || !_soundEnabled) return;
-  if (senderId === currentUserId) return; // don't play for own messages
-  // Only suppress if: this sender is the active FLUX AND tab is focused AND FLUX panel is visible
+  if (senderId === currentUserId) return;
+  if (_fluxMutedOf(senderId)) return; // this person is muted — no sound
   if (activeFluxId === senderId && document.hasFocus() && document.visibilityState === 'visible' && _isFLUXPanelOpen()) return;
   _playLowBlip();
 }
@@ -13426,8 +13802,6 @@ function _isFLUXPanelOpen() {
       || (fluxFs && fluxFs.classList.contains('show'));
 }
 
-// Returns true only if the relay with `userId` is open AND the tab is
-// currently focused/visible — i.e. the user can actually see the messages.
 function _isRelayVisibleFor(userId) {
   if (!userId || activeFluxId !== userId) return false;
   if (!_isFLUXPanelOpen()) return false;
@@ -13442,7 +13816,6 @@ function _updateTitleUnreadBadge() {
   const unreadUsers = (typeof fluxContacts !== 'undefined')
     ? fluxContacts.filter(c => {
         if (!c.unread) return false;
-        // Only exclude the active relay if user can actually see it right now
         if (c.id === activeFluxId && _isRelayVisibleFor(c.id)) return false;
         return true;
       }).length
@@ -13686,7 +14059,6 @@ async function mobCommitNickname() {
   mobHideNicknameEditor();
   const fsName = document.getElementById('fluxFsName');
   if (fsName) fsName.textContent = displayName;
-  // Sync the in-memory contact
   const contact = fluxContacts.find(c => c.id === activeFluxProfileTarget);
   if (contact) { contact.nickname = activeFluxNickname; contact.name = displayName; contact.initials = displayName[0].toUpperCase(); buildFLUXConvList(); }
 }
@@ -13702,7 +14074,6 @@ async function mobClearNickname() {
   mobHideNicknameEditor();
   const fsName = document.getElementById('fluxFsName');
   if (fsName) fsName.textContent = profileName;
-  // Also sync the in-memory contact
   const contact = fluxContacts.find(c => c.id === activeFluxProfileTarget);
   if (contact) { contact.nickname = null; contact.name = profileName; contact.initials = profileName[0].toUpperCase(); buildFLUXConvList(); }
 }
@@ -13739,7 +14110,6 @@ function mobRenderThemePicker() {
 </script>
 
 <script>
-// ── VAULT TERMINAL ──
 (function() {
 
   const TERM_HISTORY = [];
@@ -13773,14 +14143,12 @@ function mobRenderThemePicker() {
     termPrint('', '');
   }
 
-  // ── VAULT ACCESS ERROR ──
   window.showVaultAccessErrorPill = function(msg) {
     console.error('[hether] ' + (msg || 'Access denied — vault key not found'));
   };
 
   // ── ASYNC ROLE CHECK ──
   async function isCurrentUserVault() {
-    // Guest sessions can never be vault, no matter what's cached from a
     // previous real login in this tab.
     if (window._guestMode) return false;
     // Fast path: use cached role if available
@@ -13839,7 +14207,7 @@ function mobRenderThemePicker() {
       if (el && el.classList.contains('show')) {
         window.closeVaultTerminal();
       } else {
-        window.openVaultTerminal(); // already checks vault role internally
+        window.openVaultTerminal();
       }
     }
     if (e.key === 'Escape') {
@@ -13883,7 +14251,6 @@ function mobRenderThemePicker() {
     const parts = raw.trim().split(/\s+/);
     const cmd = parts[0].toLowerCase();
 
-    // Gate every command — verify vault before executing anything
     const vault = await isCurrentUserVault();
     if (!vault) {
       termPrint('', '');
@@ -13952,7 +14319,6 @@ function mobRenderThemePicker() {
 
   async function cmdClearRelay(u1, u2) {
     termPrint('', '');
-    // 1. Verify the executing user is vault
     let currentUser;
     try {
       const { data: { user }, error } = await supabaseClient.auth.getUser();
@@ -14025,7 +14391,6 @@ function mobRenderThemePicker() {
     termPrint('  [3/4]  targets bound: ' + p1Data.username + ' <-> ' + p2Data.username, 'info');
     termPrint('  [4/4]  issuing DELETE on messages table...', 'info');
 
-    // 3. Delete all messages between the two users
     const { error: delErr, count } = await supabaseClient
       .from('messages')
       .delete({ count: 'exact' })
@@ -14186,10 +14551,8 @@ function mobRenderThemePicker() {
 </nav>
 
 <script>
-// ── MOBILE KEYBOARD: resize only the FLUX fullscreen relay, leave bottom nav alone ──
 // We do NOT use interactive-widget=resizes-content (that lifts all fixed elements).
 // Instead we use visualViewport to manually track keyboard height and adjust
-// only the flux-fullscreen container.
 (function() {
   function getFluxFs() { return document.getElementById('fluxFullscreen'); }
   function getRelayView() { return document.getElementById('fluxFsRelayView'); }
@@ -14206,7 +14569,6 @@ function mobRenderThemePicker() {
     fs.style.top = vv.offsetTop + 'px';
     fs.style.height = vv.height + 'px';
 
-    // Scroll messages to bottom when keyboard opens
     const msgs = document.getElementById('fluxFsMessages');
     if (msgs) msgs.scrollTop = msgs.scrollHeight;
   }
@@ -14223,7 +14585,6 @@ function mobRenderThemePicker() {
     window.visualViewport.addEventListener('scroll', applyLayout);
   }
 
-  // Re-apply when FLUX opens
   document.addEventListener('focusin', function(e) {
     if (e.target && e.target.id === 'fluxFsInput') {
       setTimeout(applyLayout, 300);
@@ -14235,7 +14596,6 @@ function mobRenderThemePicker() {
     }
   });
 
-  // Expose so openFsRelay can trigger it
   window._fluxApplyKeyboardLayout = applyLayout;
 })();
 </script>
@@ -14962,7 +15322,6 @@ function update() {
     }
   }
 
-  // Moving crows (ruins hazard) — kill on contact
   for (const c of crows) {
     c.x += c.vx;
     c.flap += 0.25;
