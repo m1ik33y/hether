@@ -1550,21 +1550,43 @@ kbd {
 }
 
 .flux-profile-tab {
+  width: 0;
+  min-width: 0;
+  border-left: 0px solid var(--border);
+  background: var(--surface);
+  display: flex;
+  flex-shrink: 0;
+  overflow: hidden;
+  will-change: width;
+  transition: width 0.38s cubic-bezier(0.16, 1, 0.3, 1),
+              border-left-width 0.38s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.flux-profile-tab.show {
   width: 260px;
   min-width: 260px;
-  border-left: 1px solid var(--border);
-  background: var(--surface);
-  display: none;
+  border-left-width: 1px;
+}
+
+.flux-profile-tab-inner {
+  width: 260px;
+  min-width: 260px;
+  flex-shrink: 0;
+  display: flex;
   flex-direction: column;
   padding: 18px 16px;
   overflow-y: auto;
-  flex-shrink: 0;
   scrollbar-width: none;
+  transform: translateX(24px);
+  opacity: 0;
+  transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.32s ease;
 }
-.flux-profile-tab::-webkit-scrollbar { display: none; }
+.flux-profile-tab-inner::-webkit-scrollbar { display: none; }
 
-.flux-profile-tab.show {
-  display: flex;
+.flux-profile-tab.show .flux-profile-tab-inner {
+  transform: translateX(0);
+  opacity: 1;
 }
 
 .flux-profile-tab-header {
@@ -1635,6 +1657,7 @@ kbd {
   overflow: hidden;
   text-overflow: ellipsis;
   padding: 0 6px;
+  flex-shrink: 0;
 }
 
 .flux-profile-tab-username {
@@ -1646,12 +1669,14 @@ kbd {
   overflow: hidden;
   text-overflow: ellipsis;
   padding: 0 6px;
+  flex-shrink: 0;
 }
 
 /* Nickname section inside profile tab */
 .flux-profile-tab-section {
   border-top: 1px solid var(--border);
   padding-top: 14px;
+  flex-shrink: 0;
 }
 
 .flux-mutual-section {
@@ -1898,19 +1923,34 @@ kbd {
   cursor: pointer;
   transition: color var(--t);
   border-radius: 7px;
+  flex-shrink: 0;
 }
 .flux-theme-toggle-btn:hover { color: var(--text); background: none; }
 .flux-theme-toggle-btn svg { flex-shrink: 0; }
 
 /* ── THEME PICKER LIST ── */
 .flux-theme-picker {
-  display: none;
+  display: flex;
   flex-direction: column;
   gap: 4px;
-  margin-top: 10px;
   padding: 0 2px;
+  flex-shrink: 0;
+  margin-top: 0;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transform: translateY(-6px);
+  transition: max-height 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+              opacity 0.16s ease,
+              margin-top 0.22s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.flux-theme-picker.open { display: flex; }
+.flux-theme-picker.open {
+  max-height: 3000px;
+  margin-top: 10px;
+  opacity: 1;
+  transform: translateY(0);
+}
 
 .flux-theme-item {
   display: flex;
@@ -2351,6 +2391,15 @@ kbd {
 }
 .flux-delete-relay-btn:hover { color: #ef4444; background: none; }
 
+.flux-unarchive-btn {
+  background: transparent; border: none; cursor: pointer;
+  color: var(--text3); width: 32px; height: 32px; border-radius: 8px;
+  display: none; align-items: center; justify-content: center;
+  transition: color var(--t), background var(--t);
+  flex-shrink: 0;
+}
+.flux-unarchive-btn:hover { color: var(--accent); background: none; }
+
 .flux-relay-messages {
   flex: 1;
   overflow-y: auto;
@@ -2391,7 +2440,6 @@ kbd {
   flex-direction: column;
   gap: 2px;
   margin-bottom: 8px;
-  animation: msgIn 0.15s ease;
   flex-shrink: 0;
   width: 100%;
 }
@@ -2608,7 +2656,7 @@ kbd {
   pointer-events: none;
 }
 
-.flux-bubble.sending { opacity: 0.6; }
+.flux-bubble.sending { opacity: 0.82; transition: opacity 0.18s ease; }
 .flux-sending-icon {
   display: inline-flex; align-items: center; justify-content: center;
   width: 12px; height: 12px; margin-left: 4px; vertical-align: middle;
@@ -3108,6 +3156,7 @@ label.emoji-btn { margin-right: 4px; }
 .note-save-status.saved { color: #22c55e; }
 
 /* ── CONFIRM DIALOG ── */
+#confirmOverlay { z-index: 10600; }
 .confirm-popup {
   background: var(--surface); border: 1px solid var(--border);
   border-radius: 12px; padding: 22px; width: 340px;
@@ -3136,13 +3185,11 @@ label.emoji-btn { margin-right: 4px; }
   width: 40px; height: 40px; border-radius: 50%;
   background: var(--surface2);
   flex-shrink: 0;
-  animation: shimmer 1.4s infinite;
 }
 .flux-sk-lines { flex: 1; display: flex; flex-direction: column; gap: 6px; }
 .flux-sk-line {
   height: 10px; border-radius: 6px;
   background: var(--surface2);
-  animation: shimmer 1.4s infinite;
 }
 .flux-sk-line.short { width: 55%; }
 .flux-sk-line.long { width: 85%; }
@@ -5458,6 +5505,9 @@ label.emoji-btn { margin-right: 4px; }
             <button class="flux-delete-relay-btn" id="fluxDeleteRelayBtn" onclick="openClearRelayConfirm()" title="Clear relay (Alt+Backspace)">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><line x1="15" x2="9" y1="9" y2="15"/><line x1="9" x2="15" y1="9" y2="15"/></svg>
             </button>
+            <button class="flux-unarchive-btn" id="fluxUnarchiveBtn" onclick="confirmUnarchiveActive()" title="Unarchive">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="5" rx="1"/><path d="M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9"/><polyline points="9 13 12 10 15 13"/><line x1="12" y1="10" x2="12" y2="17"/></svg>
+            </button>
           </div>
 
           <div class="flux-relay-load-bar" id="fluxRelayLoadBar"><div class="flux-load-bar-fill" id="fluxRelayLoadFill"></div></div>
@@ -5515,6 +5565,7 @@ label.emoji-btn { margin-right: 4px; }
     </div>
 
       <div class="flux-profile-tab" id="fluxProfileTab">
+       <div class="flux-profile-tab-inner" id="fluxProfileTabInner">
         <div class="flux-profile-tab-header">
           <div class="flux-profile-tab-title">Profile</div>
           <button class="flux-profile-tab-close" onclick="closeNicknamePanel()" title="Close">
@@ -5580,6 +5631,7 @@ label.emoji-btn { margin-right: 4px; }
           <!-- populated by JS -->
         </div>
 
+       </div>
       </div>
 
     </div>
@@ -5662,6 +5714,9 @@ label.emoji-btn { margin-right: 4px; }
       </div>
       <button class="flux-delete-relay-btn" onclick="openClearRelayConfirm()" title="Clear relay" style="margin-left:auto;">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><line x1="15" x2="9" y1="9" y2="15"/><line x1="9" x2="15" y1="9" y2="15"/></svg>
+      </button>
+      <button class="flux-unarchive-btn" id="fluxFsUnarchiveBtn" onclick="confirmUnarchiveActive()" title="Unarchive">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="5" rx="1"/><path d="M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9"/><polyline points="9 13 12 10 15 13"/><line x1="12" y1="10" x2="12" y2="17"/></svg>
       </button>
     </div>
 
@@ -5881,11 +5936,11 @@ label.emoji-btn { margin-right: 4px; }
 
 <div class="clear-relay-overlay" id="clearRelayOverlay">
   <div class="confirm-popup" id="clearRelayPopup">
-    <h3>Clear relay?</h3>
+    <h3>Clear all?</h3>
     <p>All messages in this conversation will be permanently deleted for both people. This cannot be undone.</p>
     <div class="popup-btns">
       <button class="btn-cancel" id="clearRelayCancelBtn" onclick="closeClearRelayConfirm()">Cancel</button>
-      <button class="btn-confirm" id="clearRelayConfirmBtn" style="background:#ef4444;" onclick="confirmClearRelay()">Clear relay</button>
+      <button class="btn-confirm" id="clearRelayConfirmBtn" style="background:#ef4444;" onclick="confirmClearRelay()">Clear</button>
     </div>
   </div>
 </div>
@@ -6793,7 +6848,11 @@ function showConfirm(title, msg, okLabel, callback) {
   document.getElementById('confirmOverlay').classList.add('show');
 }
 function closeConfirm() { document.getElementById('confirmOverlay').classList.remove('show'); _confirmCallback = null; }
-function confirmAction() { closeConfirm(); if (_confirmCallback) _confirmCallback(); }
+function confirmAction() {
+  const cb = _confirmCallback;
+  closeConfirm();
+  if (cb) cb();
+}
 
 // ── SEARCH ──
 // Bump this on every keystroke so a slow RPC response from an older
@@ -8246,6 +8305,32 @@ function _fluxArchivedOf(contactId) {
   return fluxArchived.get(contactId) === true;
 }
 
+// ── UNARCHIVE (from open chat header) ──
+// Archived chats disappear from the sidebar, so the per-conversation "..."
+// menu (which lives on the sidebar row) becomes unreachable for them. This
+// mirrors that same Archive/Unarchive toggle directly in the chat header so
+// an archived conversation can always be unarchived from within itself.
+function _updateUnarchiveBtnVisibility(id) {
+  const archived = id ? _fluxArchivedOf(id) : false;
+  const desktopBtn = document.getElementById('fluxUnarchiveBtn');
+  const fsBtn = document.getElementById('fluxFsUnarchiveBtn');
+  if (desktopBtn) desktopBtn.style.display = archived ? 'flex' : 'none';
+  if (fsBtn) fsBtn.style.display = archived ? 'flex' : 'none';
+}
+
+function confirmUnarchiveActive() {
+  const id = activeFluxId;
+  if (!id) return;
+  showConfirm(
+    'Unarchive conversation?',
+    'This chat will move back into your inbox and appear in your sidebar again.',
+    'Unarchive',
+    async () => {
+      await toggleFluxArchive(id);
+    }
+  );
+}
+
 async function toggleFluxArchive(contactId) {
   const ownerId = _fluxMyUserId || (await supabaseClient.auth.getUser()).data?.user?.id;
   if (!ownerId) return;
@@ -8253,9 +8338,26 @@ async function toggleFluxArchive(contactId) {
   const wasArchived = _fluxArchivedOf(contactId);
   const newArchived = !wasArchived;
 
-  // Optimistic local update
+  // Optimistic local update — flip state, hide/show the header button,
+  // and refresh the list immediately so the person isn't waiting on the
+  // network round-trip to see the change.
   fluxArchived.set(contactId, newArchived);
-  buildFLUXConvList();
+  _updateUnarchiveBtnVisibility(activeFluxId);
+
+  if (!newArchived) {
+    // Unarchiving: this contact may belong to a category/tab other than
+    // the one currently selected (e.g. "General" while viewing "Primary").
+    // Jump to "All" so it's guaranteed to show up in the DM list right away
+    // instead of silently unarchiving into a tab the person isn't looking at.
+    const contactCategory = _fluxCategoryOf(contactId);
+    if (fluxActiveTab !== 'all' && fluxActiveTab !== contactCategory) {
+      switchFluxTab('all');
+    } else {
+      buildFLUXConvList();
+    }
+  } else {
+    buildFLUXConvList();
+  }
 
   const { error } = await supabaseClient
     .from('chat_categories')
@@ -8266,8 +8368,10 @@ async function toggleFluxArchive(contactId) {
 
   if (error) {
     console.error('Failed to update archive state:', error.message);
+    // Roll back the optimistic update on failure
     fluxArchived.set(contactId, wasArchived);
     buildFLUXConvList();
+    _updateUnarchiveBtnVisibility(activeFluxId);
     alert('Could not update archive setting. Please try again.');
   }
 }
@@ -8536,6 +8640,7 @@ async function openDesktopRelay(id) {
   hideRemoteTyping();
   document.getElementById('fluxProfileTab')?.classList.remove('show');
   activeFluxId = id;
+  _updateUnarchiveBtnVisibility(id);
 
   const myToken = ++_fluxLoadToken;
 
@@ -8589,8 +8694,25 @@ async function openDesktopRelay(id) {
 
 async function openNicknamePanel() {
   if (!activeFluxId) return;
+  const tab = document.getElementById('fluxProfileTab');
+  // Force the browser to commit the current (closed, width:0) state before
+  // we add "show". Without this, the class add can land in the same paint
+  // frame as the click handling itself, so the browser has nothing to
+  // transition *from* and just jumps straight to width:260px — no animation.
+  // (Close doesn't have this problem: the panel is already fully painted
+  // open, so removing "show" always has a committed starting frame to
+  // animate from.) Reading a layout property forces a synchronous reflow,
+  // then rAF defers the class add to the next frame so the transition has
+  // a clean starting point to animate from.
+  tab.getBoundingClientRect();
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      tab.classList.add('show');
+    });
+  });
+  // Kick off the data fetch in parallel — content fills in progressively
+  // while the panel is already animating open.
   await loadNicknameSideTab(activeFluxId);
-  document.getElementById('fluxProfileTab').classList.add('show');
 }
 
 function closeNicknamePanel() {
@@ -9379,13 +9501,6 @@ function makeBubbleWrap(msg, isSent, contact, currentUserId) {
     const textNode = document.createElement('div');
     textNode.textContent = msg.content;
     bubble.appendChild(textNode);
-  }
-
-  if (msg.sending) {
-    const spin = document.createElement('span');
-    spin.className = 'flux-sending-icon';
-    spin.innerHTML = `<div class="flux-sending-spinner"></div>`;
-    bubble.appendChild(spin);
   }
 
   bubble.addEventListener('dblclick', (e) => { e.preventDefault(); addReaction(bWrap, '❤️'); });
@@ -10532,6 +10647,7 @@ async function openFsRelay(id) {
   contact.unreadCount = 0;
   hideRemoteTyping();
   activeFluxId = id;
+  _updateUnarchiveBtnVisibility(id);
 
   // FIX 1: fs avatar
   const av = document.getElementById('fluxFsAvatar');
@@ -10660,9 +10776,6 @@ async function fluxSend(mode) {
   }
 
   if (displayText) { const textNode = document.createElement('div'); textNode.textContent = displayText; bubble.appendChild(textNode); }
-  const spin = document.createElement('span');
-  spin.className = 'flux-sending-icon'; spin.innerHTML = `<div class="flux-sending-spinner"></div>`;
-  bubble.appendChild(spin);
 
   bWrap.appendChild(moreBtnOpt); bWrap.appendChild(replyBtnOpt); bWrap.appendChild(bubble);
 
@@ -10715,7 +10828,7 @@ async function fluxSend(mode) {
     const bubbleForScroll = bWrap && (bWrap.querySelector('.flux-bubble') || bWrap);
     const delta = (bubbleForScroll && bubbleForScroll.offsetHeight) || 0;
     const maxScroll = msgsEl.scrollHeight - msgsEl.clientHeight;
-    if (delta > 0) msgsEl.scrollTop = Math.min(msgsEl.scrollTop + delta, maxScroll);
+    if (delta > 0) msgsEl.scrollTop = Math.min(msgsEl.scrollTop + delta + 5, maxScroll);
   } catch (e) { /* safe fallback */ }
 
   try {
@@ -10735,8 +10848,6 @@ async function fluxSend(mode) {
     if (error) throw error;
 
     // Upgrade optimistic bubble with real ID (the real-time INSERT will also fire but renderedMsgIds will block double render)
-    const spinner = bubble.querySelector('.flux-sending-icon');
-    if (spinner) spinner.remove();
     bubble.classList.remove('sending');
     bubble.style.opacity = '';
     if (inserted?.id) {
@@ -10755,7 +10866,7 @@ async function fluxSend(mode) {
     if (msgsEl) fixSeenLabels(msgsEl);
   } catch (err) {
     if (window._fluxMediaLoadingRemover) { window._fluxMediaLoadingRemover(); window._fluxMediaLoadingRemover = null; }
-    spin.remove(); bubble.classList.remove('sending'); bubble.style.opacity = '0.5'; bubble.title = 'Failed to send';
+    bubble.classList.remove('sending'); bubble.style.opacity = '0.5'; bubble.title = 'Failed to send';
   } finally {
     if (sendBtn) { delete sendBtn.dataset.sending; sendBtn.style.opacity = ''; sendBtn.disabled = false; }
     // On mobile, re-focus to keep keyboard up
