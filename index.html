@@ -5,7 +5,7 @@
   <link rel="icon" type="image/png" href="hether_logo.png">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hether Web - Music player </title>
+<title>Hether - Code n' Arcade </title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <style>
@@ -1008,15 +1008,31 @@ body {
 }
 .flux-typing-bubble-wrap {
   position: relative;
-  padding: 65px 16px;
-  background: #060000;
-  border-radius: 16px 16px 16px 4px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+  padding: 16.5px 13px;
+  background: var(--surface2);
+  border-radius: 0 7px 7px 7px;
+  box-shadow: none;
   display: inline-flex; align-items: center;
   width: fit-content;
 }
 [data-theme="dark"] .flux-typing-bubble-wrap {
-  box-shadow: 0 1px 6px rgba(0,0,0,0.35);
+  box-shadow: none;
+}
+[data-theme="dark"] .flux-typing-bubble-wrap::before {
+  box-shadow: none;
+}
+.flux-typing-bubble-wrap::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -6px;
+  width: 7px;
+  height: 9px;
+  background: inherit;
+  box-shadow: none;
+  clip-path: polygon(100% 0, 0 0, 100% 100%);
+  border-radius: 4px 0 0 0;
+  pointer-events: none;
 }
 
 .flux-typing-bubble {
@@ -1288,7 +1304,7 @@ kbd {
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 .overlay.show { display: flex; }
 
-.popup { background: #060000; border: 1px solid var(--border); border-radius: 12px; padding: 26px; width: 350px; animation: popIn 0.18s ease; box-shadow: 0 24px 60px rgba(0,0,0,0.2); }
+.popup { background: #1c1c1e; border: 1px solid var(--border); border-radius: 12px; padding: 26px; width: 350px; animation: popIn 0.18s ease; box-shadow: 0 24px 60px rgba(0,0,0,0.2); }
 @keyframes popIn { from { opacity: 0; transform: scale(0.94) translateY(-10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 .popup h3 { font-size: 15px; font-weight: 450; margin-bottom: 5px; }
 .popup p { font-size: 12.5px; color: var(--text2); margin-bottom: 16px; }
@@ -1592,7 +1608,7 @@ kbd {
   width: 0;
   min-width: 0;
   border-left: 0px solid var(--border);
-  background: #060000;
+  background: var(--surface);
   display: flex;
   flex-shrink: 0;
   overflow: hidden;
@@ -2049,7 +2065,7 @@ kbd {
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  background: #060000;
+  background: var(--surface);
   min-width: 0;
 }
 
@@ -2129,7 +2145,7 @@ kbd {
 .flux-search-dropdown {
   position: absolute;
   left: 12px; right: 12px; top: calc(100% - 2px);
-  background: #060000;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 10px;
   box-shadow: 0 8px 24px rgba(0,0,0,0.14);
@@ -2323,7 +2339,7 @@ kbd {
 .flux-relay-topbar {
   padding: 11.7px 18px;
   border-bottom: 1px solid var(--border);
-  background: #060000;
+  background: var(--surface);
   display: flex; align-items: center; gap: 12px;
   flex-shrink: 0;
   position: relative;
@@ -2661,15 +2677,23 @@ kbd {
 [data-squared-bubble] .flux-msg-group.received .flux-bubble.bubble-first .flux-reply-preview,
 [data-squared-bubble] .flux-msg-group.received .flux-bubble.bubble-solo .flux-reply-preview { border-radius: 5px 5px 2px 2px; }
 
+[data-squared-bubble] .flux-msg-group.sent .flux-bubble.bubble-first:not(.flux-bubble-emoji-only):not(.flux-bubble-media-only),
+[data-squared-bubble] .flux-msg-group.sent .flux-bubble.bubble-solo:not(.flux-bubble-emoji-only):not(.flux-bubble-media-only),
+[data-squared-bubble] .flux-msg-group.received .flux-bubble.bubble-first:not(.flux-bubble-emoji-only):not(.flux-bubble-media-only),
+[data-squared-bubble] .flux-msg-group.received .flux-bubble.bubble-solo:not(.flux-bubble-emoji-only):not(.flux-bubble-media-only) {
+  box-shadow: none;
+}
+
 [data-squared-bubble] .flux-msg-group.sent .flux-bubble.bubble-first:not(.flux-bubble-emoji-only):not(.flux-bubble-media-only)::before,
 [data-squared-bubble] .flux-msg-group.sent .flux-bubble.bubble-solo:not(.flux-bubble-emoji-only):not(.flux-bubble-media-only)::before {
   content: "";
   position: absolute;
   top: 0;
-  right: -7px;
+  right: -6px;
   width: 7px;
   height: 9px;
   background: inherit;
+  box-shadow: none;
   clip-path: polygon(0 0, 100% 0, 0 100%);
   border-radius: 0 4px 0 0;
   pointer-events: none;
@@ -2680,10 +2704,11 @@ kbd {
   content: "";
   position: absolute;
   top: 0;
-  left: -7px;
+  left: -6px;
   width: 7px;
   height: 9px;
   background: inherit;
+  box-shadow: none;
   clip-path: polygon(100% 0, 0 0, 100% 100%);
   border-radius: 4px 0 0 0;
   pointer-events: none;
@@ -2899,7 +2924,7 @@ kbd {
 
 .flux-input-row {
   display: flex; gap: 6px; align-items: center;
-  background: #060000; border: 1px solid rgb(168, 168, 168);
+  background: var(--surface); border: 1px solid rgb(168, 168, 168);
   border-radius: 22px; padding: 6px 6px 6px 9px;
   transition: border-color var(--t);
 }
@@ -3711,7 +3736,7 @@ label.emoji-btn { margin-right: 4px; }
 .auth-page {
   display: flex; align-items: center; justify-content: center;
   height: 100vh; width: 100%;
-  background: var(--bg);
+  background: #060000;
   position: fixed; inset: 0; z-index: 1000;
   overflow: hidden;
 }
@@ -3753,7 +3778,7 @@ label.emoji-btn { margin-right: 4px; }
 }
 
 .auth-panel {
-  background: #060000;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 32px 28px;
@@ -3769,6 +3794,13 @@ label.emoji-btn { margin-right: 4px; }
   margin-bottom: 4px;
   text-align: center;
 }
+.auth-panel-title .gradient-text {
+  background: linear-gradient(90deg, #DAE314, #DAE314);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
 .auth-panel-sub {
   font-size: 13px;
   color: var(--text3);
@@ -3776,7 +3808,7 @@ label.emoji-btn { margin-right: 4px; }
   margin-bottom: 24px;
 }
 
-.auth-landing-btns { display: flex; flex-direction: column; gap: 10px; }
+.auth-landing-btns { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
 
 .auth-main-btn {
   width: 100%; padding: 11px 18px; border-radius: 10px; border: none;
@@ -3788,7 +3820,7 @@ label.emoji-btn { margin-right: 4px; }
 .auth-main-btn.primary:hover { background: #6B9440; opacity: 1; transform: translateY(-1px); box-shadow: 0 4px 20px rgba(123,168,74,0.36); }
 .auth-main-btn.guest { background: #22a06b; color: #fff; opacity: 0.96; box-shadow: 0 2px 14px rgba(34,160,107,0.28); }
 .auth-main-btn.guest:hover { background: #1c8a5c; opacity: 1; transform: translateY(-1px); box-shadow: 0 4px 20px rgba(34,160,107,0.36); }
-.auth-main-btn.secondary { background: transparent; color: var(--text); border: 1px solid var(--border); }
+.auth-main-btn.secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
 .auth-main-btn.secondary:hover { background: var(--surface2); border-color: var(--accent); }
 
 .auth-divider { display: flex; align-items: center; gap: 10px; margin: 4px 0; }
@@ -3917,10 +3949,11 @@ label.emoji-btn { margin-right: 4px; }
   pointer-events: none;
   z-index: 0;
   opacity: 0.05;
+  filter: invert(1);
 }
 [data-theme="dark"] #fluxActiveRelayWrap::before {
   filter: invert(1);
-  opacity: 0.06;
+  opacity: 0.05;
 }
 @media (max-width: 768px) {
   #fluxActiveRelayWrap::before {
@@ -3937,7 +3970,7 @@ label.emoji-btn { margin-right: 4px; }
 
 /* Topbar gets its own solid bg so it's fully opaque over the pattern */
 #fluxActiveRelayWrap .flux-relay-topbar {
-  background: #060000;
+  background: var(--surface);
   z-index: 2;
 }
 
@@ -5165,9 +5198,16 @@ body.has-player-bar .main { padding-bottom: 84px; }
 html, body { background: #060000 !important; }
 #mainApp, .main, .relay-view, .settings-view, .settings-panel,
 .calc-view, .notes-view, .notes-layout, .notes-editor-panel,
-.flux-relay-panel, .flux-relay-content, .flux-ai-panel,
-.flux-fs-body, .flux-fs-messages, .input-area {
+.flux-ai-panel,
+.input-area {
   background: #060000 !important;
+}
+.flux-relay-panel, .flux-relay-content,
+.flux-fs-body, .flux-fs-messages {
+  background: #101013 !important;
+}
+.flux-relay-input-area, .flux-fs-input-area {
+  background: transparent !important;
 }
 /* Front-page typography/input theme — terminal is outside #mainApp and keeps its own colors. */
 #mainApp {
@@ -5261,8 +5301,7 @@ html, body { background: #060000 !important; }
 
     <div class="auth-panel">
       <div class="auth-panel-view active" id="authLanding">
-        <div class="auth-panel-title">Welcome back</div>
-        <div class="auth-panel-sub">Your AI assistant for everything.</div>
+        <div class="auth-panel-title">Tune into <span class="gradient-text">Your Favourites</span></div>
         <div class="auth-landing-btns">
           <button class="auth-main-btn primary" onclick="showAuthView('login')">
             Log in
@@ -9480,7 +9519,9 @@ function confirmAction() {
 }
 
 // ── DOWNLOAD (desktop only) ──
-const HETHER_INSTALLER_URL = 'https://github.com/m1ik33y/hether/releases/download/hether-installer/Hether-Setup.exe';
+// Always resolves to whatever release is currently marked "Latest" on GitHub,
+// regardless of tag name — no need to update this URL on future releases.
+const HETHER_INSTALLER_URL = 'https://github.com/m1ik33y/hether/releases/latest/download/Hether-Setup.exe';
 function handleDownloadClick() {
   if (isMobile()) return; // desktop-only feature, nav item hidden via CSS on mobile too
   showConfirm('Download Hether', 'Download Hether in your PC?', 'Yes', () => {
