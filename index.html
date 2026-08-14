@@ -9521,7 +9521,9 @@ function confirmAction() {
 // ── DOWNLOAD (desktop only) ──
 // Always resolves to whatever release is currently marked "Latest" on GitHub,
 // regardless of tag name — no need to update this URL on future releases.
-const HETHER_INSTALLER_URL = 'https://github.com/m1ik33y/hether/releases/latest/download/Hether-Setup.exe';
+// NOTE: the asset filename below must always match whatever the current
+// release actually uploads (checked against hether-installer-2.0: Hether.Setup.exe).
+const HETHER_INSTALLER_URL = 'https://github.com/m1ik33y/hether/releases/latest/download/Hether.Setup.exe';
 function handleDownloadClick() {
   if (isMobile()) return; // desktop-only feature, nav item hidden via CSS on mobile too
   showConfirm('Download Hether', 'Download Hether in your PC?', 'Yes', () => {
