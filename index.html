@@ -5,7 +5,7 @@
   <link rel="icon" type="image/png" href="hether_logo.png">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hether - Code n' Arcade </title>
+<title>Hether - Web Player </title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <style>
@@ -1464,10 +1464,17 @@ kbd {
   pointer-events: none;
   z-index: 0;
   opacity: 0.05;
+  filter: invert(1);
 }
 [data-theme="dark"] .flux-ai-panel::before {
   filter: invert(1);
-  opacity: 0.06;
+  opacity: 0.05;
+}
+@media (max-width: 768px) {
+  .flux-ai-panel::before {
+    background-image: url('images/chat_bg.svg');
+    background-size: 320px auto;
+  }
 }
 
 /* All children above the bg */
@@ -1478,7 +1485,7 @@ kbd {
 
 /* Header sits on solid surface */
 .flux-ai-panel > .flux-relay-topbar {
-  background: #060000;
+  background: var(--surface);
   z-index: 2;
 }
 
@@ -1563,7 +1570,7 @@ kbd {
 }
 .flux-ai-input-row {
   display: flex; gap: 6px; align-items: center;
-  background: #060000; border: 1px solid rgb(168, 168, 168);
+  background: var(--surface); border: 1px solid rgb(168, 168, 168);
   border-radius: 22px; padding: 6px 8px 6px 6px;
   transition: border-color var(--t);
 }
@@ -2225,9 +2232,9 @@ kbd {
 .flux-conv-menu-btn svg { width: 15px; height: 15px; }
 
 .flux-conv-menu {
-  position: fixed; z-index: 9999; background: #060000;
+  position: fixed; z-index: 9999; background: var(--surface);
   border: 1px solid var(--border); border-radius: 10px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.18); overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: hidden;
   min-width: 168px; display: none; padding: 6px;
 }
 .flux-conv-menu.show { display: block; }
@@ -3043,14 +3050,15 @@ label.emoji-btn { margin-right: 4px; }
   inset: 0;
   background-image: url('images/chat_bg.svg');
   background-repeat: repeat;
-  background-size: 480px auto;
+  background-size: 320px auto;
   pointer-events: none;
   z-index: 0;
-  opacity: 0.055;
+  opacity: 0.05;
+  filter: invert(1);
 }
 [data-theme="dark"] .flux-fs-body::before {
   filter: invert(1);
-  opacity: 0.045;
+  opacity: 0.05;
 }
 .flux-fs-body > * { position: relative; z-index: 1; }
 .flux-fs-header {
@@ -3412,11 +3420,11 @@ label.emoji-btn { margin-right: 4px; }
 
 .flux-msg-action-menu {
   position: fixed;
-  background: #060000;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 5px;
-  box-shadow: 0 8px 28px rgba(0,0,0,0.18);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
   z-index: 10500;
   min-width: 140px;
   animation: popIn 0.14s ease;
@@ -3868,8 +3876,8 @@ label.emoji-btn { margin-right: 4px; }
 .auth-panel-view.active { display: block; }
 
 .flux-ctx-menu {
-  position: fixed; background: #060000; border: 1px solid var(--border);
-  border-radius: 10px; padding: 6px; box-shadow: 0 8px 24px rgba(0,0,0,0.14);
+  position: fixed; background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);
   z-index: 10001; min-width: 130px; animation: popIn 0.15s ease;
 }
 .flux-ctx-item {
@@ -4711,6 +4719,7 @@ label.emoji-btn { margin-right: 4px; }
 .lib-thumb-label-row {
   position: absolute; left: 18px; bottom: 16px; width: 60%;
   display: flex; align-items: center; gap: 12px; pointer-events: none;
+  z-index: 3;
 }
 .lib-thumb-np-thumb {
   display: none; flex-shrink: 0; width: 64px; height: 64px;
@@ -4729,6 +4738,7 @@ label.emoji-btn { margin-right: 4px; }
 #libThumbPreview {
   position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
   cursor: grab; touch-action: none; -webkit-user-drag: none; user-select: none;
+  z-index: 1;
 }
 #libThumbPreview:active { cursor: grabbing; }
 .lib-thumb-reposition-hint {
@@ -5198,13 +5208,16 @@ body.has-player-bar .main { padding-bottom: 84px; }
 html, body { background: #060000 !important; }
 #mainApp, .main, .relay-view, .settings-view, .settings-panel,
 .calc-view, .notes-view, .notes-layout, .notes-editor-panel,
-.flux-ai-panel,
 .input-area {
   background: #060000 !important;
 }
 .flux-relay-panel, .flux-relay-content,
-.flux-fs-body, .flux-fs-messages {
+.flux-fs-body, .flux-fs-messages,
+.flux-ai-panel {
   background: #101013 !important;
+}
+.flux-ai-messages {
+  background: transparent !important;
 }
 .flux-relay-input-area, .flux-fs-input-area {
   background: transparent !important;
@@ -5261,19 +5274,16 @@ html, body { background: #060000 !important; }
 
 /* AI panel: keep the intro/header and input bar dark, with white text. */
 .flux-ai-panel {
-  --bg: #060000;
-  --surface: #060000;
+  --bg: #101013;
+  --surface: #18181b;
   --surface2: #120C0C;
   --input-bg: #060000;
   --text: #f5f5f5;
   --text2: #e8e8e8;
   --text3: #bdbdbd;
-  background: #060000 !important;
+  background: #101013 !important;
   color: #f5f5f5;
 }
-.flux-ai-panel .flux-relay-topbar { background: #060000 !important; }
-.flux-ai-panel .flux-ai-input-area { background: #060000; }
-.flux-ai-panel .flux-ai-input-row { background: #060000 !important; }
 .flux-ai-panel #fluxAiInput { color: #ffffff !important; background: transparent !important; }
 .flux-ai-panel #fluxAiInput::placeholder { color: #bdbdbd !important; }
 .flux-ai-panel .flux-ai-messages { background: transparent; color: #f5f5f5; }
@@ -6877,7 +6887,7 @@ html, body { background: #060000 !important; }
     </div>
 
     <div class="flux-ai-panel" id="fluxAiPanel">
-      <div class="flux-relay-topbar" style="border-bottom:1px solid var(--border);flex-shrink:0;background:#060000;position:relative;z-index:2;">
+      <div class="flux-relay-topbar" style="border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface);position:relative;z-index:2;">
         <div style="display:flex;align-items:center;gap:8px;flex:1;">
           <div style="width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>
@@ -7173,7 +7183,7 @@ html, body { background: #060000 !important; }
     <p id="confirmMsg">This action cannot be undone.</p>
     <div class="popup-btns">
       <button class="btn-cancel" onclick="closeConfirm()">Cancel</button>
-      <button class="btn-confirm" id="confirmOkBtn" style="background:#6b7280;" onclick="confirmAction()">Confirm</button>
+      <button class="btn-confirm" id="confirmOkBtn" style="background:#ef4444;" onclick="confirmAction()">Confirm</button>
     </div>
   </div>
 </div>
@@ -7969,7 +7979,6 @@ function handleLibThumbSelect(e) {
   preview.style.objectPosition = '50% 50%';
   preview.src = URL.createObjectURL(file);
   preview.style.display = 'block';
-  document.getElementById('libThumbPlaceholder').style.display = 'none';
   document.getElementById('libThumbRepositionHint').classList.add('show');
 }
 
@@ -8431,6 +8440,14 @@ async function connectToDevice() {
   const audio = document.getElementById('libAudio');
   const btn = document.getElementById('sbDeviceBtn');
   if (!audio) return;
+
+  // If the menu is already open, a second click on the button should close
+  // it instead of re-opening/re-rendering it.
+  const existingMenu = document.getElementById('sbDeviceMenu');
+  if (existingMenu && existingMenu.style.display !== 'none') {
+    closeSbDeviceMenu();
+    return;
+  }
 
   // Running in Electron (Chromium): webkitShowPlaybackTargetPicker (Safari
   // AirPlay) and audio.remote.prompt() (Remote Playback API) don't exist
@@ -9519,33 +9536,13 @@ function confirmAction() {
 }
 
 // ── DOWNLOAD (desktop only) ──
-// Fallback only — used if the GitHub API lookup below fails (rate limit, offline, etc).
-// This still has to match the actual asset filename on the release, so it can go stale;
-// the API lookup is what makes this resilient to future filename changes.
-const HETHER_INSTALLER_FALLBACK_URL = 'https://github.com/m1ik33y/hether/releases/latest/download/Hether.Setup.exe';
-const HETHER_REPO = 'm1ik33y/hether';
-
-// Asks GitHub directly "what is the exe asset on the latest release right now"
-// instead of guessing a filename, so renaming the installer on a future release
-// (Hether-Setup.exe vs Hether.Setup.exe vs Hether-Setup-v4.exe, etc.) can't break this again.
-async function getLatestInstallerUrl() {
-  try {
-    const res = await fetch(`https://api.github.com/repos/${HETHER_REPO}/releases/latest`);
-    if (!res.ok) throw new Error('GitHub API error ' + res.status);
-    const release = await res.json();
-    const exeAsset = (release.assets || []).find(a => a.name.toLowerCase().endsWith('.exe'));
-    if (exeAsset) return exeAsset.browser_download_url;
-    throw new Error('No .exe asset found on latest release');
-  } catch (e) {
-    console.warn('Falling back to static installer URL:', e);
-    return HETHER_INSTALLER_FALLBACK_URL;
-  }
-}
-
+// Always resolves to whatever release is currently marked "Latest" on GitHub,
+// regardless of tag name — no need to update this URL on future releases.
+const HETHER_INSTALLER_URL = 'https://github.com/m1ik33y/hether/releases/latest/download/Hether.Setup.exe';
 function handleDownloadClick() {
   if (isMobile()) return; // desktop-only feature, nav item hidden via CSS on mobile too
-  showConfirm('Download Hether', 'Download Hether in your PC?', 'Yes', async () => {
-    window.location.href = await getLatestInstallerUrl();
+  showConfirm('Download Hether', 'Download Hether in your PC?', 'Yes', () => {
+    window.location.href = HETHER_INSTALLER_URL;
   });
 }
 
