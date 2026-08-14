@@ -986,7 +986,7 @@ body {
   align-items: center;
   gap: 8px;
   animation: msgIn 0.15s ease;
-  margin-top: 4px;
+  margin-top: auto;
   margin-bottom: 2px;
 }
 .flux-typing-avatar {
@@ -7173,7 +7173,7 @@ html, body { background: #060000 !important; }
     <p id="confirmMsg">This action cannot be undone.</p>
     <div class="popup-btns">
       <button class="btn-cancel" onclick="closeConfirm()">Cancel</button>
-      <button class="btn-confirm" id="confirmOkBtn" style="background:#ef4444;" onclick="confirmAction()">Confirm</button>
+      <button class="btn-confirm" id="confirmOkBtn" style="background:#6b7280;" onclick="confirmAction()">Confirm</button>
     </div>
   </div>
 </div>
@@ -9519,13 +9519,33 @@ function confirmAction() {
 }
 
 // ── DOWNLOAD (desktop only) ──
-// Always resolves to whatever release is currently marked "Latest" on GitHub,
-// regardless of tag name — no need to update this URL on future releases.
-const HETHER_INSTALLER_URL = 'https://github.com/m1ik33y/hether/releases/latest/download/Hether-Setup.exe';
+// Fallback only — used if the GitHub API lookup below fails (rate limit, offline, etc).
+// This still has to match the actual asset filename on the release, so it can go stale;
+// the API lookup is what makes this resilient to future filename changes.
+const HETHER_INSTALLER_FALLBACK_URL = 'https://github.com/m1ik33y/hether/releases/latest/download/Hether.Setup.exe';
+const HETHER_REPO = 'm1ik33y/hether';
+
+// Asks GitHub directly "what is the exe asset on the latest release right now"
+// instead of guessing a filename, so renaming the installer on a future release
+// (Hether-Setup.exe vs Hether.Setup.exe vs Hether-Setup-v4.exe, etc.) can't break this again.
+async function getLatestInstallerUrl() {
+  try {
+    const res = await fetch(`https://api.github.com/repos/${HETHER_REPO}/releases/latest`);
+    if (!res.ok) throw new Error('GitHub API error ' + res.status);
+    const release = await res.json();
+    const exeAsset = (release.assets || []).find(a => a.name.toLowerCase().endsWith('.exe'));
+    if (exeAsset) return exeAsset.browser_download_url;
+    throw new Error('No .exe asset found on latest release');
+  } catch (e) {
+    console.warn('Falling back to static installer URL:', e);
+    return HETHER_INSTALLER_FALLBACK_URL;
+  }
+}
+
 function handleDownloadClick() {
   if (isMobile()) return; // desktop-only feature, nav item hidden via CSS on mobile too
-  showConfirm('Download Hether', 'Download Hether in your PC?', 'Yes', () => {
-    window.location.href = HETHER_INSTALLER_URL;
+  showConfirm('Download Hether', 'Download Hether in your PC?', 'Yes', async () => {
+    window.location.href = await getLatestInstallerUrl();
   });
 }
 
