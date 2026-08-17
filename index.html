@@ -3453,10 +3453,10 @@ label.emoji-btn { margin-right: 4px; }
   background: #060000;
   border-top: 1px solid var(--border);
   z-index: 200;
-  padding: 8px 0;
+  padding: 14px 0;
   gap: 0;
   flex-direction: row;
-  align-items: stretch;
+  align-items: center;
   justify-content: space-around;
   box-shadow: 0 -2px 16px rgba(0,0,0,0.07);
 }
@@ -3468,8 +3468,8 @@ label.emoji-btn { margin-right: 4px; }
   cursor: pointer; transition: color var(--t); min-width: 0;
 }
 .mob-nav-item.active { color: var(--accent); }
-.mob-nav-item svg { width: 22px; height: 22px; flex-shrink: 0; }
-.mob-nav-item span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 52px; }
+.mob-nav-item svg { width: 24px; height: 24px; flex-shrink: 0; }
+.mob-nav-item span { display: none; }
 
 @media (max-width: 640px) {
   .mobile-bottom-nav { display: flex; }
@@ -3479,7 +3479,7 @@ label.emoji-btn { margin-right: 4px; }
   .sidebar-trigger { display: none; }
   :root { --sidebar-w: 80vw; }
   body { position: relative; }
-  .main { margin-left: 0 !important; margin-right: 0 !important; width: 100%; height: 100dvh; padding-bottom: calc(64px + env(safe-area-inset-bottom, 12px)); }
+  .main { margin-left: 0 !important; margin-right: 0 !important; width: 100%; height: 100dvh; padding-bottom: calc(76px + env(safe-area-inset-bottom, 12px)); }
   .mobile-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 99; }
   .mobile-overlay.show { display: block; }
   .hamburger { display: none !important; }
@@ -3578,7 +3578,7 @@ label.emoji-btn { margin-right: 4px; }
   .suggestions { display: none; }
   .welcome-greeting { font-size: 22px !important; letter-spacing: -0.3px !important; }
   .welcome { margin-bottom: 16px; }
-  .profile-dropdown { left: 6px; bottom: calc(68px + env(safe-area-inset-bottom, 0px)); }
+  .profile-dropdown { left: 6px; bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
   .flux-overlay { display: none !important; }
   .flux-fullscreen.show { display: flex; }
   .notes-list-panel { width: 200px; }
@@ -5018,10 +5018,35 @@ label.emoji-btn { margin-right: 4px; }
   box-shadow: 0 1px 3px rgba(0,0,0,0.4);
 }
 .sb-vol-seek:hover::-moz-range-thumb { width: 12px; height: 12px; border-radius: 50%; background: #fff; border: none; }
+
+/* Phone layout: the bottom player bar drops the "connect to device" button
+   and the volume slider — no room for them, and no reliable output-switching
+   or volume hardware to control from a phone browser anyway. */
+@media (max-width: 640px) {
+  #sbDeviceBtn { display: none; }
+  .sb-volume { display: none; }
+  .sb-right { width: auto; gap: 0; }
+  /* Sit the player bar above the mobile bottom nav (which reserves
+     76px + safe-area) instead of at the very bottom, so the two never overlap. */
+  .spotify-bar { bottom: calc(76px + env(safe-area-inset-bottom, 12px)); padding: 0 12px; gap: 10px; }
+  /* Shrink the track-info block and drop the centering auto-margin so the
+     progress bar/timestamps use the freed-up space instead of being
+     squeezed and shifted toward the right edge. */
+  .sb-now-playing { width: auto; max-width: 120px; gap: 8px; }
+  .sb-thumb { width: 40px; height: 40px; }
+  .sb-center { margin: 0; max-width: none; }
+  .sb-progress { gap: 6px; }
+  .sb-time { width: 24px; font-size: 10px; }
+}
 /* Reserve room at the bottom of the app / raise the sidebar and the
    now-playing panel so nothing is hidden behind the persistent player bar. */
 body.has-player-bar { --player-bar-reserve: 100px; }
 body.has-player-bar .main { padding-bottom: 84px; }
+@media (max-width: 640px) {
+  /* On phone, content needs to clear BOTH the raised player bar and the
+     bottom nav underneath it. */
+  body.has-player-bar .main { padding-bottom: calc(84px + 76px + env(safe-area-inset-bottom, 12px)); }
+}
 
 
 /* ── HISTORY VIEW ── */
@@ -6210,7 +6235,7 @@ html, body { background: #060000 !important; }
             <div class="setting-row">
               <div>
                 <div class="setting-label">hether</div>
-                <div class="setting-sub">Version 7.8 — AI assistant &amp; code n' arcade</div>
+                <div class="setting-sub">Version 7.8 — AI assistant &amp;</div>
               </div>
             </div>
           </div>
@@ -9946,7 +9971,7 @@ function showView(view) {
 
 // ── MOBILE BOTTOM NAV SYNC ──
 function updateMobNav(view) {
-  const map = { relay: 'mobNavRelay', explore: 'mobNavExplore', favourites: 'mobNavFavourites', aloft: 'mobNavAloft', settings: 'mobNavSettings' };
+  const map = { relay: 'mobNavRelay', explore: 'mobNavExplore', library: 'mobNavLibrary', aloft: 'mobNavAloft', settings: 'mobNavSettings' };
   Object.entries(map).forEach(([v, id]) => {
     const el = document.getElementById(id);
     if (el) el.classList.toggle('active', view === v);
@@ -10728,7 +10753,7 @@ async function closeFLUX() {
   fluxDesktopContact = null;
   fluxMobileContact = null;
   // Reset title immediately — no notifications when panel is closed
-  document.title = "Hether - Code n' Arcade ";
+  document.title = "Hether - Web Player ";
   document.getElementById('fluxOverlay').classList.remove('show');
   document.getElementById('fluxFullscreen').classList.remove('show');
   document.getElementById('fluxProfileTab')?.classList.remove('show');
@@ -16850,7 +16875,7 @@ async function loadNotifications() {
 function _syncNotificationsToggleUI() {
   const btn = document.getElementById('notificationsToggle');
   if (btn) btn.classList.toggle('on', _notificationsEnabled);
-  if (!_notificationsEnabled) document.title = "Hether - Code n' Arcade";
+  if (!_notificationsEnabled) document.title = "Hether - Web Player";
 }
 
 function _syncSoundToggleUI() {
@@ -16920,7 +16945,7 @@ function _isRelayVisibleFor(userId) {
 
 function _updateTitleUnreadBadge() {
   if (!fluxOpen || !_notificationsEnabled) {
-    document.title = "Hether - Code n' Arcade";
+    document.title = "Hether - Web Player";
     return;
   }
   const unreadUsers = (typeof fluxContacts !== 'undefined')
@@ -16931,9 +16956,9 @@ function _updateTitleUnreadBadge() {
       }).length
     : 0;
   if (unreadUsers <= 0) {
-    document.title = "Hether - Code n' Arcade";
+    document.title = "Hether - Web Player";
   } else {
-    document.title = `(${unreadUsers}) Hether - Code n' Arcade`;
+    document.title = `(${unreadUsers}) Hether - Web Player`;
   }
 }
 
@@ -16951,7 +16976,7 @@ const _originalCloseFLUX = window.closeFLUX;
 if (typeof _originalCloseFLUX === 'function') {
   window.closeFLUX = async function() {
     await _originalCloseFLUX.apply(this, arguments);
-    document.title = "Hether - Code n' Arcade";
+    document.title = "Hether - Web Player";
   };
 }
 
@@ -17647,16 +17672,16 @@ function mobRenderThemePicker() {
 
 <nav class="mobile-bottom-nav" id="mobileBottomNav">
   <button class="mob-nav-item" id="mobNavRelay" onclick="showView('relay'); updateMobNav('relay')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
-    <span>Relay</span>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-brain-icon lucide-brain"><path d="M12 18V5"/><path d="M15 13a4.17 4.17 0 0 1-3-4 4.17 4.17 0 0 1-3 4"/><path d="M17.598 6.5A3 3 0 1 0 12 5a3 3 0 1 0-5.598 1.5"/><path d="M17.997 5.125a4 4 0 0 1 2.526 5.77"/><path d="M18 18a4 4 0 0 0 2-7.464"/><path d="M19.967 17.483A4 4 0 1 1 12 18a4 4 0 1 1-7.967-.517"/><path d="M6 18a4 4 0 0 1-2-7.464"/><path d="M6.003 5.125a4 4 0 0 0-2.526 5.77"/></svg>
+    <span>Assist</span>
   </button>
   <button class="mob-nav-item active" id="mobNavExplore" onclick="showView('explore'); updateMobNav('explore')">
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-library-big-icon lucide-library-big"><rect width="8" height="18" x="3" y="3" rx="1"/><path d="M7 3v18"/><path d="M20.4 18.9c.2.5-.1 1.1-.6 1.3l-1.9.7c-.5.2-1.1-.1-1.3-.6L11.1 5.1c-.2-.5-.1-1.1.6-1.3l1.9-.7c.5-.2 1.1-.1 1.3.6Z"/></svg>
     <span>Explore</span>
   </button>
-  <button class="mob-nav-item" id="mobNavFavourites" onclick="showView('favourites'); updateMobNav('favourites')">
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search-icon lucide-search"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
-    <span>Search</span>
+  <button class="mob-nav-item" id="mobNavLibrary" onclick="showView('library'); updateMobNav('library')">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-badge-plus-icon lucide-badge-plus"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><line x1="12" x2="12" y1="8" y2="16"/><line x1="8" x2="16" y1="12" y2="12"/></svg>
+    <span>Library</span>
   </button>
   <button class="mob-nav-item" id="mobNavAloft" onclick="showView('aloft'); updateMobNav('aloft')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 12a1 1 0 1 1 0 9H9.006a7 7 0 1 1 6.702-9z"/><path d="M21.832 9A3 3 0 0 0 19 7h-2.207a5.5 5.5 0 0 0-10.72.61"/></svg>
