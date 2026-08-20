@@ -1,0 +1,90 @@
+
+/* FLUX mobile DM sidebar — match the reference spacing/layout */
+@media (max-width: 640px) {
+  #fluxFullscreen #fluxFsListView {
+    background: #17181c;
+  }
+
+  #fluxFullscreen #fluxFsSidebarHeader {
+    padding: 27px 22px 10px !important;
+    background: #17181c !important;
+  }
+
+  #fluxFullscreen #fluxFsSidebarTitle {
+    font-size: 24px !important;
+    font-weight: 500 !important;
+    letter-spacing: -0.45px;
+    gap: 8px !important;
+  }
+
+  #fluxFullscreen .flux-fs-search-wrap {
+    padding: 10px 15px 10px !important;
+    background: #17181c;
+  }
+
+  #fluxFullscreen .flux-fs-search-wrap .flux-search-input-row {
+    height: 42px;
+    padding: 0 17px;
+    gap: 9px;
+    background: #222327;
+    border-color: #2d2e33;
+  }
+
+  #fluxFullscreen #fluxFsSearchInput {
+    font-size: 16px;
+  }
+
+  #fluxFullscreen #fluxFsSearchInput::placeholder {
+    color: #b6b7bf;
+    opacity: 0.9;
+  }
+
+  #fluxFullscreen .flux-tab-bar {
+    gap: 10px !important;
+    padding: 0 15px 18px !important;
+    background: #17181c;
+  }
+
+  #fluxFullscreen .flux-tab-btn {
+    height: 38px;
+    padding: 0 16px;
+    font-size: 14px;
+  }
+
+  #fluxFullscreen .flux-conv-list {
+    padding: 7px 10px !important;
+    background: #17181c;
+  }
+
+  #fluxFullscreen .flux-conv-item {
+    min-height: 75px;
+    padding: 11px 12px;
+    margin-bottom: 3px;
+    gap: 12px;
+    border-radius: 11px;
+  }
+
+  #fluxFullscreen .flux-conv-avatar,
+  #fluxFullscreen .flux-conv-avatar-wrap {
+    width: 50px;
+    height: 50px;
+  }
+
+  #fluxFullscreen .flux-conv-name {
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  #fluxFullscreen .flux-conv-bottomrow {
+    margin-top: 2px;
+    gap: 8px;
+  }
+
+  #fluxFullscreen .flux-conv-preview {
+    font-size: 13px;
+  }
+
+  #fluxFullscreen .flux-conv-time {
+    font-size: 13px;
+  }
+}

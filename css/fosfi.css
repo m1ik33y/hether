@@ -1,0 +1,59 @@
+
+.mob-profile-sheet-backdrop {
+  display: none; position: fixed; inset: 0; z-index: 1500;
+  background: rgba(0,0,0,0.45); backdrop-filter: blur(2px);
+  animation: fadeIn 0.18s ease;
+}
+.mob-profile-sheet-backdrop.show { display: block; }
+
+.mob-profile-sheet {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 1501;
+  background: #060000; border-radius: 18px 18px 0 0;
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -8px 40px rgba(0,0,0,0.2);
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+  max-height: 88dvh;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.mob-profile-sheet.show { transform: translateY(0); }
+
+.mob-profile-sheet-handle {
+  width: 36px; height: 4px; border-radius: 2px;
+  background: var(--border); margin: 10px auto 0;
+  flex-shrink: 0;
+}
+
+.mob-profile-sheet-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 18px 10px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.mob-profile-sheet-title {
+  font-size: 14px; font-weight: 700; color: var(--text);
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.mob-profile-sheet-close {
+  width: 28px; height: 28px; border-radius: 8px; border: none;
+  background: var(--surface2); color: var(--text3); cursor: pointer;
+  font-size: 17px; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+}
+.mob-profile-sheet-close:hover { background: var(--border); }
+
+.mob-profile-sheet-body {
+  flex: 1; overflow-y: auto; padding: 18px 18px 40px;
+  display: flex; flex-direction: column;
+}
+.mob-profile-sheet-body::-webkit-scrollbar { display: none; }
+
+#mainApp h1, #mainApp h2, #mainApp h3, #mainApp h4, #mainApp h5, #mainApp h6,
+#mainApp .welcome-hello, #mainApp .relay-header-title, #mainApp .settings-title,
+#mainApp .section-title, #mainApp .notes-title, #mainApp .notes-title-area h2,
+#mainApp .setting-label { color: rgba(255,255,255,0.9) !important; }
+#mainApp .welcome-greeting, #mainApp p, #mainApp label, #mainApp .setting-sub,
+#mainApp .setting-desc, #mainApp .notes-list-header span, #mainApp .note-item-preview,
+#mainApp .note-item-date { color: rgba(255,255,255,0.7) !important; }
