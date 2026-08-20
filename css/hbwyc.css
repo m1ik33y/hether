@@ -585,7 +585,7 @@ body {
   content: '';
   position: absolute;
   inset: 0;
-  background-image: url('images/chat_bg_pc.svg');
+  background-image: url('../images/chat_bg_pc.svg');
   background-repeat: repeat;
   background-size: 480px auto;
   pointer-events: none;
