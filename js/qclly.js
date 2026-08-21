@@ -28,6 +28,31 @@ async function _loadMobProfileSheet(targetId) {
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (!user) return;
 
+  // Group chats use the same theme picker UI, but the theme is private to
+  // the current user. A group id is not a profile id, so don't query
+  // profiles with it as a target.
+  if (_fluxConvIsGroup(targetId)) {
+    const contact = fluxContacts.find(c => c.id === targetId);
+    const groupName = contact?.name || contact?.realName || 'Group';
+    document.getElementById('mobProfileSheetName').textContent = groupName;
+    document.getElementById('mobProfileSheetUsername').textContent = 'Group';
+    const avatarEl = document.getElementById('mobProfileSheetAvatar');
+    if (avatarEl) {
+      _fluxSetProfileTabAvatar(avatarEl, contact?.avatarUrl || null, contact?.avatarUrl ? null : (contact?.memberAvatars || null));
+      avatarEl.style.borderRadius = '50%';
+    }
+
+    mobHideNicknameEditor();
+    _mobThemePickerOpen = false;
+    const picker = document.getElementById('mobThemePicker');
+    const chevron = document.getElementById('mobThemeChevron');
+    if (picker) picker.classList.remove('open');
+    if (chevron) chevron.style.transform = '';
+    await loadRelayThemeFromSupabase(targetId);
+    mobRenderThemePicker();
+    return;
+  }
+
   const [{ data: profileData }, { data: nicknameRows }] = await Promise.all([
     supabaseClient.from('profiles').select('username, display_name, avatar_url').eq('id', targetId).single(),
     supabaseClient.from('nicknames').select('nickname').eq('setter_id', user.id).eq('target_id', targetId).order('created_at', { ascending: false }).limit(1)
