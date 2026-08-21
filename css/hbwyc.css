@@ -1508,7 +1508,7 @@ kbd {
   content: '';
   position: absolute;
   inset: 0;
-  background-image: url('images/chat_bg_pc.svg');
+  background-image: url('chat_bg_pc.svg');
   background-repeat: repeat;
   background-size: 480px auto;
   pointer-events: none;
@@ -1522,7 +1522,7 @@ kbd {
 }
 @media (max-width: 768px) {
   .flux-ai-panel::before {
-    background-image: url('images/chat_bg.svg');
+    background-image: url('chat_bg.svg');
     background-size: 320px auto;
   }
 }
@@ -3481,7 +3481,7 @@ label.emoji-btn { margin-right: 4px; }
   content: '';
   position: absolute;
   inset: 0;
-  background-image: url('images/chat_bg.svg');
+  background-image: url('chat_bg.svg');
   background-repeat: repeat;
   background-size: 320px auto;
   pointer-events: none;
@@ -4384,7 +4384,7 @@ label.emoji-btn { margin-right: 4px; }
   content: '';
   position: absolute;
   inset: 0;
-  background-image: url('images/chat_bg_pc.svg');
+  background-image: url('chat_bg_pc.svg');
   background-repeat: repeat;
   background-size: 480px auto;
   pointer-events: none;
@@ -4398,7 +4398,7 @@ label.emoji-btn { margin-right: 4px; }
 }
 @media (max-width: 768px) {
   #fluxActiveRelayWrap::before {
-    background-image: url('images/chat_bg.svg');
+    background-image: url('chat_bg.svg');
     background-size: 320px auto;
   }
 }
@@ -5542,7 +5542,7 @@ body.has-player-bar .main { padding-bottom: 84px; }
   content: '';
   position: absolute;
   inset: 0;
-  background-image: url('images/chat_bg_pc.svg');
+  background-image: url('chat_bg_pc.svg');
   background-repeat: repeat;
   background-size: 420px auto;
   pointer-events: none;
