@@ -334,17 +334,17 @@ function buildFLUXConvList() {
       // Build preview text
       let previewHtml = '';
       const mediaPreviewText = lastMsg && lastMsg.media && !(lastMsg.text || '').trim()
-        ? (lastMsg.type === 'sent' ? 'You sent an attachment' : `${c.name} sent an attachment`)
+        ? (lastMsg.type === 'sent' ? 'You: sent an attachment' : `${lastMsg.senderName || c.name}: sent an attachment`)
         : null;
       if (isUnread && unreadCount >= 2) {
         const label = unreadCount > 4 ? '4+ new messages' : `${unreadCount} new messages`;
         previewHtml = `<div class="flux-conv-preview unread">${label}</div>`;
       } else if (isUnread && unreadCount === 1) {
-        const msgText = mediaPreviewText || (lastMsg ? (lastMsg.type === 'sent' ? 'You: ' + (lastMsg.text || '') : (lastMsg.text || '')) : '');
+        const msgText = mediaPreviewText || (lastMsg ? (lastMsg.type === 'sent' ? 'You: ' + (lastMsg.text || '') : `${lastMsg.senderName || c.name}: ` + (lastMsg.text || '')) : '');
         const truncated = msgText.length > 38 ? msgText.substring(0, 38) + '…' : msgText;
         previewHtml = `<div class="flux-conv-preview unread">${escHtml(truncated)}</div>`;
       } else {
-        const msgText = mediaPreviewText || (lastMsg ? (lastMsg.type === 'sent' ? 'You: ' + (lastMsg.text || '') : (lastMsg.text || '')) : '');
+        const msgText = mediaPreviewText || (lastMsg ? (lastMsg.type === 'sent' ? 'You: ' + (lastMsg.text || '') : `${lastMsg.senderName || c.name}: ` + (lastMsg.text || '')) : '');
         previewHtml = `<div class="flux-conv-preview">${escHtml(msgText)}</div>`;
       }
 
@@ -527,6 +527,10 @@ async function loadContacts() {
        ownerId: g.owner_id,
        nameIsCustom: g.name_is_custom === true,
        groupMembers: memberIds,
+      groupMemberProfiles: Object.fromEntries(memberIds.map(id => {
+        const profile = profileById.get(id);
+        return [id, { username: profile?.username || '', displayName: profile?.display_name || profile?.username || 'User' }];
+      })),
       lastMessage: existing?.lastMessage || null,
       lastMessageTs: existing?.lastMessageTs || new Date(g.updated_at || g.created_at || 0).getTime(),
       unread: existing?.unread || false,
@@ -1513,4 +1517,4 @@ async function saveNicknameForTarget(nickname) {
 
   await loadNicknameSideTab(activeFluxProfileTarget);
 }
-
+
