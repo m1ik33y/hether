@@ -529,7 +529,7 @@ async function loadContacts() {
        groupMembers: memberIds,
       groupMemberProfiles: Object.fromEntries(memberIds.map(id => {
         const profile = profileById.get(id);
-        return [id, { username: profile?.username || '', displayName: profile?.display_name || profile?.username || 'User' }];
+        return [id, { username: profile?.username || '', displayName: profile?.display_name || profile?.username || 'User', avatarUrl: profile?.avatar_url || null }];
       })),
       lastMessage: existing?.lastMessage || null,
       lastMessageTs: existing?.lastMessageTs || new Date(g.updated_at || g.created_at || 0).getTime(),
@@ -846,6 +846,12 @@ function _fluxApplyGroupNameLocally(groupId, name) {
   if (activeFluxId === groupId) {
     const topbarName = document.getElementById('fluxTopbarName');
     if (topbarName) topbarName.textContent = value;
+    const fsName = document.getElementById('fluxFsName');
+    if (fsName) fsName.textContent = value;
+    if (activeFluxProfileTarget === groupId) {
+      const mobName = document.getElementById('mobProfileSheetName');
+      if (mobName) mobName.textContent = value;
+    }
     // For groups, the second header row is the member list, not the group name.
     if (_fluxConvIsGroup(groupId)) {
       _fluxUpdateGroupHeaderMembers(groupId);
@@ -935,12 +941,6 @@ async function uploadCroppedGroupAvatar(file) {
   const groupId = _gacGroupId;
   if (!groupId) return;
 
-  const perms = _fluxGroupInfoPerms?.groupId === groupId ? _fluxGroupInfoPerms : null;
-  if (perms && !perms.canChangePfp) {
-    alert('Only group admins can change the group icon right now.');
-    return;
-  }
-
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (!user) return;
 
@@ -960,7 +960,7 @@ async function uploadCroppedGroupAvatar(file) {
   const { data } = supabaseClient.storage.from('avatars').getPublicUrl(filePath);
   const publicUrl = data.publicUrl + `?t=${Date.now()}`;
 
-  const { error: rpcError } = await supabaseClient.rpc('update_flux_group_avatar', {
+  const { error: rpcError } = await supabaseClient.rpc('set_flux_group_avatar', {
     p_group_id: groupId,
     p_avatar_url: publicUrl
   });
@@ -978,13 +978,6 @@ async function uploadCroppedGroupAvatar(file) {
 
 async function removeGroupAvatar(groupId) {
   if (!groupId) return;
-
-  const perms = _fluxGroupInfoPerms?.groupId === groupId ? _fluxGroupInfoPerms : null;
-  if (perms && !perms.canChangePfp) {
-    alert('Only group admins can change the group icon right now.');
-    return;
-  }
-
   const contact = fluxContacts.find(c => c.id === groupId);
   if (contact?.avatarUrl) {
     try {
@@ -993,7 +986,7 @@ async function removeGroupAvatar(groupId) {
     } catch (err) {}
   }
 
-  const { error } = await supabaseClient.rpc('update_flux_group_avatar', {
+  const { error } = await supabaseClient.rpc('set_flux_group_avatar', {
     p_group_id: groupId,
     p_avatar_url: null
   });
@@ -1015,6 +1008,143 @@ async function removeGroupAvatar(groupId) {
 // Mirrors _fluxApplyGroupNameLocally: pushes a changed group avatar_url into
 // every place it's rendered (sidebar row, open topbar, open group-info panel)
 // without a full reload.
+function _fluxApplyProfileLocally(userId, profileData) {
+  if (!userId) return;
+  const avatarUrl = profileData?.avatar_url || null;
+  const username = profileData?.username || '';
+  const displayName = profileData?.display_name || username || 'User';
+
+  // Update the direct 1-to-1 contact everywhere it is cached/rendered.
+  const dmContact = fluxContacts.find(c => c.id === userId && !c.isGroup);
+  if (dmContact) {
+    dmContact.avatarUrl = avatarUrl;
+    if (username) dmContact.username = username;
+    if (profileData?.display_name) dmContact.realName = displayName;
+  }
+
+  // Update this member's cached profile inside every group they belong to.
+  fluxContacts.forEach(contact => {
+    if (!contact.isGroup || !contact.groupMembers?.includes(userId)) return;
+    if (!contact.groupMemberProfiles) contact.groupMemberProfiles = {};
+    const existing = contact.groupMemberProfiles[userId] || {};
+    contact.groupMemberProfiles[userId] = {
+      ...existing,
+      username: username || existing.username || '',
+      displayName: displayName || existing.displayName || 'User',
+      avatarUrl
+    };
+
+    // Rebuild the group's default two-member avatar when it has no custom icon.
+    if (!contact.avatarUrl) {
+      const pickedIds = _fluxPickTwoGroupMembers(contact.id, contact.groupMembers || []);
+      contact.memberAvatars = pickedIds.map(id => {
+        if (id === userId) return avatarUrl;
+        const member = fluxContacts.find(c => c.id === id && !c.isGroup);
+        return member?.avatarUrl || contact.groupMemberProfiles?.[id]?.avatarUrl || null;
+      });
+    }
+  });
+
+  // Update already-rendered individual message avatars without reopening the chat.
+  document.querySelectorAll('.flux-group-avatar[data-sender-id]').forEach(el => {
+    if (el.dataset.senderId !== userId) return;
+    if (avatarUrl) {
+      el.style.background = 'transparent';
+      el.classList.remove('default-avatar');
+      el.innerHTML = '';
+      const img = document.createElement('img');
+      img.src = avatarUrl;
+      img.alt = '';
+      el.appendChild(img);
+    } else {
+      el.style.background = '#e8e8ec';
+      el.classList.add('default-avatar');
+      el.innerHTML = typeof DEFAULT_AVATAR_SVG !== 'undefined' ? DEFAULT_AVATAR_SVG : '';
+    }
+  });
+
+  if (activeFluxId === userId && !_fluxConvIsGroup(userId)) {
+    const dmContactNow = fluxContacts.find(c => c.id === userId);
+    const targets = [
+      document.getElementById('fluxTopbarAvatar'),
+      document.getElementById('fluxFsAvatar'),
+      document.getElementById('fluxProfileTabAvatar'),
+      document.getElementById('mobProfileSheetAvatar')
+    ];
+    targets.forEach(el => { if (el) _fluxSetProfileTabAvatar(el, avatarUrl); });
+  }
+
+  // If this member is represented by a group's default icon, refresh any open group UI.
+  fluxContacts.filter(c => c.isGroup && c.groupMembers?.includes(userId) && !c.avatarUrl).forEach(group => {
+    if (activeFluxId === group.id) {
+      const topbarAv = document.getElementById('fluxTopbarAvatar');
+      const fsAv = document.getElementById('fluxFsAvatar');
+      if (topbarAv) _fluxSetProfileTabAvatar(topbarAv, null, group.memberAvatars);
+      if (fsAv) _fluxSetProfileTabAvatar(fsAv, null, group.memberAvatars);
+    }
+    if (activeFluxProfileTarget === group.id) {
+      const panelAv = document.getElementById('fluxProfileTabAvatar');
+      const mobAv = document.getElementById('mobProfileSheetAvatar');
+      if (panelAv) _fluxSetProfileTabAvatar(panelAv, null, group.memberAvatars);
+      if (mobAv) _fluxSetProfileTabAvatar(mobAv, null, group.memberAvatars);
+    }
+  });
+
+  try { buildFLUXConvList(); } catch (e) {}
+}
+
+function _fluxApplyGroupMetadataLocally(groupId, patch) {
+  if (!groupId || !patch) return;
+  if (Object.prototype.hasOwnProperty.call(patch, 'name')) {
+    _fluxApplyGroupNameLocally(groupId, patch.name);
+  }
+  if (Object.prototype.hasOwnProperty.call(patch, 'avatar_url')) {
+    _fluxApplyGroupAvatarLocally(groupId, patch.avatar_url);
+  }
+}
+
+async function _fluxSetupMetadataRealtime(userId) {
+  if (!userId || !supabaseClient) return;
+
+  const remove = async (key) => {
+    const ch = window[key];
+    if (ch) {
+      try { await supabaseClient.removeChannel(ch); } catch (e) {}
+      window[key] = null;
+    }
+  };
+
+  const profileState = window._fluxProfileMetaChannel?.state;
+  if (!window._fluxProfileMetaChannel || profileState === 'closed' || profileState === 'errored') {
+    await remove('_fluxProfileMetaChannel');
+    window._fluxProfileMetaChannel = supabaseClient
+      .channel(`profile-meta:${userId}`)
+      .on('postgres_changes', {
+        event: 'UPDATE', schema: 'public', table: 'profiles'
+      }, payload => {
+        const row = payload.new;
+        if (!row?.id) return;
+        _fluxApplyProfileLocally(row.id, row);
+      })
+      .subscribe();
+  }
+
+  const groupState = window._fluxGroupMetaChannel?.state;
+  if (!window._fluxGroupMetaChannel || groupState === 'closed' || groupState === 'errored') {
+    await remove('_fluxGroupMetaChannel');
+    window._fluxGroupMetaChannel = supabaseClient
+      .channel(`group-meta:${userId}`)
+      .on('postgres_changes', {
+        event: 'UPDATE', schema: 'public', table: 'flux_groups'
+      }, payload => {
+        const row = payload.new;
+        if (!row?.id || !_fluxMyGroupIds?.has(row.id)) return;
+        _fluxApplyGroupMetadataLocally(row.id, row);
+      })
+      .subscribe();
+  }
+}
+
 function _fluxApplyGroupAvatarLocally(groupId, avatarUrl) {
   const contact = fluxContacts.find(c => c.id === groupId);
   if (contact) contact.avatarUrl = avatarUrl;
@@ -1024,6 +1154,8 @@ function _fluxApplyGroupAvatarLocally(groupId, avatarUrl) {
     if (desktopAv) _fluxSetProfileTabAvatar(desktopAv, avatarUrl, avatarUrl ? null : contact?.memberAvatars);
     const fsAv = document.getElementById('fluxFsAvatar');
     if (fsAv) _fluxSetProfileTabAvatar(fsAv, avatarUrl, avatarUrl ? null : contact?.memberAvatars);
+    const mobAv = document.getElementById('mobProfileSheetAvatar');
+    if (mobAv && activeFluxProfileTarget === groupId) _fluxSetProfileTabAvatar(mobAv, avatarUrl, avatarUrl ? null : contact?.memberAvatars);
   }
   if (activeFluxProfileTarget === groupId) {
     const panelAv = document.getElementById('fluxProfileTabAvatar');
@@ -1082,13 +1214,7 @@ async function commitGroupName() {
   const name = input.value.trim().slice(0, 80);
   if (!name) return;
 
-  const perms = _fluxGroupInfoPerms?.groupId === groupId ? _fluxGroupInfoPerms : null;
-  if (perms && !perms.canChangeName) {
-    alert('Only group admins can change the group name right now.');
-    return;
-  }
-
-  const { error } = await supabaseClient.rpc('update_flux_group_name', {
+  const { error } = await supabaseClient.rpc('set_flux_group_name', {
     p_group_id: groupId,
     p_name: name,
     p_is_custom: true
@@ -1190,14 +1316,15 @@ async function toggleFluxGroupSetting(column, button) {
   button.disabled = true;
   button.classList.toggle('on', next);
   try {
-    const { data, error } = await supabaseClient.rpc('update_flux_group_setting', {
-      p_group_id: perms.groupId,
-      p_setting: column,
-      p_value: next
-    });
+    const { data, error } = await supabaseClient
+      .from('flux_groups')
+      .update({ [column]: next })
+      .eq('id', perms.groupId)
+      .select('id, ' + column)
+      .single();
     if (error) throw error;
-    if (!data) throw new Error('The group setting was not updated. Check the group-admin RLS/RPC policy.');
-    _fluxGroupSettingsState[column] = next;
+    if (!data) throw new Error('No group row was updated. Check the flux_groups RLS policy.');
+    _fluxGroupSettingsState[column] = !!data[column];
     if (_fluxGroupInfoPerms) {
       if (column === 'allow_members_change_pfp') _fluxGroupInfoPerms.canChangePfp = perms.viewerIsAdmin || !!data[column];
       if (column === 'allow_members_change_name') _fluxGroupInfoPerms.canChangeName = perms.viewerIsAdmin || !!data[column];
