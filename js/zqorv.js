@@ -334,23 +334,17 @@ function buildFLUXConvList() {
       // Build preview text
       let previewHtml = '';
       const mediaPreviewText = lastMsg && lastMsg.media && !(lastMsg.text || '').trim()
-        ? (lastMsg.type === 'sent'
-          ? 'You: sent an attachment'
-          : (c.isGroup ? `${lastMsg.senderName || 'User'}: sent an attachment` : 'sent an attachment'))
+        ? (lastMsg.type === 'sent' ? 'You: sent an attachment' : `${lastMsg.senderName || c.name}: sent an attachment`)
         : null;
       if (isUnread && unreadCount >= 2) {
         const label = unreadCount > 4 ? '4+ new messages' : `${unreadCount} new messages`;
         previewHtml = `<div class="flux-conv-preview unread">${label}</div>`;
       } else if (isUnread && unreadCount === 1) {
-        const msgText = mediaPreviewText || (lastMsg ? (lastMsg.type === 'sent'
-          ? 'You: ' + (lastMsg.text || '')
-          : (c.isGroup ? (lastMsg.senderName || 'User') + ': ' + (lastMsg.text || '') : (lastMsg.text || ''))) : '');
+        const msgText = mediaPreviewText || (lastMsg ? (lastMsg.type === 'sent' ? 'You: ' + (lastMsg.text || '') : `${lastMsg.senderName || c.name}: ` + (lastMsg.text || '')) : '');
         const truncated = msgText.length > 38 ? msgText.substring(0, 38) + '…' : msgText;
         previewHtml = `<div class="flux-conv-preview unread">${escHtml(truncated)}</div>`;
       } else {
-        const msgText = mediaPreviewText || (lastMsg ? (lastMsg.type === 'sent'
-          ? 'You: ' + (lastMsg.text || '')
-          : (c.isGroup ? (lastMsg.senderName || 'User') + ': ' + (lastMsg.text || '') : (lastMsg.text || ''))) : '');
+        const msgText = mediaPreviewText || (lastMsg ? (lastMsg.type === 'sent' ? 'You: ' + (lastMsg.text || '') : `${lastMsg.senderName || c.name}: ` + (lastMsg.text || '')) : '');
         previewHtml = `<div class="flux-conv-preview">${escHtml(msgText)}</div>`;
       }
 
@@ -876,10 +870,6 @@ function openGroupAvatarMenu(e) {
   const groupId = activeFluxProfileTarget;
   // The avatar box is shared with DM profiles — only groups get the menu.
   if (!groupId || !_fluxConvIsGroup(groupId)) return;
-  // Admins can always change the icon. Non-admins only get the menu when
-  // the group setting explicitly allows it. Server-side RLS remains the
-  // final authority, but restricted members should not see a dead option.
-  if (_fluxGroupInfoPerms?.groupId === groupId && !_fluxGroupInfoPerms.canChangePfp) return;
   e.stopPropagation();
   const menu = document.getElementById('fluxGroupAvatarMenu');
   if (!menu) return;
@@ -1192,7 +1182,6 @@ async function _fluxUpdateGroupHeaderMembers(groupId, members) {
 function showGroupNameEditor() {
   const groupId = activeFluxProfileTarget || activeFluxId;
   if (!groupId || !_fluxConvIsGroup(groupId)) return;
-  if (_fluxGroupInfoPerms?.groupId === groupId && !_fluxGroupInfoPerms.canChangeName) return;
   const editor = document.getElementById('fluxGroupNameEditor');
   const input = document.getElementById('fluxGroupNameInput');
   const current = document.getElementById('fluxProfileTabName')?.textContent || '';
@@ -1222,10 +1211,6 @@ async function commitGroupName() {
   const groupId = activeFluxProfileTarget || activeFluxId;
   const input = document.getElementById('fluxGroupNameInput');
   if (!groupId || !_fluxConvIsGroup(groupId) || !input) return;
-  if (_fluxGroupInfoPerms?.groupId === groupId && !_fluxGroupInfoPerms.canChangeName) {
-    hideGroupNameEditor();
-    return;
-  }
   const name = input.value.trim().slice(0, 80);
   if (!name) return;
 
