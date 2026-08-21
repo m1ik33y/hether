@@ -511,110 +511,80 @@ async function deleteFluxConvForMe(contactId) {
 
 function openDeleteGroupConfirm(groupId) {
   const id = groupId || activeFluxId;
-  if (!id || !_fluxConvIsGroup(id)) return;
-
-  // This action is "Clear all", not "Delete/leave group". The group and its
-  // memberships stay intact; only its messages are removed.
+  if (!id) return;
+  const contact = fluxContacts.find(c => c.id === id);
+  const isOwner = !!(contact && contact.ownerId === _fluxMyUserId);
   showConfirm(
-    'Clear all messages?',
-    'This clears every message in the group for everyone. The group itself will stay.',
-    'Clear all',
-    () => clearFluxGroupForAll(id)
+    isOwner ? 'Leave group?' : 'Exit group?',
+    isOwner
+      ? 'If you leave this group, the group and all of its messages will be deleted for everyone. This cannot be undone.'
+      : 'You will be removed from this group and lose access to its messages.',
+    isOwner ? 'Delete group' : 'Exit group',
+    () => deleteFluxGroup(id)
   );
 }
 
-async function clearFluxGroupForAll(groupId) {
+async function deleteFluxGroup(groupId) {
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (!user) return;
-
-  // Re-check permission before touching the database. UI hiding is only a
-  // convenience; RLS/server-side policy remains the security boundary.
-  let allowed = false;
-  try {
-    const { data: groupData } = await supabaseClient
-      .from('flux_groups')
-      .select('owner_id, allow_non_admin_clear_all')
-      .eq('id', groupId)
-      .single();
-
-    if (groupData) {
-      if (groupData.owner_id === user.id) {
-        allowed = true;
-      } else {
-        const { data: member } = await supabaseClient
-          .from('flux_group_members')
-          .select('role')
-          .eq('group_id', groupId)
-          .eq('user_id', user.id)
-          .single();
-        const isAdmin = member?.role === 'admin' || member?.role === 'owner';
-        allowed = isAdmin || !!groupData.allow_non_admin_clear_all;
-      }
-    }
-  } catch (_) {
-    return;
-  }
-  if (!allowed) return;
-
-  const clearingActiveRelay = activeFluxId === groupId;
-  if (clearingActiveRelay) _showClearingOverlay();
-
-  const { error } = await supabaseClient
-    .from('messages')
-    .delete()
-    .eq('group_id', groupId);
-
-  if (error) {
-    if (clearingActiveRelay) _hideClearingOverlay();
-    alert('Failed to clear group messages: ' + (error.message || 'unknown error'));
-    return;
-  }
-
-  // Clear this client's UI immediately.
   const contact = fluxContacts.find(c => c.id === groupId);
-  if (contact) {
-    contact.lastMessage = null;
-    contact.lastMessageTs = 0;
-    contact.unread = false;
-    contact.unreadCount = 0;
-    contact.sentByMe = false;
+  const isOwner = !!(contact && contact.ownerId === user.id);
+
+  try {
+    if (isOwner) {
+      // Owner deletion removes the group entirely: messages, memberships,
+      // then the group row itself, so nobody is left with a dangling
+      // membership pointing at a group that no longer exists.
+      await supabaseClient.from('messages').delete().eq('group_id', groupId);
+      await supabaseClient.from('flux_group_members').delete().eq('group_id', groupId);
+      const { error } = await supabaseClient.from('flux_groups').delete().eq('id', groupId);
+      if (error) { alert('Failed to delete group: ' + error.message); return; }
+    } else {
+      // Non-owner: leave the group — only your own membership row goes.
+      // Post the system message before deleting the membership row, since
+      // once it's gone RLS would no longer consider this user a member
+      // able to post into the group.
+      try {
+        const myName = (await supabaseClient.from('profiles').select('username').eq('id', user.id).single()).data?.username || 'Someone';
+        await _fluxPostSystemMessage(groupId, `${myName} left the group.`);
+      } catch (e) {
+        console.warn('[FLUX] left-group system message failed:', e.message || e);
+      }
+      const { error } = await supabaseClient.from('flux_group_members')
+        .delete().eq('group_id', groupId).eq('user_id', user.id);
+      if (error) { alert('Failed to leave group: ' + error.message); return; }
+    }
+  } catch (e) {
+    alert('Something went wrong: ' + (e.message || e));
+    return;
   }
+
+  const idx = fluxContacts.findIndex(c => c.id === groupId);
+  if (idx >= 0) fluxContacts.splice(idx, 1);
+  _fluxMyGroupIds.delete(groupId);
+
   if (activeFluxId === groupId) {
     const msgsEl = document.getElementById('fluxRelayMessages');
     if (msgsEl) msgsEl.innerHTML = '';
     const fsMsgsEl = document.getElementById('fluxFsMessages');
     if (fsMsgsEl) fsMsgsEl.innerHTML = '';
     renderedMsgIds.clear();
+    if (isMobile()) {
+      const fluxFsRelayView = document.getElementById('fluxFsRelayView');
+      const fluxFsConvView = document.getElementById('fluxFsConvView');
+      if (fluxFsRelayView) fluxFsRelayView.classList.remove('show');
+      if (fluxFsConvView) fluxFsConvView.classList.remove('hide');
+    } else {
+      showFluxEmptyState();
+    }
+    activeFluxId = null;
+    document.querySelectorAll('#fluxConvList .flux-conv-item, #fluxFsConvList .flux-conv-item')
+      .forEach(el => el.classList.remove('active'));
+    _updateGroupMenuBtnVisibility(null);
   }
   buildFLUXConvList();
-  if (clearingActiveRelay) _hideClearingOverlay();
-
-  // Notify every member's client so an already-open group is cleared
-  // immediately, without deleting the group or requiring a reload.
-  try {
-    const { data: members } = await supabaseClient
-      .from('flux_group_members')
-      .select('user_id')
-      .eq('group_id', groupId);
-
-    for (const member of (members || [])) {
-      const uid = member.user_id;
-      if (!uid) continue;
-      const ch = supabaseClient.channel(`relay-cleared:${uid}`);
-      ch.subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-          await ch.send({
-            type: 'broadcast',
-            event: 'relay-cleared',
-            payload: { clearerId: groupId }
-          });
-          setTimeout(() => supabaseClient.removeChannel(ch), 2000);
-        }
-      });
-      await new Promise(r => setTimeout(r, 40));
-    }
-  } catch (_) {}
 }
+
 
 function _showClearingOverlay() {
   // Desktop
