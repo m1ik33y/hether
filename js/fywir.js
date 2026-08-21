@@ -246,7 +246,7 @@ async function loadMoreMessagesDesktop() {
           groupEl.dataset.createdAt = item.firstTs || '';
           const rowEl = document.createElement('div');
           rowEl.className = 'flux-msg-group-row';
-          if (!isSent) rowEl.appendChild(makeGroupAvatar(fluxDesktopContact));
+          if (!isSent) rowEl.appendChild(makeGroupAvatar(fluxDesktopContact, item.sender_id));
           const bubblesWrap = document.createElement('div');
           bubblesWrap.className = 'flux-msg-bubbles';
           const collapsed = collapseMediaGroups(item.messages);
@@ -455,7 +455,7 @@ async function loadMoreMessagesMobile() {
           groupEl.dataset.createdAt = item.firstTs || '';
           const rowEl = document.createElement('div');
           rowEl.className = 'flux-msg-group-row';
-          if (!isSent) rowEl.appendChild(makeGroupAvatar(fluxMobileContact));
+          if (!isSent) rowEl.appendChild(makeGroupAvatar(fluxMobileContact, item.sender_id));
           const bubblesWrap = document.createElement('div');
           bubblesWrap.className = 'flux-msg-bubbles';
           const collapsed = collapseMediaGroups(item.messages);
@@ -598,7 +598,7 @@ function appendIncomingMessage(container, msg, currentUserId, contact) {
 
   const rowEl = document.createElement('div');
   rowEl.className = 'flux-msg-group-row';
-  if (!isSent) rowEl.appendChild(makeGroupAvatar(contact));
+  if (!isSent) rowEl.appendChild(makeGroupAvatar(contact, msg.sender_id));
 
   const bubblesWrap = document.createElement('div');
   bubblesWrap.className = 'flux-msg-bubbles';
@@ -628,11 +628,7 @@ function updateContactLastMsg(userId, msg, currentUserId) {
   const contact = fluxContacts.find(c => c.id === userId);
   if (!contact) return;
   const d = parseSupabaseDate(msg.created_at);
-  const senderProfile = contact.isGroup ? contact.groupMemberProfiles?.[msg.sender_id] : null;
-  const senderName = msg.sender_id === currentUserId
-    ? 'You'
-    : (senderProfile?.username || senderProfile?.displayName || 'User');
-  contact.lastMessage = { type: msg.sender_id === currentUserId ? 'sent' : 'received', text: msg.content, media: !!msg.media_url, time: formatMsgTime(d), senderName };
+  contact.lastMessage = { type: msg.sender_id === currentUserId ? 'sent' : 'received', text: msg.content, media: !!msg.media_url, time: formatMsgTime(d) };
   contact.lastMessageTs = d.getTime();
   if (msg.sender_id === currentUserId) contact.sentByMe = true;
   if (msg.sender_id !== currentUserId && activeFluxId !== userId) {
