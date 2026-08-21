@@ -933,20 +933,24 @@ function renderFluxGroupMemberResults(value) {
     return;
   }
 
-  // Default to all unarchived users in the app. Archived users are
-  // intentionally excluded here; they are reachable only through the
-  // archive-secret -> Archived folder flow above.
+  // With an empty search box, default to people who already have a DM
+  // containing a message sent by me. Once the user types a query, widen
+  // the pool to every unarchived user in the app, not just people I've
+  // messaged before. Archived users are intentionally excluded either way;
+  // they are reachable only through the archive-secret -> Archived folder
+  // flow above.
   const matches = fluxContacts
     .filter(c => c.id !== _fluxMyUserId)
     .filter(c => !c.isGroup)
     .filter(c => !_fluxArchivedOf(c.id))
     .filter(c => _fluxGroupAddMode !== 'add' || !_fluxAddMembersExistingIds.has(c.id))
+    .filter(c => q || c.sentByMe === true)
     .filter(c => !q || (c.username || '').toLowerCase().includes(q) || (c.realName || c.name || '').toLowerCase().includes(q))
     .slice(0, 30);
 
   if (!matches.length) {
     if (_fluxGroupArchivedPickerUnlocked && !q) return;
-    box.innerHTML = `<div class="flux-sidebar-no-user"><div>No users found</div></div>`;
+    box.innerHTML = `<div class="flux-sidebar-no-user"><div>${q ? 'No users found' : 'No previous conversations found'}</div></div>`;
     return;
   }
 
