@@ -1677,12 +1677,16 @@ async function _rehydrateRealtime() {
     });
 
     // 3. Global inbox channel — rebuild if dead
+    const { data: { user: _metaUser } } = await supabaseClient.auth.getUser();
+    if (_metaUser) await _fluxSetupMetadataRealtime(_metaUser.id);
+
     const globalChState = window._fluxGlobalChannel?.state;
     if (!window._fluxGlobalChannel || globalChState === 'closed' || globalChState === 'errored') {
       try { if (window._fluxGlobalChannel) await supabaseClient.removeChannel(window._fluxGlobalChannel); } catch(e) {}
       window._fluxGlobalChannel = null;
       const { data: { user } } = await supabaseClient.auth.getUser();
       if (user) {
+        await _fluxSetupMetadataRealtime(user.id);
         const globalCh = supabaseClient.channel(`global-inbox:${user.id}`)
           .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages',
             filter: `receiver_id=eq.${user.id}` }, (payload) => {
