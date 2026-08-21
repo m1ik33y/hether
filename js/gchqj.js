@@ -933,25 +933,20 @@ function renderFluxGroupMemberResults(value) {
     return;
   }
 
-  // Default to people who already have a DM containing a message sent by me.
-  // Archived users are intentionally excluded here; they are reachable only
-  // through the archive-secret -> Archived folder flow above.
+  // Default to all unarchived users in the app. Archived users are
+  // intentionally excluded here; they are reachable only through the
+  // archive-secret -> Archived folder flow above.
   const matches = fluxContacts
     .filter(c => c.id !== _fluxMyUserId)
     .filter(c => !c.isGroup)
     .filter(c => !_fluxArchivedOf(c.id))
     .filter(c => _fluxGroupAddMode !== 'add' || !_fluxAddMembersExistingIds.has(c.id))
-    // Keep the Add Member picker identical to the Add Group picker:
-    // only unarchived people with at least one message I sent to them are
-    // eligible in the normal list. Searching only narrows that same set;
-    // it must not expand the list to every unarchived profile.
-    .filter(c => c.sentByMe === true)
     .filter(c => !q || (c.username || '').toLowerCase().includes(q) || (c.realName || c.name || '').toLowerCase().includes(q))
     .slice(0, 30);
 
   if (!matches.length) {
     if (_fluxGroupArchivedPickerUnlocked && !q) return;
-    box.innerHTML = `<div class="flux-sidebar-no-user"><div>${q ? 'No users found' : 'No previous conversations found'}</div></div>`;
+    box.innerHTML = `<div class="flux-sidebar-no-user"><div>No users found</div></div>`;
     return;
   }
 
@@ -1153,4 +1148,4 @@ document.addEventListener('click', function(e) {
   if (wrap && !wrap.contains(e.target)) closeFluxDmMenu();
 });
 
-// ── CONSTANTS & STATE ──
+// ── CONSTANTS & STATE ──
