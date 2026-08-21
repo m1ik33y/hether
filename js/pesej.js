@@ -459,6 +459,25 @@ async function openFLUX() {
         })
         .subscribe();
       window._fluxRelayClearedChannel = relayClearedCh;
+      // ── GLOBAL GROUP MEMBERSHIP ──
+      // Fires whenever a row in flux_group_members is inserted for me — i.e.
+      // someone added me to a group. flux_group_members must be added to the
+      // supabase_realtime publication for this to fire at all (see project SQL).
+      const globalGroupMembershipCh = supabaseClient.channel(`group-membership:${user.id}`)
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'flux_group_members',
+          filter: `user_id=eq.${user.id}` }, async (payload) => {
+          if (!fluxOpen) return;
+          const groupId = payload.new?.group_id;
+          if (!groupId || _fluxMyGroupIds.has(groupId)) return; // already known (e.g. optimistic add by me)
+          try {
+            await loadContacts();
+            buildFLUXConvList();
+          } catch (e) {
+            console.warn('[FLUX] group-membership refresh failed:', e.message || e);
+          }
+        })
+        .subscribe();
+      window._fluxGlobalGroupMembershipChannel = globalGroupMembershipCh;
       // Start the persistent seen-updates channel for this user
       await startSeenChannel(user.id);
     }
@@ -533,6 +552,7 @@ async function closeFLUX() {
       if (window._fluxGlobalGroupChannel) { await supabaseClient.removeChannel(window._fluxGlobalGroupChannel); window._fluxGlobalGroupChannel = null; }
       if (window._fluxGlobalTypingChannel) { await supabaseClient.removeChannel(window._fluxGlobalTypingChannel); window._fluxGlobalTypingChannel = null; }
       if (window._fluxRelayClearedChannel) { await supabaseClient.removeChannel(window._fluxRelayClearedChannel); window._fluxRelayClearedChannel = null; }
+      if (window._fluxGlobalGroupMembershipChannel) { await supabaseClient.removeChannel(window._fluxGlobalGroupMembershipChannel); window._fluxGlobalGroupMembershipChannel = null; }
       await stopSeenChannel();
       await subscriptionManager.replaceSubscription(null);
     } catch (e) {
@@ -776,6 +796,3 @@ function autoResizeCompanion(el) {
   el.style.height = 'auto';
   el.style.height = Math.min(el.scrollHeight, 100) + 'px';
 }
-
-
-
