@@ -1,3 +1,5 @@
+
+
 // ── CODE EDITOR LINE NUMBERS & AUTO-INDENT ──
 function updateCodeLineNumbers() {
   const ta = document.getElementById('codeInput');
@@ -1618,7 +1620,9 @@ async function _rehydrateRealtime() {
               contact.unread = true;
               contact.unreadCount = (contact.unreadCount || 0) + 1;
               const d = parseSupabaseDate(msg.created_at);
-              contact.lastMessage = { type: 'received', text: msg.content, media: !!msg.media_url, time: formatMsgTime(d) };
+              const senderProfile = contact.isGroup ? contact.groupMemberProfiles?.[msg.sender_id] : null;
+              const senderName = senderProfile?.username || senderProfile?.displayName || senderProfile?.realName || 'User';
+              contact.lastMessage = { type: 'received', text: msg.content, media: !!msg.media_url, time: formatMsgTime(d), senderName };
               contact.lastMessageTs = d.getTime();
               buildFLUXConvList();
             }
@@ -1655,31 +1659,6 @@ async function _rehydrateRealtime() {
           })
           .subscribe();
         window._fluxGlobalGroupChannel = globalGroupCh;
-      }
-    }
-
-    // 3c. Global group membership channel — rebuild if dead
-    const globalGroupMembershipChState = window._fluxGlobalGroupMembershipChannel?.state;
-    if (!window._fluxGlobalGroupMembershipChannel || globalGroupMembershipChState === 'closed' || globalGroupMembershipChState === 'errored') {
-      try { if (window._fluxGlobalGroupMembershipChannel) await supabaseClient.removeChannel(window._fluxGlobalGroupMembershipChannel); } catch(e) {}
-      window._fluxGlobalGroupMembershipChannel = null;
-      const { data: { user } } = await supabaseClient.auth.getUser();
-      if (user) {
-        const globalGroupMembershipCh = supabaseClient.channel(`group-membership:${user.id}`)
-          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'flux_group_members',
-            filter: `user_id=eq.${user.id}` }, async (payload) => {
-            if (!fluxOpen) return;
-            const groupId = payload.new?.group_id;
-            if (!groupId || _fluxMyGroupIds.has(groupId)) return;
-            try {
-              await loadContacts();
-              buildFLUXConvList();
-            } catch (e) {
-              console.warn('[FLUX] group-membership refresh failed:', e.message || e);
-            }
-          })
-          .subscribe();
-        window._fluxGlobalGroupMembershipChannel = globalGroupMembershipCh;
       }
     }
 
@@ -2088,3 +2067,6 @@ if (typeof _originalCloseFLUX === 'function') {
     document.title = "Hether - Code n' Arcade";
   };
 }
+
+
+
