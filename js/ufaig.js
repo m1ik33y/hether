@@ -138,21 +138,23 @@ function collapseMediaGroups(messages) {
   return result;
 }
 
-function makeGroupAvatar(contact) {
+function makeGroupAvatar(contact, senderId) {
   const av = document.createElement('div');
-  const isDual = !!(contact && contact.isGroup && !contact.avatarUrl && contact.memberAvatars?.length);
+
+  // Group-message avatars are per sender, never the group avatar.
+  // fluxContacts contains the loaded member profiles.
+  const sender = (contact && contact.isGroup && senderId)
+    ? (fluxContacts.find(c => c.id === senderId) || null)
+    : contact;
+  const avatarUrl = sender?.avatarUrl || sender?.avatar_url || null;
+
   av.className = 'flux-group-avatar';
-  if (contact && contact.avatarUrl) {
+  if (avatarUrl) {
     av.style.background = 'transparent';
     const img = document.createElement('img');
-    img.src = contact.avatarUrl;
+    img.src = avatarUrl;
     img.alt = '';
     av.appendChild(img);
-  } else if (isDual) {
-    av.style.background = 'transparent';
-    av.style.overflow = 'visible';
-    av.style.borderRadius = '0';
-    av.innerHTML = buildDualAvatarHtml(contact.memberAvatars);
   } else {
     av.style.background = '#e8e8ec';
     av.classList.add('default-avatar');
@@ -197,7 +199,7 @@ function renderGroupedMessages(container, groups, currentUserId, contact) {
     rowEl.className = 'flux-msg-group-row';
 
     if (!isSent) {
-      rowEl.appendChild(makeGroupAvatar(contact));
+      rowEl.appendChild(makeGroupAvatar(contact, item.sender_id));
     }
 
     const bubblesWrap = document.createElement('div');
@@ -1110,7 +1112,7 @@ async function scrollToReplyTarget(replyMsgId, replyText, replyAuthor) {
         groupEl.dataset.createdAt = item.firstTs || '';
         const rowEl = document.createElement('div');
         rowEl.className = 'flux-msg-group-row';
-        if (!isSent) rowEl.appendChild(makeGroupAvatar(contact));
+        if (!isSent) rowEl.appendChild(makeGroupAvatar(contact, item.sender_id));
         const bubblesWrap = document.createElement('div');
         bubblesWrap.className = 'flux-msg-bubbles';
         item.messages.forEach(msg => { if (msg.id) renderedMsgIds.add(msg.id); bubblesWrap.appendChild(makeBubbleWrap(msg, isSent, contact, user.id)); });
@@ -1159,4 +1161,4 @@ let fluxDesktopLoadingMore = false;
 let fluxDesktopUserId = null;
 let fluxDesktopUser = null;
 let fluxDesktopContact = null;
-
+
