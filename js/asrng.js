@@ -1449,9 +1449,38 @@ async function saveRelayThemeToSupabase(themeId) {
   if (!activeFluxProfileTarget) return;
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (!user) return;
+
+  // 1-to-1 chats keep the existing shared theme behavior.
+  // Group chats are different: every member has their own private theme
+  // for the same group, so the row is keyed by (group_id, user_id).
+  if (_fluxConvIsGroup(activeFluxProfileTarget)) {
+    const groupId = activeFluxProfileTarget;
+    const { error } = await supabaseClient
+      .from('flux_group_chat_settings')
+      .upsert(
+        {
+          group_id: groupId,
+          user_id: user.id,
+          theme: themeId,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'group_id,user_id' }
+      );
+
+    if (error) {
+      console.error('Group theme save error:', error);
+      return;
+    }
+
+    // Do NOT broadcast this to the group. The theme belongs only to the
+    // member who selected it. Realtime is only used to sync this user's
+    // other tabs/devices via the postgres_changes subscription below.
+    return;
+  }
+
   const [u1, u2] = _sortUserIds(user.id, activeFluxProfileTarget);
 
-  // upsert by user1_id + user2_id
+  // Existing 1-to-1 shared theme storage.
   const { error } = await supabaseClient
     .from('chat_settings')
     .upsert(
@@ -1465,8 +1494,6 @@ async function saveRelayThemeToSupabase(themeId) {
     );
   if (error) { console.error('Theme save error:', error); return; }
 
-  // Broadcast theme change instantly over the typing channel so the other
-  // user sees it in real time without waiting for DB replication.
   if (typingChannel && typingChannel.state === 'joined') {
     typingChannel.send({
       type: 'broadcast',
@@ -1494,6 +1521,23 @@ async function loadRelayThemeFromSupabase(otherUserId) {
   if (!otherUserId) return;
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (!user) return;
+
+  if (_fluxConvIsGroup(otherUserId)) {
+    const { data, error } = await supabaseClient
+      .from('flux_group_chat_settings')
+      .select('theme')
+      .eq('group_id', otherUserId)
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Group theme load error:', error);
+    }
+    applyRelayTheme(data?.theme || 'default');
+    if (_themePickerOpen) renderThemePicker();
+    return;
+  }
+
   const [u1, u2] = _sortUserIds(user.id, otherUserId);
 
   const { data, error } = await supabaseClient
@@ -1512,16 +1556,47 @@ async function subscribeToRelayTheme(otherUserId) {
   if (!otherUserId) return;
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (!user) return;
-  const [u1, u2] = _sortUserIds(user.id, otherUserId);
 
-  // Unsubscribe from previous
+  // Remove the previous theme subscription before switching conversations.
   if (_relayThemeChannel) {
     try { await supabaseClient.removeChannel(_relayThemeChannel); } catch(e) {}
     _relayThemeChannel = null;
   }
 
-  // Supabase postgres_changes only supports one column per filter,
-  // so we filter by user1_id and verify user2_id client-side.
+  if (_fluxConvIsGroup(otherUserId)) {
+    const groupId = otherUserId;
+    const myUserId = user.id;
+
+    // Group themes are private. Only listen for this user's own row so
+    // another member changing their theme can never affect our UI.
+    _relayThemeChannel = supabaseClient
+      .channel(`group_theme:${groupId}:${myUserId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'flux_group_chat_settings',
+          filter: `group_id=eq.${groupId}`,
+        },
+        (payload) => {
+          const row = payload.new || payload.old;
+          if (row && row.group_id === groupId && row.user_id === myUserId) {
+            applyRelayTheme(row.theme || 'default');
+            if (_themePickerOpen) renderThemePicker();
+          }
+        }
+      )
+      .subscribe((status, err) => {
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          console.warn('Group theme channel error:', status, err);
+        }
+      });
+    return;
+  }
+
+  const [u1, u2] = _sortUserIds(user.id, otherUserId);
+
   _relayThemeChannel = supabaseClient
     .channel(`relay_theme:${u1}:${u2}`)
     .on(
@@ -1620,9 +1695,7 @@ async function _rehydrateRealtime() {
               contact.unread = true;
               contact.unreadCount = (contact.unreadCount || 0) + 1;
               const d = parseSupabaseDate(msg.created_at);
-              const senderProfile = contact.isGroup ? contact.groupMemberProfiles?.[msg.sender_id] : null;
-              const senderName = senderProfile?.username || senderProfile?.displayName || senderProfile?.realName || 'User';
-              contact.lastMessage = { type: 'received', text: msg.content, media: !!msg.media_url, time: formatMsgTime(d), senderName };
+              contact.lastMessage = { type: 'received', text: msg.content, media: !!msg.media_url, time: formatMsgTime(d) };
               contact.lastMessageTs = d.getTime();
               buildFLUXConvList();
             }
