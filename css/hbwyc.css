@@ -1437,7 +1437,14 @@ kbd {
 
 /* Hide "Messages" title while the AI panel is open */
 .flux-popup:has(.flux-ai-panel.show) .flux-titlebar-label {
-  display: none;
+  visibility: hidden;
+}
+
+/* Sidebar header has z-index: 999999 which punches through the AI panel
+   (z-index: 10) since they share the same stacking context — drop it
+   below the AI panel while the AI panel is open */
+.flux-popup:has(.flux-ai-panel.show) .flux-sidebar-header {
+  z-index: 1;
 }
 
 /* AI circle button */
