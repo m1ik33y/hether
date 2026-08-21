@@ -357,6 +357,7 @@ async function openFLUX() {
   try {
     const { data: { user } } = await supabaseClient.auth.getUser();
     if (user) {
+      await _fluxSetupMetadataRealtime(user.id);
       const globalCh = supabaseClient.channel(`global-inbox:${user.id}`)
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages',
           filter: `receiver_id=eq.${user.id}` }, (payload) => {
@@ -533,6 +534,8 @@ async function closeFLUX() {
       if (typingChannel) { await supabaseClient.removeChannel(typingChannel); typingChannel = null; }
       if (window._fluxGlobalChannel) { await supabaseClient.removeChannel(window._fluxGlobalChannel); window._fluxGlobalChannel = null; }
       if (window._fluxGlobalGroupChannel) { await supabaseClient.removeChannel(window._fluxGlobalGroupChannel); window._fluxGlobalGroupChannel = null; }
+      if (window._fluxProfileMetaChannel) { await supabaseClient.removeChannel(window._fluxProfileMetaChannel); window._fluxProfileMetaChannel = null; }
+      if (window._fluxGroupMetaChannel) { await supabaseClient.removeChannel(window._fluxGroupMetaChannel); window._fluxGroupMetaChannel = null; }
       if (window._fluxGlobalTypingChannel) { await supabaseClient.removeChannel(window._fluxGlobalTypingChannel); window._fluxGlobalTypingChannel = null; }
       if (window._fluxRelayClearedChannel) { await supabaseClient.removeChannel(window._fluxRelayClearedChannel); window._fluxRelayClearedChannel = null; }
       await stopSeenChannel();
