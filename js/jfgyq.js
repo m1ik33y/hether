@@ -333,15 +333,9 @@ async function openFluxHeaderMoreMenu(e) {
   const exitIcon = '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/>';
 
   if (isGroup) {
-    const canAddMembers = isGroupAdmin || (
-      _fluxGroupInfoPerms?.groupId === id &&
-      !!_fluxGroupInfoPerms.allowNonAdminAddMembers
-    );
-    if (canAddMembers) {
-      menu.appendChild(makeItem('Add member',
-        '<path d="M2 21a8 8 0 0 1 13.292-6"/><circle cx="10" cy="8" r="5"/><path d="M19 16v6"/><path d="M22 19h-6"/>',
-        () => openAddMembersToGroup(id)));
-    }
+    menu.appendChild(makeItem('Add member',
+      '<path d="M2 21a8 8 0 0 1 13.292-6"/><circle cx="10" cy="8" r="5"/><path d="M19 16v6"/><path d="M22 19h-6"/>',
+      () => openAddMembersToGroup(id)));
 
     menu.appendChild(makeItem('Group info', infoIcon, () => openNicknamePanel()));
 
