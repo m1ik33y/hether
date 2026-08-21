@@ -765,10 +765,10 @@ async function submitAddMembersToGroup() {
     return;
   }
 
-  const rows = newMembers.map(c => ({ group_id: groupId, user_id: c.id, role: 'member' }));
-  const { error } = await supabaseClient
-    .from('flux_group_members')
-    .upsert(rows, { onConflict: 'group_id,user_id', ignoreDuplicates: true });
+  const { error } = await supabaseClient.rpc('add_flux_group_members', {
+    p_group_id: groupId,
+    p_user_ids: newMembers.map(c => c.id)
+  });
 
   if (error) { alert('Failed to add members: ' + error.message); return; }
 
@@ -786,7 +786,7 @@ async function submitAddMembersToGroup() {
   if (!groupBefore.name_is_custom) {
     try {
       const defaultName = await _fluxBuildDefaultGroupName(groupId);
-      await supabaseClient.rpc('set_flux_group_name', {
+      await supabaseClient.rpc('update_flux_group_name', {
         p_group_id: groupId,
         p_name: defaultName,
         p_is_custom: false
@@ -1058,7 +1058,7 @@ async function createFluxGroup() {
   try {
     const defaultName = await _fluxBuildDefaultGroupName(groupId);
     groupName = defaultName;
-    await supabaseClient.rpc('set_flux_group_name', {
+    await supabaseClient.rpc('update_flux_group_name', {
       p_group_id: groupId,
       p_name: defaultName,
       p_is_custom: false
