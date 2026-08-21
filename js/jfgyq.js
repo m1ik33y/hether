@@ -81,9 +81,20 @@ function _fluxJoinNames(names) {
 // conversation. `q` must be a builder that still supports .eq/.or (i.e.
 // call this before .order()/.range()/.single()).
 function _fluxApplyConvFilter(q, convId, myId, isGroup) {
-  return isGroup
+  let filtered = isGroup
     ? q.eq('group_id', convId)
     : q.or(`and(sender_id.eq.${myId},receiver_id.eq.${convId}),and(sender_id.eq.${convId},receiver_id.eq.${myId})`);
+
+  // "Clear for me" is a per-user cutoff, not a message delete. Apply it
+  // to every message query (including counts/pagination), otherwise the old
+  // group messages come back the next time the conversation is opened.
+  const deletedBefore = typeof fluxDeletedBefore !== 'undefined'
+    ? fluxDeletedBefore.get(convId)
+    : null;
+  if (deletedBefore) {
+    filtered = filtered.gt('created_at', new Date(deletedBefore).toISOString());
+  }
+  return filtered;
 }
 
 // Client-side equivalent, used inside realtime callbacks where we already
@@ -308,6 +319,27 @@ async function openFluxHeaderMoreMenu(e) {
     }
   }
 
+  // The header menu can be opened without ever opening Group Info, so make
+  // sure non-admin permissions are available here too.
+  if (isGroup && !isGroupAdmin) {
+    try {
+      const { data: settings } = await supabaseClient
+        .from('flux_groups')
+        .select('allow_non_admin_add_members, allow_non_admin_clear_all')
+        .eq('id', id)
+        .single();
+      if (settings) {
+        _fluxGroupInfoPerms = {
+          ...(_fluxGroupInfoPerms || {}),
+          groupId: id,
+          viewerIsAdmin: false,
+          allowNonAdminAddMembers: !!settings.allow_non_admin_add_members,
+          allowNonAdminClearAll: !!settings.allow_non_admin_clear_all
+        };
+      }
+    } catch (_) {}
+  }
+
   menu.innerHTML = '';
 
   const makeItem = (label, iconPath, onClick, opts) => {
@@ -333,20 +365,28 @@ async function openFluxHeaderMoreMenu(e) {
   const exitIcon = '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/>';
 
   if (isGroup) {
-    menu.appendChild(makeItem('Add member',
-      '<path d="M2 21a8 8 0 0 1 13.292-6"/><circle cx="10" cy="8" r="5"/><path d="M19 16v6"/><path d="M22 19h-6"/>',
-      () => openAddMembersToGroup(id)));
+    // Admins can always add members. Non-admins only get the option when
+    // the group setting explicitly allows it.
+    const canAddMembers = isGroupAdmin
+      || (_fluxGroupInfoPerms?.groupId === id && !!_fluxGroupInfoPerms.allowNonAdminAddMembers);
+    if (canAddMembers) {
+      menu.appendChild(makeItem('Add member',
+        '<path d="M2 21a8 8 0 0 1 13.292-6"/><circle cx="10" cy="8" r="5"/><path d="M19 16v6"/><path d="M22 19h-6"/>',
+        () => openAddMembersToGroup(id)));
+    }
 
     menu.appendChild(makeItem('Group info', infoIcon, () => openNicknamePanel()));
 
-    // Non-admin group members must never receive a group-wide clear/delete
-    // action. They only get "Delete for me".
-    menu.appendChild(makeItem('Delete for me', trashIcon,
-      () => openDeleteForMeConfirm(id)));
+    // "Clear for me" is always available. It only affects this user's view.
+    menu.appendChild(makeItem('Clear for me', trashIcon,
+      () => openClearForMeConfirm(id)));
 
-    // Only admins/owners can perform the group-wide deletion.
-    if (isGroupAdmin) {
-      menu.appendChild(makeItem('Delete for all', trashIcon,
+    // Admins can always clear the group. Non-admins get the group-wide
+    // action only when the admin has enabled the corresponding setting.
+    const canClearAll = isGroupAdmin
+      || (_fluxGroupInfoPerms?.groupId === id && !!_fluxGroupInfoPerms.allowNonAdminClearAll);
+    if (canClearAll) {
+      menu.appendChild(makeItem('Clear all', clearIcon,
         () => openDeleteGroupConfirm(id), { danger: true }));
     }
   } else {
