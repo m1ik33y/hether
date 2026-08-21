@@ -1,6 +1,17 @@
 import fs from "fs";
 import path from "path";
 
+const MIME_TYPES = {
+  ".css": "text/css; charset=utf-8",
+  ".js": "application/javascript; charset=utf-8",
+  ".svg": "image/svg+xml",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".gif": "image/gif",
+  ".webp": "image/webp",
+};
+
 export default function handler(req, res) {
   const file = req.query.file;
   const type = req.query.type;
@@ -14,19 +25,15 @@ export default function handler(req, res) {
   }
 
   const folder = type === "js" ? "js" : "css";
-  const extension = type === "js" ? ".js" : ".css";
-
   const safeFile = path.basename(file);
+  const actualExt = path.extname(safeFile).toLowerCase();
 
-  if (!safeFile.endsWith(extension)) {
+  const mime = MIME_TYPES[actualExt];
+  if (!mime) {
     return res.status(404).send("Not found");
   }
 
-  const filePath = path.join(
-    process.cwd(),
-    folder,
-    safeFile
-  );
+  const filePath = path.join(process.cwd(), folder, safeFile);
 
   if (!fs.existsSync(filePath)) {
     return res.status(404).send("Not found");
@@ -41,19 +48,11 @@ export default function handler(req, res) {
     return res.status(200).send("");
   }
 
-  const code = fs.readFileSync(filePath, "utf8");
+  res.setHeader("Content-Type", mime);
 
-  if (type === "js") {
-    res.setHeader(
-      "Content-Type",
-      "application/javascript; charset=utf-8"
-    );
-  } else {
-    res.setHeader(
-      "Content-Type",
-      "text/css; charset=utf-8"
-    );
+  // Binary-safe read/send — text files still work, images do too
+  if (mime.startsWith("text/") || mime === "application/javascript") {
+    return res.status(200).send(fs.readFileSync(filePath, "utf8"));
   }
-
-  return res.status(200).send(code);
+  return res.status(200).send(fs.readFileSync(filePath));
 }
