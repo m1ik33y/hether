@@ -628,19 +628,7 @@ function updateContactLastMsg(userId, msg, currentUserId) {
   const contact = fluxContacts.find(c => c.id === userId);
   if (!contact) return;
   const d = parseSupabaseDate(msg.created_at);
-  const isSent = msg.sender_id === currentUserId;
-  const senderName = (!isSent && contact?.isGroup)
-    ? (contact.groupMemberProfiles?.[msg.sender_id]?.displayName
-      || contact.groupMemberProfiles?.[msg.sender_id]?.username
-      || 'User')
-    : null;
-  contact.lastMessage = {
-    type: isSent ? 'sent' : 'received',
-    text: msg.content,
-    media: !!msg.media_url,
-    time: formatMsgTime(d),
-    senderName
-  };
+  contact.lastMessage = { type: msg.sender_id === currentUserId ? 'sent' : 'received', text: msg.content, media: !!msg.media_url, time: formatMsgTime(d) };
   contact.lastMessageTs = d.getTime();
   if (msg.sender_id === currentUserId) contact.sentByMe = true;
   if (msg.sender_id !== currentUserId && activeFluxId !== userId) {
