@@ -246,7 +246,7 @@ async function loadMoreMessagesDesktop() {
           groupEl.dataset.createdAt = item.firstTs || '';
           const rowEl = document.createElement('div');
           rowEl.className = 'flux-msg-group-row';
-          if (!isSent) rowEl.appendChild(makeGroupAvatar(fluxDesktopContact));
+          if (!isSent) rowEl.appendChild(makeGroupAvatar(fluxDesktopContact, item.sender_id));
           const bubblesWrap = document.createElement('div');
           bubblesWrap.className = 'flux-msg-bubbles';
           const collapsed = collapseMediaGroups(item.messages);
@@ -455,7 +455,7 @@ async function loadMoreMessagesMobile() {
           groupEl.dataset.createdAt = item.firstTs || '';
           const rowEl = document.createElement('div');
           rowEl.className = 'flux-msg-group-row';
-          if (!isSent) rowEl.appendChild(makeGroupAvatar(fluxMobileContact));
+          if (!isSent) rowEl.appendChild(makeGroupAvatar(fluxMobileContact, item.sender_id));
           const bubblesWrap = document.createElement('div');
           bubblesWrap.className = 'flux-msg-bubbles';
           const collapsed = collapseMediaGroups(item.messages);
@@ -598,7 +598,7 @@ function appendIncomingMessage(container, msg, currentUserId, contact) {
 
   const rowEl = document.createElement('div');
   rowEl.className = 'flux-msg-group-row';
-  if (!isSent) rowEl.appendChild(makeGroupAvatar(contact));
+  if (!isSent) rowEl.appendChild(makeGroupAvatar(contact, msg.sender_id));
 
   const bubblesWrap = document.createElement('div');
   bubblesWrap.className = 'flux-msg-bubbles';
@@ -1099,4 +1099,4 @@ function lightboxDeleteCurrentImage() {
 }
 
 
-// ── PROFILE DROPDOWN ──
+// ── PROFILE DROPDOWN ──
