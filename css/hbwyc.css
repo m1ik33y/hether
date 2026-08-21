@@ -1,4 +1,3 @@
-
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
 :root {
@@ -5670,4 +5669,3 @@ html, body { background: #060000 !important; }
 #mainApp .flux-fs-input-row { background: #060000 !important; }
 /* Keep terminal completely independent from the front-page background. */
 #vaultTerminal, #vaultTerminal * { box-sizing: border-box; }
-
