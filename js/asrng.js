@@ -1,5 +1,3 @@
-
-
 // ── CODE EDITOR LINE NUMBERS & AUTO-INDENT ──
 function updateCodeLineNumbers() {
   const ta = document.getElementById('codeInput');
@@ -1660,6 +1658,31 @@ async function _rehydrateRealtime() {
       }
     }
 
+    // 3c. Global group membership channel — rebuild if dead
+    const globalGroupMembershipChState = window._fluxGlobalGroupMembershipChannel?.state;
+    if (!window._fluxGlobalGroupMembershipChannel || globalGroupMembershipChState === 'closed' || globalGroupMembershipChState === 'errored') {
+      try { if (window._fluxGlobalGroupMembershipChannel) await supabaseClient.removeChannel(window._fluxGlobalGroupMembershipChannel); } catch(e) {}
+      window._fluxGlobalGroupMembershipChannel = null;
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      if (user) {
+        const globalGroupMembershipCh = supabaseClient.channel(`group-membership:${user.id}`)
+          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'flux_group_members',
+            filter: `user_id=eq.${user.id}` }, async (payload) => {
+            if (!fluxOpen) return;
+            const groupId = payload.new?.group_id;
+            if (!groupId || _fluxMyGroupIds.has(groupId)) return;
+            try {
+              await loadContacts();
+              buildFLUXConvList();
+            } catch (e) {
+              console.warn('[FLUX] group-membership refresh failed:', e.message || e);
+            }
+          })
+          .subscribe();
+        window._fluxGlobalGroupMembershipChannel = globalGroupMembershipCh;
+      }
+    }
+
     // 4. Global typing channel — rebuild if dead
     const globalTypingState = window._fluxGlobalTypingChannel?.state;
     if (!window._fluxGlobalTypingChannel || globalTypingState === 'closed' || globalTypingState === 'errored') {
@@ -2065,6 +2088,3 @@ if (typeof _originalCloseFLUX === 'function') {
     document.title = "Hether - Code n' Arcade";
   };
 }
-
-
-
