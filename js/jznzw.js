@@ -177,7 +177,11 @@ async function preloadAllRelays() {
     const contact = fluxContacts.find(c => c.id === convId);
     if (!contact) return;
     const d = parseSupabaseDate(msg.created_at);
-    contact.lastMessage = { type: msg.sender_id === user.id ? 'sent' : 'received', text: msg.content, media: !!msg.media_url, time: formatMsgTime(d) };
+    const senderProfile = contact.isGroup ? contact.groupMemberProfiles?.[msg.sender_id] : null;
+    const senderName = msg.sender_id === user.id
+      ? 'You'
+      : (senderProfile?.username || senderProfile?.displayName || 'User');
+    contact.lastMessage = { type: msg.sender_id === user.id ? 'sent' : 'received', text: msg.content, media: !!msg.media_url, time: formatMsgTime(d), senderName };
     contact.lastMessageTs = d.getTime();
   });
 
