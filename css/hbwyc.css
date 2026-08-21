@@ -1435,6 +1435,11 @@ kbd {
   height: 31px;
 }
 
+/* Hide "Messages" title while the AI panel is open */
+.flux-popup:has(.flux-ai-panel.show) .flux-titlebar-label {
+  display: none;
+}
+
 /* AI circle button */
 .flux-titlebar-ai-btn {
   width: 31px;
