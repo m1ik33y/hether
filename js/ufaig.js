@@ -149,6 +149,7 @@ function makeGroupAvatar(contact, senderId) {
   const avatarUrl = sender?.avatarUrl || sender?.avatar_url || null;
 
   av.className = 'flux-group-avatar';
+  if (senderId) av.dataset.senderId = senderId;
   if (avatarUrl) {
     av.style.background = 'transparent';
     const img = document.createElement('img');
