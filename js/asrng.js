@@ -1694,6 +1694,7 @@ async function _rehydrateRealtime() {
             _maybePlayMessageSound(msg.sender_id, user.id);
             const contact = fluxContacts.find(c => c.id === msg.sender_id);
             if (contact) {
+              _fluxRealtimeClearedConversations.delete(msg.sender_id);
               contact.unread = true;
               contact.unreadCount = (contact.unreadCount || 0) + 1;
               const d = parseSupabaseDate(msg.created_at);
@@ -1724,6 +1725,7 @@ async function _rehydrateRealtime() {
             _maybePlayMessageSound(msg.group_id, user.id);
             const contact = fluxContacts.find(c => c.id === msg.group_id);
             if (contact) {
+              _fluxRealtimeClearedConversations.delete(msg.group_id);
               contact.unread = true;
               contact.unreadCount = (contact.unreadCount || 0) + 1;
               const d = parseSupabaseDate(msg.created_at);
@@ -1867,9 +1869,10 @@ async function _rehydrateRealtime() {
       window._fluxRelayClearedChannel = null;
       const { data: { user: _ccUser } } = await supabaseClient.auth.getUser();
       if (_ccUser) {
-        // Clear events are broadcast on one shared channel for both DMs and
-        // groups. The payload contains the conversation id, so every member
-        // can clear the correct sidebar entry and open chat in realtime.
+        // Clear notifications are conversation-scoped, not user-scoped.
+        // A group has multiple members, so listening on `relay-cleared:${user.id}`
+        // cannot receive a broadcast sent to another member. Use one shared
+        // channel and carry the conversation id in the payload.
         const relayClearedCh = supabaseClient.channel('relay-cleared:global', {
           config: { broadcast: { self: false } }
         });
