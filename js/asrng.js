@@ -1762,11 +1762,7 @@ async function _rehydrateRealtime() {
             const groupId = payload.new?.group_id;
             if (!groupId || _fluxMyGroupIds.has(groupId)) return;
             try {
-              // preloadAllRelays() (not just loadContacts()) so the "X added
-              // Y" system message shows as the unread preview immediately,
-              // same as a normal openFLUX() load.
-              await loadContacts();
-              await preloadAllRelays();
+              await _fluxHandleNewGroupMembership(groupId, user.id);
             } catch (e) {
               console.warn('[FLUX] live group-add refresh failed:', e.message || e);
             }
