@@ -404,6 +404,29 @@ async function openFLUX() {
         })
         .subscribe();
       window._fluxGlobalGroupChannel = globalGroupCh;
+      // ── GROUP MEMBERSHIP (being added to a group) ──
+      // The globalGroupCh listener above only updates a group that's already
+      // in fluxContacts/_fluxMyGroupIds. When someone else adds *this* user to
+      // a group, neither of those is populated yet — loadContacts() only ever
+      // ran at the last openFLUX() — so that listener silently drops the
+      // event and the new group doesn't show up until the next reload.
+      // Listen for our own membership row being inserted and pull the fresh
+      // contact list in when that happens.
+      const groupMembershipCh = supabaseClient.channel(`group-membership:${user.id}`)
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'flux_group_members',
+          filter: `user_id=eq.${user.id}` }, async (payload) => {
+          if (!fluxOpen) return;
+          const groupId = payload.new?.group_id;
+          if (!groupId || _fluxMyGroupIds.has(groupId)) return; // already known locally
+          try {
+            await loadContacts();
+            buildFLUXConvList();
+          } catch (e) {
+            console.warn('[FLUX] live group-add refresh failed:', e.message || e);
+          }
+        })
+        .subscribe();
+      window._fluxGroupMembershipChannel = groupMembershipCh;
       // ── GLOBAL TYPING SIDEBAR ──
       // Each user broadcasts to `typing-notify:{recipientId}` so we only need one channel here.
       const globalTypingCh = supabaseClient.channel(`typing-notify:${user.id}`, {
@@ -534,6 +557,7 @@ async function closeFLUX() {
       if (typingChannel) { await supabaseClient.removeChannel(typingChannel); typingChannel = null; }
       if (window._fluxGlobalChannel) { await supabaseClient.removeChannel(window._fluxGlobalChannel); window._fluxGlobalChannel = null; }
       if (window._fluxGlobalGroupChannel) { await supabaseClient.removeChannel(window._fluxGlobalGroupChannel); window._fluxGlobalGroupChannel = null; }
+      if (window._fluxGroupMembershipChannel) { await supabaseClient.removeChannel(window._fluxGroupMembershipChannel); window._fluxGroupMembershipChannel = null; }
       if (window._fluxProfileMetaChannel) { await supabaseClient.removeChannel(window._fluxProfileMetaChannel); window._fluxProfileMetaChannel = null; }
       if (window._fluxGroupMetaChannel) { await supabaseClient.removeChannel(window._fluxGroupMetaChannel); window._fluxGroupMetaChannel = null; }
       if (window._fluxGlobalTypingChannel) { await supabaseClient.removeChannel(window._fluxGlobalTypingChannel); window._fluxGlobalTypingChannel = null; }
@@ -781,6 +805,3 @@ function autoResizeCompanion(el) {
   el.style.height = 'auto';
   el.style.height = Math.min(el.scrollHeight, 100) + 'px';
 }
-
-
-
