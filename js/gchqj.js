@@ -329,47 +329,103 @@ function stopTypingBroadcast() {
 }
 
 function clearRelayUI() {
+  const clearedConvId = activeFluxId;
+  const isGroup = _fluxConvIsGroup(clearedConvId);
+
   const msgsEl = document.getElementById('fluxRelayMessages');
   if (msgsEl) msgsEl.innerHTML = '';
   const fsMsgsEl = document.getElementById('fluxFsMessages');
   if (fsMsgsEl) fsMsgsEl.innerHTML = '';
   renderedMsgIds.clear();
-  const contact = fluxContacts.find(c => c.id === activeFluxId);
-  if (contact) { contact.lastMessage = null; contact.lastMessageTs = 0; contact.unread = false; contact.sentByMe = false; }
-  if (!isMobile()) { showFluxEmptyState(); activeFluxId = null; document.querySelectorAll('#fluxConvList .flux-conv-item, #fluxFsConvList .flux-conv-item').forEach(el => el.classList.remove('active')); _updateGroupMenuBtnVisibility(null); }
-  buildFLUXConvList();
-}
 
-function _handleRemoteRelayCleared(clearerId) {
-  if (!fluxOpen) return;
-  const contact = fluxContacts.find(c => c.id === clearerId);
+  const contact = fluxContacts.find(c => c.id === clearedConvId);
   if (contact) {
     contact.lastMessage = null;
     contact.lastMessageTs = 0;
     contact.unread = false;
     contact.unreadCount = 0;
-    contact.sentByMe = false;
+    // Keep a group in the live sidebar after a mutual clear. On reload,
+    // loadContacts() recomputes sentByMe from actual message history and
+    // hides the now-empty group as intended.
+    if (!isGroup) contact.sentByMe = false;
   }
-  if (activeFluxId === clearerId) {
+
+  // Group "Clear all" is mutual, but it must NOT close the group or remove
+  // it from the sidebar during the current realtime session. The group stays
+  // open and empty for every member. After a reload, loadContacts() naturally
+  // hides it because there is no message history from this user's side.
+  if (isGroup) {
+    if (isMobile()) {
+      const fluxFsRelayView = document.getElementById('fluxFsRelayView');
+      const fluxFsConvView = document.getElementById('fluxFsConvView');
+      if (fluxFsRelayView) fluxFsRelayView.classList.add('show');
+      if (fluxFsConvView) fluxFsConvView.classList.add('hide');
+    }
+    buildFLUXConvList();
+    return;
+  }
+
+  // Preserve the existing DM behaviour.
+  if (!isMobile()) {
+    showFluxEmptyState();
+    activeFluxId = null;
+    document.querySelectorAll('#fluxConvList .flux-conv-item, #fluxFsConvList .flux-conv-item')
+      .forEach(el => el.classList.remove('active'));
+    _updateGroupMenuBtnVisibility(null);
+  }
+  buildFLUXConvList();
+}
+
+function _handleRemoteRelayCleared(conversationId) {
+  if (!fluxOpen || !conversationId) return;
+
+  const contact = fluxContacts.find(c => c.id === conversationId);
+  if (!contact) return; // not one of this user's current conversations
+
+  const isGroup = _fluxConvIsGroup(conversationId);
+
+  contact.lastMessage = null;
+  contact.lastMessageTs = 0;
+  contact.unread = false;
+  contact.unreadCount = 0;
+  // Do not flip sentByMe off for groups during the live session. That flag
+  // controls sidebar participation and is intentionally recomputed on reload.
+  if (!isGroup) contact.sentByMe = false;
+
+  if (activeFluxId === conversationId) {
     const msgsEl = document.getElementById('fluxRelayMessages');
     if (msgsEl) msgsEl.innerHTML = '';
     const fsMsgsEl = document.getElementById('fluxFsMessages');
     if (fsMsgsEl) fsMsgsEl.innerHTML = '';
     renderedMsgIds.clear();
-    if (isMobile()) {
-      const fluxFs = document.getElementById('fluxFullscreen');
-      const fluxFsRelayView = document.getElementById('fluxFsRelayView');
-      const fluxFsConvView = document.getElementById('fluxFsConvView');
-      if (fluxFsRelayView) fluxFsRelayView.classList.remove('show');
-      if (fluxFsConvView) fluxFsConvView.classList.remove('hide');
-      activeFluxId = null;
+
+    if (isGroup) {
+      // Remote group clear: stay in the group, keep the group selected, and
+      // leave the chat completely empty. This is the same visual state as
+      // the member who pressed Clear all.
+      if (isMobile()) {
+        const fluxFsRelayView = document.getElementById('fluxFsRelayView');
+        const fluxFsConvView = document.getElementById('fluxFsConvView');
+        if (fluxFsRelayView) fluxFsRelayView.classList.add('show');
+        if (fluxFsConvView) fluxFsConvView.classList.add('hide');
+      }
     } else {
-      showFluxEmptyState();
-      activeFluxId = null;
-      document.querySelectorAll('#fluxConvList .flux-conv-item, #fluxFsConvList .flux-conv-item')
-        .forEach(el => el.classList.remove('active'));
+      // Preserve the old DM behaviour.
+      if (isMobile()) {
+        const fluxFsRelayView = document.getElementById('fluxFsRelayView');
+        const fluxFsConvView = document.getElementById('fluxFsConvView');
+        if (fluxFsRelayView) fluxFsRelayView.classList.remove('show');
+        if (fluxFsConvView) fluxFsConvView.classList.remove('hide');
+        activeFluxId = null;
+      } else {
+        showFluxEmptyState();
+        activeFluxId = null;
+        document.querySelectorAll('#fluxConvList .flux-conv-item, #fluxFsConvList .flux-conv-item')
+          .forEach(el => el.classList.remove('active'));
+      }
     }
   }
+
   buildFLUXConvList();
 }
 
@@ -431,16 +487,24 @@ async function confirmClearRelay() {
     buildFLUXConvList();
   }
 
-  // Notify the other user in real time so their UI clears immediately
+  // Notify every currently-open FLUX client in realtime. The conversation
+  // id is what receivers need; the clearer's user id is not the conversation
+  // id for groups (and was the reason remote group clears could not update
+  // the correct sidebar/chat).
   try {
-    const notifyChannel = supabaseClient.channel(`relay-cleared:${targetId}`);
-    await new Promise(r => setTimeout(r, 80)); // brief wait for channel to be ready
+    const notifyChannel = supabaseClient.channel('relay-cleared:global', {
+      config: { broadcast: { self: false } }
+    });
+    await new Promise(r => setTimeout(r, 80));
     notifyChannel.subscribe(async (status) => {
       if (status === 'SUBSCRIBED') {
         await notifyChannel.send({
           type: 'broadcast',
           event: 'relay-cleared',
-          payload: { clearerId: user.id }
+          payload: {
+            conversationId: targetId,
+            clearerId: user.id
+          }
         });
         setTimeout(() => supabaseClient.removeChannel(notifyChannel), 2000);
       }
