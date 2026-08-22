@@ -636,6 +636,7 @@ async function openDesktopRelay(id) {
   contact.unread = false;
   contact.unreadCount = 0;
   hideRemoteTyping();
+  closeFluxChatSearch();
   document.getElementById('fluxProfileTab')?.classList.remove('show');
   activeFluxId = id;
   _updateUnarchiveBtnVisibility(id);
@@ -697,6 +698,7 @@ async function openDesktopRelay(id) {
 
 async function openNicknamePanel() {
   if (!activeFluxId) return;
+  closeFluxChatSearch();
   const tab = document.getElementById('fluxProfileTab');
   // Force the browser to commit the current (closed, width:0) state before
   // we add "show". Without this, the class add can land in the same paint
