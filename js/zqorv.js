@@ -65,7 +65,7 @@ function _setFluxHeaderClearIcon(button, isGroup) {
   icon.setAttribute('stroke-linejoin', 'round');
   icon.removeAttribute('class');
   icon.innerHTML = '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><line x1="15" x2="9" y1="9" y2="15"/><line x1="9" x2="15" y1="9" y2="15"/>';
-  button.title = isGroup ? 'Clear for me' : 'Clear all';
+  button.title = 'Clear all';
   button.setAttribute('aria-label', button.title);
 }
 
@@ -1261,13 +1261,6 @@ function _fluxSetProfileTabAvatar(el, avatarUrl, dualAvatarUrls) {
 let _fluxGroupInfoPerms = null;
 let _fluxGroupSettingsState = null;
 
-function _setFluxGroupSettingToggle(id, value) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.classList.toggle('on', !!value);
-  el.setAttribute('aria-pressed', !!value ? 'true' : 'false');
-}
-
 function _renderFluxGroupSettings(settings) {
   _setFluxGroupSettingToggle('fgsChangePfpToggle', settings.allow_members_change_pfp);
   _setFluxGroupSettingToggle('fgsChangeNameToggle', settings.allow_members_change_name);
@@ -1388,7 +1381,7 @@ async function loadGroupInfoSideTab(groupId, myUserId) {
 
   const { data: groupData } = await supabaseClient
     .from('flux_groups')
-    .select('name, name_is_custom, avatar_url, owner_id, allow_members_change_name, allow_members_change_pfp, allow_non_admin_clear_all, allow_non_admin_add_members')
+    .select('name, name_is_custom, avatar_url, owner_id, allow_members_change_name, allow_members_change_pfp, allow_non_admin_add_members')
     .eq('id', groupId)
     .single();
 
