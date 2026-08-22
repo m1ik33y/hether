@@ -452,9 +452,9 @@ function _ensureFluxChatSearchStyles() {
     .flux-chat-search-input { width:100%; height:42px; box-sizing:border-box; border:1px solid rgba(255,255,255,.08); outline:none; border-radius:9px; padding:0 12px 0 36px; background:#2a2a2e; color:var(--text,#f4f4f5); font:inherit; font-size:13px; }
     .flux-chat-search-input:focus { border-color:rgba(31,199,137,.45); background:#2d2d31; }
     .flux-chat-search-input::placeholder { color:#85858c; }
-    .flux-chat-search-results { overflow:auto; min-height:0; flex:1; padding:2px 0 8px; }
+    .flux-chat-search-results { overflow:auto; min-height:0; flex:1; padding:2px 0 8px; margin-left:-16px; margin-right:-16px; }
     .flux-chat-search-empty { padding:30px 8px; text-align:center; color:var(--text3,#929298); font-size:12.5px; }
-    .flux-chat-search-result { width:100%; text-align:left; border:0; background:transparent; color:inherit; display:block; padding:11px 10px; border-radius:9px; cursor:pointer; }
+    .flux-chat-search-result { width:100%; box-sizing:border-box; text-align:left; border:0; background:transparent; color:inherit; display:block; padding:13px 24px; border-radius:9px; cursor:pointer; }
     .flux-chat-search-result:hover { background:rgba(255,255,255,.06); }
     .flux-chat-search-result-top { display:flex; align-items:center; gap:7px; margin-bottom:4px; }
     .flux-chat-search-result-sender { color:var(--text,#f4f4f5); font-size:12px; font-weight:650; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
