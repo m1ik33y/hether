@@ -141,14 +141,18 @@ async function preloadAllRelays() {
 
   data.forEach(msg => {
     const otherId = msg.sender_id === user.id ? msg.receiver_id : msg.sender_id;
-    if (!latestMap.has(otherId)) latestMap.set(otherId, msg);
-    if (msg.sender_id === user.id) sentByMeSet.add(otherId);
+    if (!_fluxRealtimeClearedConversations.has(otherId)) {
+      if (!latestMap.has(otherId)) latestMap.set(otherId, msg);
+      if (msg.sender_id === user.id) sentByMeSet.add(otherId);
+    }
     if (msg.sender_id === otherId && msg.receiver_id === user.id && msg.seen === false) {
       unseenCountMap.set(otherId, (unseenCountMap.get(otherId) || 0) + 1);
     }
-    if (!last15Map.has(otherId)) last15Map.set(otherId, []);
-    const arr = last15Map.get(otherId);
-    if (arr.length < 15) arr.push(msg);
+    if (!_fluxRealtimeClearedConversations.has(otherId)) {
+      if (!last15Map.has(otherId)) last15Map.set(otherId, []);
+      const arr = last15Map.get(otherId);
+      if (arr.length < 15) arr.push(msg);
+    }
   });
 
   // Same bucketing as above, keyed by group_id instead of the sender/receiver
@@ -156,6 +160,7 @@ async function preloadAllRelays() {
   // so those are left for the local session-only tracking already in place.
   groupMsgs.forEach(msg => {
     const groupId = msg.group_id;
+    if (_fluxRealtimeClearedConversations.has(groupId)) return;
     if (!latestMap.has(groupId)) latestMap.set(groupId, msg);
     if (!last15Map.has(groupId)) last15Map.set(groupId, []);
     const arr = last15Map.get(groupId);
@@ -175,7 +180,7 @@ async function preloadAllRelays() {
 
   latestMap.forEach((msg, convId) => {
     const contact = fluxContacts.find(c => c.id === convId);
-    if (!contact) return;
+    if (!contact || _fluxRealtimeClearedConversations.has(convId)) return;
     const d = parseSupabaseDate(msg.created_at);
     const senderProfile = contact.isGroup ? contact.groupMemberProfiles?.[msg.sender_id] : null;
     const senderName = msg.sender_id === user.id
