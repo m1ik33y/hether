@@ -1271,7 +1271,6 @@ function _setFluxGroupSettingToggle(id, value) {
 function _renderFluxGroupSettings(settings) {
   _setFluxGroupSettingToggle('fgsChangePfpToggle', settings.allow_members_change_pfp);
   _setFluxGroupSettingToggle('fgsChangeNameToggle', settings.allow_members_change_name);
-  _setFluxGroupSettingToggle('fgsClearAllToggle', settings.allow_non_admin_clear_all);
   _setFluxGroupSettingToggle('fgsAddMembersToggle', settings.allow_non_admin_add_members);
 }
 
@@ -1282,13 +1281,12 @@ async function openFluxGroupSettings() {
   if (!overlay) return;
   const { data, error } = await supabaseClient
     .from('flux_groups')
-    .select('allow_members_change_name, allow_members_change_pfp, allow_non_admin_clear_all, allow_non_admin_add_members')
+    .select('allow_members_change_name, allow_members_change_pfp, allow_non_admin_add_members')
     .eq('id', perms.groupId).single();
   if (error) { alert('Failed to load group settings: ' + (error.message || 'unknown error')); return; }
   _fluxGroupSettingsState = {
     allow_members_change_name: !!data?.allow_members_change_name,
     allow_members_change_pfp: !!data?.allow_members_change_pfp,
-    allow_non_admin_clear_all: !!data?.allow_non_admin_clear_all,
     allow_non_admin_add_members: !!data?.allow_non_admin_add_members
   };
   _renderFluxGroupSettings(_fluxGroupSettingsState);
@@ -1302,7 +1300,7 @@ function closeFluxGroupSettings() {
 
 async function toggleFluxGroupSetting(column, button) {
   const perms = _fluxGroupInfoPerms;
-  if (!perms?.groupId || !perms.viewerIsAdmin || !Object.prototype.hasOwnProperty.call({allow_members_change_name:1,allow_members_change_pfp:1,allow_non_admin_clear_all:1,allow_non_admin_add_members:1}, column)) return;
+  if (!perms?.groupId || !perms.viewerIsAdmin || !Object.prototype.hasOwnProperty.call({allow_members_change_name:1,allow_members_change_pfp:1,allow_non_admin_add_members:1}, column)) return;
   const previous = !!_fluxGroupSettingsState?.[column];
   const next = !previous;
   button.disabled = true;
@@ -1320,7 +1318,6 @@ async function toggleFluxGroupSetting(column, button) {
     if (_fluxGroupInfoPerms) {
       if (column === 'allow_members_change_pfp') _fluxGroupInfoPerms.canChangePfp = perms.viewerIsAdmin || !!data[column];
       if (column === 'allow_members_change_name') _fluxGroupInfoPerms.canChangeName = perms.viewerIsAdmin || !!data[column];
-      if (column === 'allow_non_admin_clear_all') _fluxGroupInfoPerms.allowNonAdminClearAll = !!data[column];
       if (column === 'allow_non_admin_add_members') _fluxGroupInfoPerms.allowNonAdminAddMembers = !!data[column];
     }
     const group = fluxContacts.find(c => c.id === perms.groupId);
@@ -1351,7 +1348,6 @@ async function toggleFluxGroupSetting(column, button) {
       const settingLabels = {
         allow_members_change_pfp: 'members changing the group icon',
         allow_members_change_name: 'members changing the group name',
-        allow_non_admin_clear_all: 'non-admins clearing all messages',
         allow_non_admin_add_members: 'non-admins adding members'
       };
       const label = settingLabels[column] || 'a group setting';
@@ -1407,7 +1403,7 @@ async function loadGroupInfoSideTab(groupId, myUserId) {
   const viewerIsAdmin = isAdminRole(viewerMember.role) || groupData?.owner_id === myUserId;
   const canChangePfp = viewerIsAdmin || !!groupData?.allow_members_change_pfp;
   const canChangeName = viewerIsAdmin || !!groupData?.allow_members_change_name;
-  _fluxGroupInfoPerms = { groupId, viewerIsAdmin, canChangePfp, canChangeName, allowNonAdminClearAll: !!groupData?.allow_non_admin_clear_all, allowNonAdminAddMembers: !!groupData?.allow_non_admin_add_members };
+  _fluxGroupInfoPerms = { groupId, viewerIsAdmin, canChangePfp, canChangeName, allowNonAdminAddMembers: !!groupData?.allow_non_admin_add_members };
   if (groupNameEditBtn) groupNameEditBtn.style.display = canChangeName ? 'flex' : 'none';
   const settingsBtn = document.getElementById('fluxGroupSettingsBtn');
   if (settingsBtn) settingsBtn.style.display = viewerIsAdmin ? 'flex' : 'none';
