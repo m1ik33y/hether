@@ -63,7 +63,7 @@ function groupMessages(messages) {
 
     if (msg.message_type === 'system') {
       currentGroup = null;
-      groups.push({ type: 'system', content: msg.content || '', ts: rawTs });
+      groups.push({ type: 'system', id: msg.id || '', content: msg.content || '', ts: rawTs });
       return;
     }
 
@@ -199,7 +199,9 @@ function renderGroupedMessages(container, groups, currentUserId, contact) {
     }
 
     if (item.type === 'system') {
-      container.appendChild(makeSystemMsgEl(item.content)); return;
+      const systemEl = makeSystemMsgEl(item.content);
+      if (item.id) systemEl.dataset.msgId = item.id;
+      container.appendChild(systemEl); return;
     }
 
     const isSent = item.sender_id === currentUserId;
