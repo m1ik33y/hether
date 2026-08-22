@@ -410,8 +410,9 @@ async function openFLUX() {
       // a group, neither of those is populated yet — loadContacts() only ever
       // ran at the last openFLUX() — so that listener silently drops the
       // event and the new group doesn't show up until the next reload.
-      // Listen for our own membership row being inserted and pull the fresh
-      // contact list in when that happens.
+      // _fluxHandleNewGroupMembership() registers the group locally and
+      // makes sure the "X added Y" system message arrives as a real unread
+      // notification (sound + bold preview), not just a silent sidebar entry.
       const groupMembershipCh = supabaseClient.channel(`group-membership:${user.id}`)
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'flux_group_members',
           filter: `user_id=eq.${user.id}` }, async (payload) => {
@@ -419,13 +420,7 @@ async function openFLUX() {
           const groupId = payload.new?.group_id;
           if (!groupId || _fluxMyGroupIds.has(groupId)) return; // already known locally
           try {
-            // loadContacts() alone only pulls the group row itself, not its
-            // messages — the "X added Y" system message (and any unread
-            // state) wouldn't show up until a reload. preloadAllRelays()
-            // fetches contacts AND messages and rebuilds the list, matching
-            // what happens on a normal openFLUX().
-            await loadContacts();
-            await preloadAllRelays();
+            await _fluxHandleNewGroupMembership(groupId, user.id);
           } catch (e) {
             console.warn('[FLUX] live group-add refresh failed:', e.message || e);
           }
