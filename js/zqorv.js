@@ -245,9 +245,12 @@ function switchFluxTab(tab, mode) {
 
 function buildFLUXConvList() {
   const searchTerm = (_fluxSidebarSearchTerm || '').trim();
+  // Normal sidebar: only conversations where the user has participated.
+  // Search is broader for groups: any unarchived group the user is currently
+  // a member of may appear if it matches the query.
   const baseContacts = _fluxArchivedView
     ? fluxContacts.filter(c => _fluxArchivedOf(c.id))
-    : fluxContacts.filter(c => (c.isGroup || c.sentByMe === true) && !_fluxArchivedOf(c.id));
+    : fluxContacts.filter(c => c.sentByMe === true && !_fluxArchivedOf(c.id));
   const withSentMessages = searchTerm
     ? (_fluxArchivedView
         ? baseContacts.filter(c => (c.realName || c.name || '').toLowerCase().includes(searchTerm))
@@ -425,9 +428,11 @@ async function loadContacts() {
   } catch (e) {
     console.warn('[FLUX] group sidebar load failed:', e.message || e);
   }
-  // Only keep groups where the current user has actually sent at least one
-  // message. Membership alone must not resurrect a cleared/inactive group
-  // when loadContacts() rebuilds the sidebar after a refresh.
+  // Keep every group the user is currently a member of in the local search
+  // pool, but separately track where they have actually sent a message.
+  // Normal sidebar rendering uses that participation flag; search may still
+  // surface any matching unarchived group membership.
+  let groupIdsWithMyMessage = new Set();
   if (groupRows.length) {
     try {
       const { data: myGroupMessages, error: myGroupMessagesErr } = await supabaseClient
@@ -437,14 +442,14 @@ async function loadContacts() {
         .in('group_id', groupRows.map(g => g.id));
       if (myGroupMessagesErr) throw myGroupMessagesErr;
 
-      const groupIdsWithMyMessage = new Set(
+      groupIdsWithMyMessage = new Set(
         (myGroupMessages || []).map(m => m.group_id).filter(Boolean)
       );
-      groupRows = groupRows.filter(g => groupIdsWithMyMessage.has(g.id));
     } catch (e) {
       console.warn('[FLUX] group participation check failed:', e.message || e);
-      // Fail closed: never show a group unless participation can be verified.
-      groupRows = [];
+      // Fail closed for the normal sidebar, while preserving verified current
+      // membership so group search still works.
+      groupIdsWithMyMessage = new Set();
     }
   }
 
@@ -516,8 +521,9 @@ async function loadContacts() {
   }
   const profileById = new Map((data || []).map(u => [u.id, u]));
 
-  // Add groups after normal profiles. Mark them sentByMe so the existing
-  // sidebar filter includes them.
+  // Add every current group membership. sentByMe is only true when the user
+  // has actually participated, so cleared/inactive groups stay out of the
+  // normal sidebar after reload but remain searchable while unarchived.
   groupRows.forEach(g => {
     const existing = existingMap.get(g.id);
     const memberIds = groupMembersByGroup.get(g.id) || existing?.groupMembers || [];
@@ -547,7 +553,7 @@ async function loadContacts() {
       lastMessageTs: existing?.lastMessageTs || new Date(g.updated_at || g.created_at || 0).getTime(),
       unread: existing?.unread || false,
       unreadCount: existing?.unreadCount || 0,
-      sentByMe: true,
+      sentByMe: groupIdsWithMyMessage.has(g.id),
       category: existing?.category || 'primary'
     });
   });
