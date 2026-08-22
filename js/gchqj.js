@@ -344,23 +344,35 @@ function clearRelayUI() {
     contact.lastMessageTs = 0;
     contact.unread = false;
     contact.unreadCount = 0;
+    // Keep a group in the live sidebar after a mutual clear. On reload,
     // Keep the conversation in the live sidebar after a mutual clear.
-    // `sentByMe` is the live-session membership flag for the sidebar; do NOT
-    // turn it off here. On reload, loadContacts() recomputes it from the
-    // actual message history, so an empty conversation disappears naturally.
+    // On reload, loadContacts/preloadAllRelays recomputes participation from
+    // the database, so an empty conversation naturally disappears then.
   }
 
-  // Clear is mutual for both groups and 1-to-1 DMs. Keep the conversation
-  // selected/open during the current realtime session, but leave the message
-  // area completely empty. After a reload, the normal history-based sidebar
-  // logic will remove it because there are no messages left.
-  if (isMobile()) {
-    const fluxFsRelayView = document.getElementById('fluxFsRelayView');
-    const fluxFsConvView = document.getElementById('fluxFsConvView');
-    if (fluxFsRelayView) fluxFsRelayView.classList.add('show');
-    if (fluxFsConvView) fluxFsConvView.classList.add('hide');
+  // Group "Clear all" is mutual, but it must NOT close the group or remove
+  // it from the sidebar during the current realtime session. The group stays
+  // open and empty for every member. After a reload, loadContacts() naturally
+  // hides it because there is no message history from this user's side.
+  if (isGroup) {
+    if (isMobile()) {
+      const fluxFsRelayView = document.getElementById('fluxFsRelayView');
+      const fluxFsConvView = document.getElementById('fluxFsConvView');
+      if (fluxFsRelayView) fluxFsRelayView.classList.add('show');
+      if (fluxFsConvView) fluxFsConvView.classList.add('hide');
+    }
+    buildFLUXConvList();
+    return;
   }
 
+  // Preserve the existing DM behaviour.
+  if (!isMobile()) {
+    showFluxEmptyState();
+    activeFluxId = null;
+    document.querySelectorAll('#fluxConvList .flux-conv-item, #fluxFsConvList .flux-conv-item')
+      .forEach(el => el.classList.remove('active'));
+    _updateGroupMenuBtnVisibility(null);
+  }
   buildFLUXConvList();
 }
 
@@ -376,9 +388,8 @@ function _handleRemoteRelayCleared(conversationId) {
   contact.lastMessageTs = 0;
   contact.unread = false;
   contact.unreadCount = 0;
-  // Keep the conversation in the sidebar for the current realtime session.
-  // On reload, sentByMe is recomputed from actual history and the empty
-  // conversation disappears normally.
+  // Keep sentByMe unchanged during the live session. The sidebar uses this
+  // flag for participation, and the database/history is re-evaluated on reload.
 
   if (activeFluxId === conversationId) {
     const msgsEl = document.getElementById('fluxRelayMessages');
@@ -387,15 +398,29 @@ function _handleRemoteRelayCleared(conversationId) {
     if (fsMsgsEl) fsMsgsEl.innerHTML = '';
     renderedMsgIds.clear();
 
-    // Keep BOTH group chats and 1-to-1 DMs open after a remote clear.
-    // The conversation remains selected, but its message area is empty.
-    if (isMobile()) {
-      const fluxFsRelayView = document.getElementById('fluxFsRelayView');
-      const fluxFsConvView = document.getElementById('fluxFsConvView');
-      if (fluxFsRelayView) fluxFsRelayView.classList.add('show');
-      if (fluxFsConvView) fluxFsConvView.classList.add('hide');
+    if (isGroup) {
+      // Remote group clear: stay in the group, keep the group selected, and
+      // leave the chat completely empty. This is the same visual state as
+      // the member who pressed Clear all.
+      if (isMobile()) {
+        const fluxFsRelayView = document.getElementById('fluxFsRelayView');
+        const fluxFsConvView = document.getElementById('fluxFsConvView');
+        if (fluxFsRelayView) fluxFsRelayView.classList.add('show');
+        if (fluxFsConvView) fluxFsConvView.classList.add('hide');
+      }
+    } else {
+      // Remote DM clear: keep the DM open for the other member as well.
+      // Its message area is already emptied above and its sidebar preview is
+      // explicitly blank because contact.lastMessage was set to null.
+      if (isMobile()) {
+        const fluxFsRelayView = document.getElementById('fluxFsRelayView');
+        const fluxFsConvView = document.getElementById('fluxFsConvView');
+        if (fluxFsRelayView) fluxFsRelayView.classList.add('show');
+        if (fluxFsConvView) fluxFsConvView.classList.add('hide');
+      }
     }
   }
+
   buildFLUXConvList();
 }
 
@@ -453,7 +478,14 @@ async function confirmClearRelay() {
   } else {
     // Cleared a conversation that isn't currently open — just update its
     const contact = fluxContacts.find(c => c.id === targetId);
-    if (contact) { contact.lastMessage = null; contact.lastMessageTs = 0; contact.unread = false; contact.unreadCount = 0; }
+    if (contact) {
+      contact.lastMessage = null;
+      contact.lastMessageTs = 0;
+      contact.unread = false;
+      contact.unreadCount = 0;
+      // Keep it in the live sidebar until reload; history-based participation
+      // is recalculated from the database on the next open.
+    }
     buildFLUXConvList();
   }
 
