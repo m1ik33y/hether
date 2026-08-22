@@ -448,117 +448,19 @@ async function confirmClearRelay() {
   } catch(e) {}
 }
 
-// "Delete for me" — hides this conversation from the sidebar for the
-// current user only, without leaving a group or affecting anyone else's
-// copy. Implemented as a per-user timestamp cutoff (chat_categories.deleted_before):
-// buildFLUXConvList() hides any conversation whose last message is at or
-// before that cutoff, so the chat reappears on its own the moment a new
-// message comes in — no separate "undelete" step needed.
-function openDeleteForMeConfirm(contactId) {
-  const id = contactId || activeFluxId;
-  if (!id) return;
-  showConfirm(
-    'Delete for me?',
-    'This removes the chat from your list until a new message arrives. Nobody else is affected.',
-    'Delete',
-    () => deleteFluxConvForMe(id)
-  );
-}
-
-function openClearForMeConfirm(contactId) {
-  const id = contactId || activeFluxId;
-  if (!id) return;
-  showConfirm(
-    'Clear for me?',
-    'This removes the existing group messages from your view only. Other group members keep their copies.',
-    'Clear for me',
-    () => deleteFluxConvForMe(id)
-  );
-}
-
 function handleFluxHeaderClear() {
   const id = activeFluxId;
   if (!id) return;
-  if (_fluxConvIsGroup(id)) {
-    openClearForMeConfirm(id);
-  } else {
-    openClearRelayConfirm(id);
-  }
+  // The direct header clear button only ever renders for DMs (groups hide
+  // it — see _updateGroupHeaderMuteVisibility), so this is always "Clear all".
+  openClearRelayConfirm(id);
 }
 
-async function deleteFluxConvForMe(contactId) {
-  const { data: { user } } = await supabaseClient.auth.getUser();
-  if (!user) return;
-  const cutoffIso = new Date().toISOString();
-  const { error } = await supabaseClient.from('chat_categories').upsert({
-    owner_id: user.id,
-    ..._fluxCatRowKey(contactId),
-    category: _fluxCategoryOf(contactId),
-    muted: _fluxMutedOf(contactId),
-    pinned: _fluxPinnedOf(contactId),
-    archived: _fluxArchivedOf(contactId),
-    deleted_before: cutoffIso,
-    updated_at: cutoffIso
-  }, { onConflict: _fluxCatOnConflict(contactId) });
-  if (error) { alert('Failed to delete chat: ' + error.message); return; }
-  fluxDeletedBefore.set(contactId, new Date(cutoffIso).getTime());
-  if (activeFluxId === contactId) {
-    clearRelayUI();
-  } else {
-    buildFLUXConvList();
-  }
-}
-
-function openDeleteGroupConfirm(groupId) {
-  const id = groupId || activeFluxId;
-  if (!id) return;
-  const contact = fluxContacts.find(c => c.id === id);
-  const isOwner = !!(contact && contact.ownerId === _fluxMyUserId);
-  showConfirm(
-    isOwner ? 'Leave group?' : 'Exit group?',
-    isOwner
-      ? 'If you leave this group, the group and all of its messages will be deleted for everyone. This cannot be undone.'
-      : 'You will be removed from this group and lose access to its messages.',
-    isOwner ? 'Delete group' : 'Exit group',
-    () => deleteFluxGroup(id)
-  );
-}
-
-async function deleteFluxGroup(groupId) {
-  const { data: { user } } = await supabaseClient.auth.getUser();
-  if (!user) return;
-  const contact = fluxContacts.find(c => c.id === groupId);
-  const isOwner = !!(contact && contact.ownerId === user.id);
-
-  try {
-    if (isOwner) {
-      // Owner deletion removes the group entirely: messages, memberships,
-      // then the group row itself, so nobody is left with a dangling
-      // membership pointing at a group that no longer exists.
-      await supabaseClient.from('messages').delete().eq('group_id', groupId);
-      await supabaseClient.from('flux_group_members').delete().eq('group_id', groupId);
-      const { error } = await supabaseClient.from('flux_groups').delete().eq('id', groupId);
-      if (error) { alert('Failed to delete group: ' + error.message); return; }
-    } else {
-      // Non-owner: leave the group — only your own membership row goes.
-      // Post the system message before deleting the membership row, since
-      // once it's gone RLS would no longer consider this user a member
-      // able to post into the group.
-      try {
-        const myName = (await supabaseClient.from('profiles').select('username').eq('id', user.id).single()).data?.username || 'Someone';
-        await _fluxPostSystemMessage(groupId, `${myName} left the group.`);
-      } catch (e) {
-        console.warn('[FLUX] left-group system message failed:', e.message || e);
-      }
-      const { error } = await supabaseClient.from('flux_group_members')
-        .delete().eq('group_id', groupId).eq('user_id', user.id);
-      if (error) { alert('Failed to leave group: ' + error.message); return; }
-    }
-  } catch (e) {
-    alert('Something went wrong: ' + (e.message || e));
-    return;
-  }
-
+// Shared local cleanup after a group is no longer part of this client's
+// conversation list, whether that's because the current user just left it
+// or because it was deleted for everyone. Removes it from the sidebar data
+// and, if it was open, resets the chat view.
+function _fluxRemoveGroupLocally(groupId) {
   const idx = fluxContacts.findIndex(c => c.id === groupId);
   if (idx >= 0) fluxContacts.splice(idx, 1);
   _fluxMyGroupIds.delete(groupId);
@@ -583,6 +485,79 @@ async function deleteFluxGroup(groupId) {
     _updateGroupMenuBtnVisibility(null);
   }
   buildFLUXConvList();
+}
+
+// Exiting a group — for the owner, an admin, or a regular member alike —
+// only ever removes the current user's own membership row. The group and
+// its messages are untouched and keep existing for everyone else; if the
+// owner exits, a backend trigger hands ownership to another member (or
+// cleans the group up if nobody is left). See the SQL migration for that
+// trigger. There's no "your messages will be wiped" warning here on
+// purpose — exiting never deletes anything belonging to other members.
+function openDeleteGroupConfirm(groupId) {
+  const id = groupId || activeFluxId;
+  if (!id) return;
+  showConfirm(
+    'Exit group?',
+    'You\u2019ll be removed from this group. It stays intact for everyone else, and you can be added back anytime.',
+    'Exit group',
+    () => exitFluxGroup(id)
+  );
+}
+
+async function exitFluxGroup(groupId) {
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (!user) return;
+
+  // Post the system message before deleting the membership row, since
+  // once it's gone RLS would no longer consider this user a member able
+  // to post into the group.
+  try {
+    const myName = (await supabaseClient.from('profiles').select('username').eq('id', user.id).single()).data?.username || 'Someone';
+    await _fluxPostSystemMessage(groupId, `${myName} left the group.`);
+  } catch (e) {
+    console.warn('[FLUX] left-group system message failed:', e.message || e);
+  }
+
+  const { error } = await supabaseClient.from('flux_group_members')
+    .delete().eq('group_id', groupId).eq('user_id', user.id);
+  if (error) { alert('Failed to exit group: ' + error.message); return; }
+
+  _fluxRemoveGroupLocally(groupId);
+}
+
+// Full teardown — only ever offered to a group admin/owner via the "Delete
+// for all" action. Unlike exiting, this really does delete the group and
+// every message in it for every member, and cannot be undone.
+function openDeleteGroupForAllConfirm(groupId) {
+  const id = groupId || activeFluxId;
+  if (!id) return;
+  showConfirm(
+    'Delete group for everyone?',
+    'This permanently deletes the group and all of its messages for every member. This cannot be undone.',
+    'Delete for all',
+    () => deleteFluxGroupForAll(id)
+  );
+}
+
+async function deleteFluxGroupForAll(groupId) {
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (!user) return;
+
+  try {
+    // Removes the group entirely: messages, memberships, then the group
+    // row itself, so nobody is left with a dangling membership pointing
+    // at a group that no longer exists.
+    await supabaseClient.from('messages').delete().eq('group_id', groupId);
+    await supabaseClient.from('flux_group_members').delete().eq('group_id', groupId);
+    const { error } = await supabaseClient.from('flux_groups').delete().eq('id', groupId);
+    if (error) { alert('Failed to delete group: ' + error.message); return; }
+  } catch (e) {
+    alert('Something went wrong: ' + (e.message || e));
+    return;
+  }
+
+  _fluxRemoveGroupLocally(groupId);
 }
 
 
