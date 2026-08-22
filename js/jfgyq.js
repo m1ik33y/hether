@@ -409,6 +409,10 @@ async function openFluxHeaderMoreMenu(e) {
     ? btn.getBoundingClientRect()
     : { left: e.clientX, top: e.clientY, width: 0, height: 0 };
 
+  // closeFluxHeaderMoreMenu() hides the menu with an inline display:none.
+  // Clear that inline value before measuring/showing it so the button can be
+  // opened repeatedly without requiring a page reload.
+  menu.style.display = '';
   menu.style.position = 'fixed';
   menu.style.left = Math.max(8, Math.min(
     window.innerWidth - menu.offsetWidth - 8,
@@ -419,6 +423,7 @@ async function openFluxHeaderMoreMenu(e) {
     rect.bottom + 6
   ) + 'px';
   menu.classList.add('show');
+  menu.style.display = '';
   _headerMoreMenuOpen = true;
 }
 function closeFluxHeaderMoreMenu() {
