@@ -1,9 +1,3 @@
-// Conversations cleared during the current live session keep their sidebar
-// row, but their preview must stay blank until a genuinely new message arrives.
-// This is intentionally in-memory only, so after a reload the normal history
-// logic takes over again.
-const _fluxLiveClearedAt = new Map();
-
 function _fluxCategoryOf(contactId) {
   return fluxCategories.get(contactId) || 'primary';
 }
@@ -327,9 +321,10 @@ function buildFLUXConvList() {
         _fluxArchiveEntryUnlocked = false;
         isFsList ? openFsRelay(c.id) : openDesktopRelay(c.id);
       };
-      const clearedAt = _fluxLiveClearedAt.get(c.id) || 0;
-      const hasNewMessageAfterClear = clearedAt > 0 && (c.lastMessageTs || 0) > clearedAt;
-      const lastMsg = (clearedAt > 0 && !hasNewMessageAfterClear) ? null : c.lastMessage;
+      // A realtime-cleared conversation must stay visually blank even if
+      // another hydration path temporarily leaves stale lastMessage data on
+      // the contact object. A genuinely new message removes the tombstone.
+      const lastMsg = _fluxRealtimeClearedConversations.has(c.id) ? null : c.lastMessage;
       const isUnread = c.unread && !(c.id === activeFluxId && _isRelayVisibleFor(c.id));
       const unreadCount = isUnread ? (c.unreadCount || 0) : 0;
 
@@ -503,8 +498,8 @@ async function loadContacts() {
       nickname: nickname,
       initials: displayName[0].toUpperCase(),
       avatarUrl: u.avatar_url || null, color: colors[colorIdx % colors.length], online: true,
-      lastMessage: existing ? existing.lastMessage : null,
-      lastMessageTs: existing ? existing.lastMessageTs : 0,
+      lastMessage: existing && !_fluxRealtimeClearedConversations.has(u.id) ? existing.lastMessage : null,
+      lastMessageTs: existing && !_fluxRealtimeClearedConversations.has(u.id) ? existing.lastMessageTs : 0,
       unread: existing ? existing.unread : false,
       unreadCount: existing ? (existing.unreadCount || 0) : 0,
       sentByMe: existing ? existing.sentByMe : false,
@@ -557,8 +552,8 @@ async function loadContacts() {
         const profile = profileById.get(id);
         return [id, { username: profile?.username || '', displayName: profile?.display_name || profile?.username || 'User', avatarUrl: profile?.avatar_url || null }];
       })),
-      lastMessage: existing?.lastMessage || null,
-      lastMessageTs: existing?.lastMessageTs || new Date(g.updated_at || g.created_at || 0).getTime(),
+      lastMessage: existing && !_fluxRealtimeClearedConversations.has(g.id) ? (existing.lastMessage || null) : null,
+      lastMessageTs: existing && !_fluxRealtimeClearedConversations.has(g.id) ? (existing.lastMessageTs || new Date(g.updated_at || g.created_at || 0).getTime()) : 0,
       unread: existing?.unread || false,
       unreadCount: existing?.unreadCount || 0,
       sentByMe: groupIdsWithMyMessage.has(g.id),
