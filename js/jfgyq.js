@@ -11,7 +11,6 @@ const fluxCategories = new Map();
 const fluxMuted = new Map();
 const fluxPinned = new Map();
 const fluxArchived = new Map();
-const fluxDeletedBefore = new Map(); // contactId -> ms epoch cutoff, from "Delete for me"
 let fluxActiveTab = 'primary';
 let _fluxMyUserId = null;
 let activeFluxId = null;
@@ -37,9 +36,9 @@ function _fluxConvIsGroup(convId) {
 // leaves group_id null; a group row sets group_id (FK -> flux_groups) and leaves
 // contact_id null (see chat_categories_contact_xor_group). Everywhere else in the
 // app a "conversation id" is used as one unified key (DM id or group id) in the
-// local fluxCategories/fluxMuted/fluxPinned/fluxArchived/fluxDeletedBefore Maps;
-// these two helpers translate that unified id into the right DB column and
-// upsert target so writes hit the correct FK/unique constraint.
+// local fluxCategories/fluxMuted/fluxPinned/fluxArchived Maps; these two helpers
+// translate that unified id into the right DB column and upsert target so
+// writes hit the correct FK/unique constraint.
 function _fluxCatRowKey(convId) {
   return _fluxConvIsGroup(convId)
     ? { contact_id: null, group_id: convId }
@@ -339,15 +338,10 @@ async function openFluxHeaderMoreMenu(e) {
 
     menu.appendChild(makeItem('Group info', infoIcon, () => openNicknamePanel()));
 
-    // Non-admin group members must never receive a group-wide clear/delete
-    // action. They only get "Delete for me".
-    menu.appendChild(makeItem('Delete for me', trashIcon,
-      () => openDeleteForMeConfirm(id)));
-
     // Only admins/owners can perform the group-wide deletion.
     if (isGroupAdmin) {
       menu.appendChild(makeItem('Delete for all', trashIcon,
-        () => openDeleteGroupConfirm(id), { danger: true }));
+        () => openDeleteGroupForAllConfirm(id), { danger: true }));
     }
   } else {
     menu.appendChild(makeItem('Profile info', infoIcon, () => openNicknamePanel()));
@@ -357,13 +351,6 @@ async function openFluxHeaderMoreMenu(e) {
 
     menu.appendChild(makeItem(isMuted ? 'Unmute' : 'Mute', muteIcon,
       () => toggleFluxMute(id)));
-
-    // Keep both clear actions together at the bottom.
-    const clearForMeItem = makeItem('Clear for me', clearIcon,
-      () => openClearForMeConfirm(id), { danger: true });
-    clearForMeItem.style.marginTop = '4px';
-    clearForMeItem.style.borderTop = '1px solid var(--border)';
-    menu.appendChild(clearForMeItem);
 
     menu.appendChild(makeItem('Clear all', clearIcon,
       () => openClearRelayConfirm(id), { danger: true }));
