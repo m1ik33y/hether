@@ -345,25 +345,6 @@ async function openFluxHeaderMoreMenu(e) {
   const isMuted = _fluxMutedOf(id);
   const isArchived = _fluxArchivedOf(id);
   const contact = fluxContacts.find(c => c.id === id);
-  const isGroupOwner = isGroup && !!contact && contact.ownerId === _fluxMyUserId;
-
-  // Resolve the viewer's current group role. Prefer the already-loaded
-  // group-info permissions, but fetch membership when they are stale/missing.
-  let isGroupAdmin = isGroupOwner;
-  if (isGroup && !isGroupAdmin) {
-    if (_fluxGroupInfoPerms?.groupId === id) {
-      isGroupAdmin = !!_fluxGroupInfoPerms.viewerIsAdmin;
-    } else {
-      try {
-        const members = await _fluxFetchGroupMembers(id);
-        const me = members.find(m => m.id === _fluxMyUserId);
-        isGroupAdmin = !!me && (me.role === 'admin' || me.role === 'owner');
-      } catch (_) {
-        isGroupAdmin = false;
-      }
-    }
-  }
-
   menu.innerHTML = '';
 
   const makeItem = (label, iconPath, onClick, opts) => {
@@ -395,11 +376,11 @@ async function openFluxHeaderMoreMenu(e) {
 
     menu.appendChild(makeItem('Group info', infoIcon, () => openNicknamePanel()));
 
-    // Only admins/owners can perform the group-wide deletion.
-    if (isGroupAdmin) {
-      menu.appendChild(makeItem('Delete for all', trashIcon,
-        () => openDeleteGroupForAllConfirm(id), { danger: true }));
-    }
+    menu.appendChild(makeItem('Clear all', clearIcon,
+      () => openClearRelayConfirm(id), { danger: true }));
+
+    menu.appendChild(makeItem('Exit group', exitIcon,
+      () => openExitGroupConfirm(id), { danger: true }));
   } else {
     menu.appendChild(makeItem('Profile info', infoIcon, () => openNicknamePanel()));
 
@@ -412,27 +393,6 @@ async function openFluxHeaderMoreMenu(e) {
     menu.appendChild(makeItem('Clear all', clearIcon,
       () => openClearRelayConfirm(id), { danger: true }));
   }
-
-  const btn = e.currentTarget || e.target;
-  const rect = btn.getBoundingClientRect
-    ? btn.getBoundingClientRect()
-    : { left: e.clientX, top: e.clientY, width: 0, height: 0 };
-
-  menu.style.display = 'block';
-  menu.classList.add('show');
-  _headerMoreMenuOpen = true;
-
-  requestAnimationFrame(() => {
-    const mw = menu.offsetWidth, mh = menu.offsetHeight;
-    let left = rect.left;
-    if (left + mw > window.innerWidth - 8) left = window.innerWidth - mw - 8;
-    if (left < 8) left = 8;
-    let top = rect.bottom + 4;
-    if (top + mh > window.innerHeight - 8) top = rect.top - mh - 4;
-    menu.style.left = left + 'px';
-    menu.style.top = top + 'px';
-  });
-}
 
 function closeFluxHeaderMoreMenu() {
   const menu = document.getElementById('fluxHeaderMoreMenu');
