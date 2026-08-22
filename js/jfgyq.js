@@ -395,7 +395,12 @@ async function openFluxHeaderMoreMenu(e) {
 
     menu.appendChild(makeItem('Group info', infoIcon, () => openNicknamePanel()));
 
-    // Only admins/owners can perform the group-wide deletion.
+    // Every group member can clear all group messages.
+    // This does not delete the group itself; RLS limits the delete to this group.
+    menu.appendChild(makeItem('Clear all', clearIcon,
+      () => openClearRelayConfirm(id), { danger: true }));
+
+    // Only admins/owners can permanently delete the group itself.
     if (isGroupAdmin) {
       menu.appendChild(makeItem('Delete for all', trashIcon,
         () => openDeleteGroupForAllConfirm(id), { danger: true }));
