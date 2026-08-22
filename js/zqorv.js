@@ -76,16 +76,13 @@ function _updateGroupHeaderMuteVisibility(id) {
   const desktopClear = document.getElementById('fluxDeleteRelayBtn');
   const mobileClear = document.getElementById('fluxFsDeleteRelayBtn');
 
-  // The direct clear button exists only for private DMs. Groups have no
-  // per-message clear action — only the header More menu's admin-only
-  // "Delete for all", or exiting the group from the sidebar/header menu.
-  if (desktopClear) desktopClear.style.display = isGroup ? 'none' : 'inline-flex';
-  if (mobileClear) mobileClear.style.display = isGroup ? 'none' : 'inline-flex';
+  // Clear all is available to every conversation member.
+  if (desktopClear) desktopClear.style.display = 'inline-flex';
+  if (mobileClear) mobileClear.style.display = 'inline-flex';
 
-  if (!isGroup) {
-    _setFluxHeaderClearIcon(desktopClear, false);
-    _setFluxHeaderClearIcon(mobileClear, false);
-  }
+  _setFluxHeaderClearIcon(desktopClear, false);
+  _setFluxHeaderClearIcon(mobileClear, false);
+
   [['fluxGroupMuteBtn',null], ['fluxFsGroupMuteBtn',null]].forEach(([btnId, dividerId]) => {
     const btn = document.getElementById(btnId);
     const divider = dividerId ? document.getElementById(dividerId) : null;
@@ -716,7 +713,6 @@ async function loadNicknameSideTab(targetId) {
   if (groupNameEditBtn) groupNameEditBtn.style.display = 'none';
   const groupSettingsBtn = document.getElementById('fluxGroupSettingsBtn');
   if (groupSettingsBtn) groupSettingsBtn.style.display = 'none';
-  _fluxGroupInfoPerms = null;
   const groupNameRow = document.getElementById('fluxGroupNameRow');
   if (groupNameRow) groupNameRow.classList.remove('is-group');
   const closeBtn = document.getElementById('fluxProfileCloseBtn');
@@ -1258,111 +1254,6 @@ function _fluxSetProfileTabAvatar(el, avatarUrl, dualAvatarUrls) {
   }
 }
 
-let _fluxGroupInfoPerms = null;
-let _fluxGroupSettingsState = null;
-
-function _renderFluxGroupSettings(settings) {
-  _setFluxGroupSettingToggle('fgsChangePfpToggle', settings.allow_members_change_pfp);
-  _setFluxGroupSettingToggle('fgsChangeNameToggle', settings.allow_members_change_name);
-  _setFluxGroupSettingToggle('fgsAddMembersToggle', settings.allow_non_admin_add_members);
-}
-
-async function openFluxGroupSettings() {
-  const perms = _fluxGroupInfoPerms;
-  if (!perms?.groupId || !perms.viewerIsAdmin) return;
-  const overlay = document.getElementById('fluxGroupSettingsOverlay');
-  if (!overlay) return;
-  const { data, error } = await supabaseClient
-    .from('flux_groups')
-    .select('allow_members_change_name, allow_members_change_pfp, allow_non_admin_add_members')
-    .eq('id', perms.groupId).single();
-  if (error) { alert('Failed to load group settings: ' + (error.message || 'unknown error')); return; }
-  _fluxGroupSettingsState = {
-    allow_members_change_name: !!data?.allow_members_change_name,
-    allow_members_change_pfp: !!data?.allow_members_change_pfp,
-    allow_non_admin_add_members: !!data?.allow_non_admin_add_members
-  };
-  _renderFluxGroupSettings(_fluxGroupSettingsState);
-  overlay.classList.add('show');
-}
-
-function closeFluxGroupSettings() {
-  const overlay = document.getElementById('fluxGroupSettingsOverlay');
-  if (overlay) overlay.classList.remove('show');
-}
-
-async function toggleFluxGroupSetting(column, button) {
-  const perms = _fluxGroupInfoPerms;
-  if (!perms?.groupId || !perms.viewerIsAdmin || !Object.prototype.hasOwnProperty.call({allow_members_change_name:1,allow_members_change_pfp:1,allow_non_admin_add_members:1}, column)) return;
-  const previous = !!_fluxGroupSettingsState?.[column];
-  const next = !previous;
-  button.disabled = true;
-  button.classList.toggle('on', next);
-  try {
-    const { data, error } = await supabaseClient
-      .from('flux_groups')
-      .update({ [column]: next })
-      .eq('id', perms.groupId)
-      .select('id, ' + column)
-      .single();
-    if (error) throw error;
-    if (!data) throw new Error('No group row was updated. Check the flux_groups RLS policy.');
-    _fluxGroupSettingsState[column] = !!data[column];
-    if (_fluxGroupInfoPerms) {
-      if (column === 'allow_members_change_pfp') _fluxGroupInfoPerms.canChangePfp = perms.viewerIsAdmin || !!data[column];
-      if (column === 'allow_members_change_name') _fluxGroupInfoPerms.canChangeName = perms.viewerIsAdmin || !!data[column];
-      if (column === 'allow_non_admin_add_members') _fluxGroupInfoPerms.allowNonAdminAddMembers = !!data[column];
-    }
-    const group = fluxContacts.find(c => c.id === perms.groupId);
-    if (group) group.fluxGroupSettings = { ...(_fluxGroupSettingsState || {}) };
-    if (column === 'allow_members_change_pfp') {
-      const avatarEl = document.getElementById('fluxProfileTabAvatar');
-      if (avatarEl) avatarEl.classList.toggle('flux-avatar-editable', perms.viewerIsAdmin || next);
-    }
-    if (column === 'allow_members_change_name') {
-      const editBtn = document.getElementById('fluxGroupNameEditBtn');
-      if (editBtn) editBtn.style.display = (perms.viewerIsAdmin || next) ? 'flex' : 'none';
-    }
-
-    // Announce group-setting changes in the group chat so every member can
-    // see what changed. The database remains the source of truth; this is
-    // only the chat audit/system message.
-    try {
-      const { data: { user } } = await supabaseClient.auth.getUser();
-      let actorName = 'Someone';
-      if (user?.id) {
-        const { data: profile } = await supabaseClient
-          .from('profiles')
-          .select('username')
-          .eq('id', user.id)
-          .single();
-        actorName = profile?.username || 'Someone';
-      }
-      const settingLabels = {
-        allow_members_change_pfp: 'members changing the group icon',
-        allow_members_change_name: 'members changing the group name',
-        allow_non_admin_add_members: 'non-admins adding members'
-      };
-      const label = settingLabels[column] || 'a group setting';
-      await _fluxPostSystemMessage(
-        perms.groupId,
-        `${actorName} ${next ? 'enabled' : 'disabled'} ${label}.`
-      );
-    } catch (e) {
-      console.warn('[FLUX] group-setting system message failed:', e.message || e);
-    }
-  } catch (e) {
-    _setFluxGroupSettingToggle(button.id, previous);
-    alert('Failed to update group setting: ' + (e.message || 'unknown error'));
-  } finally {
-    button.disabled = false;
-  }
-}
-
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') closeFluxGroupSettings();
-});
-
 async function loadGroupInfoSideTab(groupId, myUserId) {
   const titleEl = document.getElementById('fluxProfileTabTitle');
   if (titleEl) titleEl.textContent = 'Group Info';
@@ -1381,7 +1272,7 @@ async function loadGroupInfoSideTab(groupId, myUserId) {
 
   const { data: groupData } = await supabaseClient
     .from('flux_groups')
-    .select('name, name_is_custom, avatar_url, owner_id, allow_members_change_name, allow_members_change_pfp, allow_non_admin_add_members')
+    .select('name, name_is_custom, avatar_url')
     .eq('id', groupId)
     .single();
 
@@ -1391,15 +1282,11 @@ async function loadGroupInfoSideTab(groupId, myUserId) {
   if (groupNameInput) groupNameInput.value = groupName === 'Group' ? '' : groupName;
 
   const members = await _fluxFetchGroupMembers(groupId);
-  const isAdminRole = r => r === 'admin' || r === 'owner';
-  const viewerMember = members.find(m => m.id === myUserId) || {};
-  const viewerIsAdmin = isAdminRole(viewerMember.role) || groupData?.owner_id === myUserId;
-  const canChangePfp = viewerIsAdmin || !!groupData?.allow_members_change_pfp;
-  const canChangeName = viewerIsAdmin || !!groupData?.allow_members_change_name;
-  _fluxGroupInfoPerms = { groupId, viewerIsAdmin, canChangePfp, canChangeName, allowNonAdminAddMembers: !!groupData?.allow_non_admin_add_members };
-  if (groupNameEditBtn) groupNameEditBtn.style.display = canChangeName ? 'flex' : 'none';
-  const settingsBtn = document.getElementById('fluxGroupSettingsBtn');
-  if (settingsBtn) settingsBtn.style.display = viewerIsAdmin ? 'flex' : 'none';
+
+  // All group members are equal in the UI.
+  const canChangePfp = true;
+  const canChangeName = true;
+  if (groupNameEditBtn) groupNameEditBtn.style.display = 'flex';
 
   const avatarEl = document.getElementById('fluxProfileTabAvatar');
   avatarEl.classList.toggle('flux-avatar-editable', canChangePfp);
@@ -1420,37 +1307,9 @@ async function loadGroupInfoSideTab(groupId, myUserId) {
 
   const listEl = document.getElementById('fluxGroupMembersList');
   if (listEl) {
-    // Legacy rows created before this change still have role: 'owner' — treat
-    // that the same as 'admin' for display/permission purposes, on top of the
-    // new role-based (possibly multiple) admins.
-    const isAdminRole = r => r === 'admin' || r === 'owner';
-    const viewerIsAdmin = isAdminRole((members.find(m => m.id === myUserId) || {}).role);
-    // Rank: owner first, then admins, then everyone else. Ties keep their
-    // original relative order (stable sort) so promoting/demoting someone
-    // moves them into/out of the admin block without reshuffling anyone else.
-    const memberRank = m => {
-      if (groupData?.owner_id === m.id) return 0;
-      if (isAdminRole(m.role)) return 1;
-      return 2;
-    };
-    const sortedMembers = members
-      .map((m, i) => ({ m, i }))
-      .sort((a, b) => (memberRank(a.m) - memberRank(b.m)) || (a.i - b.i))
-      .map(x => x.m);
-    listEl.innerHTML = sortedMembers.map(m => {
+    listEl.innerHTML = members.map(m => {
       const avatar = m.avatarUrl ? `<img src="${escHtml(m.avatarUrl)}" alt="">` : DEFAULT_AVATAR_SVG;
-      const isAdmin = isAdminRole(m.role) || groupData?.owner_id === m.id;
-      const roleBadge = isAdmin ? '<span class="flux-group-member-role">Admin</span>' : '';
       const nameLabel = m.id === myUserId ? 'You' : escHtml(m.name);
-      const isOwner = groupData?.owner_id === m.id;
-      const showMakeAdminBtn = viewerIsAdmin && !isAdmin && m.id !== myUserId;
-      const showRemoveAdminBtn = viewerIsAdmin && isAdmin && !isOwner && m.id !== myUserId;
-      const makeAdminBtn = showMakeAdminBtn
-        ? `<button type="button" class="flux-mutual-edit-pencil flux-make-admin-btn" title="Make admin" aria-label="Make admin" onclick="promoteFluxGroupMember('${groupId}','${m.id}', ${JSON.stringify(m.name).replace(/"/g, '&quot;')})"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shield-check-icon lucide-shield-check"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg></button>`
-        : '';
-      const removeAdminBtn = showRemoveAdminBtn
-        ? `<button type="button" class="flux-mutual-edit-pencil flux-make-admin-btn" title="Remove admin" aria-label="Remove admin" onclick="demoteFluxGroupMember('${groupId}','${m.id}', ${JSON.stringify(m.name).replace(/"/g, '&quot;')})"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shield-x-icon lucide-shield-x"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m14.5 9.5-5 5"/><path d="m9.5 9.5 5 5"/></svg></button>`
-        : '';
       return `<div class="flux-mutual-row">
         <div class="flux-mutual-avatar">${avatar}</div>
         <div class="flux-mutual-name-col">
@@ -1459,8 +1318,6 @@ async function loadGroupInfoSideTab(groupId, myUserId) {
           </div>
           <div class="flux-mutual-username">@${escHtml((m.username || '').replace(/^@/,''))}</div>
         </div>
-        <div class="flux-mutual-action-slot">${makeAdminBtn}${removeAdminBtn}</div>
-        <div class="flux-mutual-role-slot">${roleBadge}</div>
       </div>`;
     }).join('');
   }
@@ -1473,77 +1330,7 @@ async function loadGroupInfoSideTab(groupId, myUserId) {
   if (chevron) chevron.style.transform = '';
 }
 
-async function promoteFluxGroupMember(groupId, memberId, memberName) {
-  const { data: { user } } = await supabaseClient.auth.getUser();
-  if (!user) return;
 
-  const { data, error } = await supabaseClient
-    .from('flux_group_members')
-    .update({ role: 'admin' })
-    .eq('group_id', groupId)
-    .eq('user_id', memberId)
-    .select('user_id, role');
-
-  if (error) {
-    alert('Failed to make admin: ' + (error.message || 'unknown error'));
-    return;
-  }
-
-  // Supabase/PostgREST does NOT return an error when RLS silently filters
-  // the target row out of an UPDATE — it just reports 0 rows affected with
-  // error: null. Without this check, a permissions problem looks like a
-  // success (system message posts, but the role never actually changes and
-  // the Admin badge never appears after refresh).
-  if (!data || data.length === 0) {
-    alert('Failed to make admin: the update did not apply. This usually means your Row Level Security policy on flux_group_members is blocking this update (e.g. it only allows the group owner, not other admins, to change roles). Check the RLS UPDATE policy on that table.');
-    console.warn('[FLUX] promoteFluxGroupMember: 0 rows affected, likely RLS block', { groupId, memberId });
-    return;
-  }
-
-  try {
-    const myName = (await supabaseClient.from('profiles').select('username').eq('id', user.id).single()).data?.username || 'Someone';
-    await _fluxPostSystemMessage(groupId, `${myName} made ${memberName} an admin.`);
-  } catch (e) {
-    console.warn('[FLUX] make-admin system message failed:', e.message || e);
-  }
-
-  // Refresh the member list so the new Admin badge shows immediately.
-  loadGroupInfoSideTab(groupId, user.id);
-}
-
-async function demoteFluxGroupMember(groupId, memberId, memberName) {
-  const { data: { user } } = await supabaseClient.auth.getUser();
-  if (!user) return;
-
-  const { data, error } = await supabaseClient
-    .from('flux_group_members')
-    .update({ role: 'member' })
-    .eq('group_id', groupId)
-    .eq('user_id', memberId)
-    .select('user_id, role');
-
-  if (error) {
-    alert('Failed to remove admin: ' + (error.message || 'unknown error'));
-    return;
-  }
-
-  // Same silent-RLS-block check as promoteFluxGroupMember above.
-  if (!data || data.length === 0) {
-    alert('Failed to remove admin: the update did not apply. This usually means your Row Level Security policy on flux_group_members is blocking this update. Check the RLS UPDATE policy on that table.');
-    console.warn('[FLUX] demoteFluxGroupMember: 0 rows affected, likely RLS block', { groupId, memberId });
-    return;
-  }
-
-  try {
-    const myName = (await supabaseClient.from('profiles').select('username').eq('id', user.id).single()).data?.username || 'Someone';
-    await _fluxPostSystemMessage(groupId, `${myName} removed ${memberName} as admin.`);
-  } catch (e) {
-    console.warn('[FLUX] remove-admin system message failed:', e.message || e);
-  }
-
-  // Refresh the member list so the Admin badge disappears immediately.
-  loadGroupInfoSideTab(groupId, user.id);
-}
 
 async function openNicknameEditor() {
   if (!activeFluxProfileTarget) return;
