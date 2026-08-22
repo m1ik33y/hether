@@ -375,9 +375,6 @@ async function openFluxHeaderMoreMenu(e) {
     ? '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>'
     : '<path d="M8.7 3A6 6 0 0 1 18 8c0 2.1.8 3.9 1.6 5.2"/><path d="M17 17H3s3-2 3-9c0-.7.1-1.4.3-2"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/><path d="m2 2 20 20"/>';
 
-  // Search is available for both 1-to-1 DMs and group chats.
-  menu.appendChild(makeItem('Search', searchIcon, () => openFluxChatSearch(id)));
-
   if (isGroup) {
     // All group members have identical group actions.
     menu.appendChild(makeItem(
@@ -386,6 +383,7 @@ async function openFluxHeaderMoreMenu(e) {
       () => openAddMembersToGroup(id)
     ));
 
+    menu.appendChild(makeItem('Search', searchIcon, () => openFluxChatSearch(id)));
     menu.appendChild(makeItem('Group info', infoIcon, () => openNicknamePanel()));
 
     // Every group member can clear the whole group chat.
@@ -397,6 +395,7 @@ async function openFluxHeaderMoreMenu(e) {
     ));
   } else {
     menu.appendChild(makeItem('Profile info', infoIcon, () => openNicknamePanel()));
+    menu.appendChild(makeItem('Search', searchIcon, () => openFluxChatSearch(id)));
     menu.appendChild(makeItem(
       isArchived ? 'Unarchive' : 'Archive',
       archiveIcon,
@@ -445,45 +444,24 @@ function _ensureFluxChatSearchStyles() {
   const style = document.createElement('style');
   style.id = 'fluxChatSearchStyles';
   style.textContent = `
-    .flux-chat-search-backdrop {
-      position:fixed; inset:0; background:rgba(0,0,0,.28); z-index:29990;
-    }
-    .flux-chat-search-panel {
-      position:fixed; z-index:29991; width:min(430px, calc(100vw - 24px));
-      max-height:min(620px, calc(100vh - 110px)); display:flex; flex-direction:column;
-      background:var(--panel, #202023); border:1px solid rgba(255,255,255,.09);
-      border-radius:14px; box-shadow:0 18px 55px rgba(0,0,0,.45); overflow:hidden;
-    }
-    .flux-chat-search-head { padding:14px 14px 10px; border-bottom:1px solid rgba(255,255,255,.07); }
-    .flux-chat-search-title { font-size:14px; font-weight:700; color:var(--text, #f4f4f5); margin-bottom:10px; }
-    .flux-chat-search-input-wrap { position:relative; }
-    .flux-chat-search-input-wrap svg { position:absolute; left:12px; top:50%; transform:translateY(-50%); width:16px; height:16px; color:var(--text3,#8f8f96); pointer-events:none; }
-    .flux-chat-search-input {
-      width:100%; height:40px; box-sizing:border-box; border:1px solid rgba(255,255,255,.07);
-      outline:none; border-radius:9px; padding:0 12px 0 36px; background:#2a2a2e;
-      color:var(--text,#f4f4f5); font:inherit; font-size:13px;
-    }
+    .flux-chat-search-tab-inner { display:flex; flex-direction:column; min-height:0; }
+    .flux-chat-search-tab-body { display:flex; flex-direction:column; min-height:0; flex:1; padding:0 14px 14px; }
+    .flux-chat-search-tab-input-wrap { position:relative; flex-shrink:0; margin:2px 0 12px; }
+    .flux-chat-search-tab-input-wrap svg { position:absolute; left:12px; top:50%; transform:translateY(-50%); width:16px; height:16px; color:#8b8b91; pointer-events:none; }
+    .flux-chat-search-input { width:100%; height:42px; box-sizing:border-box; border:1px solid rgba(255,255,255,.08); outline:none; border-radius:9px; padding:0 12px 0 36px; background:#2a2a2e; color:var(--text,#f4f4f5); font:inherit; font-size:13px; }
     .flux-chat-search-input:focus { border-color:rgba(31,199,137,.45); background:#2d2d31; }
     .flux-chat-search-input::placeholder { color:#85858c; }
-    .flux-chat-search-results { overflow:auto; padding:6px; min-height:0; }
-    .flux-chat-search-empty { padding:28px 14px; text-align:center; color:var(--text3,#929298); font-size:12.5px; }
-    .flux-chat-search-result {
-      width:100%; text-align:left; border:0; background:transparent; color:inherit; display:block;
-      padding:10px 11px; border-radius:9px; cursor:pointer;
-    }
+    .flux-chat-search-results { overflow:auto; min-height:0; flex:1; padding:2px 0 8px; }
+    .flux-chat-search-empty { padding:30px 8px; text-align:center; color:var(--text3,#929298); font-size:12.5px; }
+    .flux-chat-search-result { width:100%; text-align:left; border:0; background:transparent; color:inherit; display:block; padding:11px 10px; border-radius:9px; cursor:pointer; }
     .flux-chat-search-result:hover { background:rgba(255,255,255,.06); }
     .flux-chat-search-result-top { display:flex; align-items:center; gap:7px; margin-bottom:4px; }
     .flux-chat-search-result-sender { color:var(--text,#f4f4f5); font-size:12px; font-weight:650; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .flux-chat-search-result-time { margin-left:auto; flex:0 0 auto; color:var(--text3,#85858c); font-size:10.5px; }
-    .flux-chat-search-result-text { color:#c5c5ca; font-size:12px; line-height:1.4; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+    .flux-chat-search-result-text { color:#c5c5ca; font-size:12px; line-height:1.4; overflow:hidden; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; }
     .flux-chat-search-result-text mark { background:rgba(31,199,137,.22); color:#e9fff6; border-radius:2px; padding:0 1px; }
     .flux-search-jump-highlight { animation: fluxSearchJump 1.4s ease; }
     @keyframes fluxSearchJump { 0%,100% { outline:2px solid transparent; } 20%,70% { outline:2px solid rgba(31,199,137,.72); outline-offset:3px; } }
-    .flux-chat-search-close { position:absolute; right:13px; top:12px; border:0; background:transparent; color:var(--text3,#929298); cursor:pointer; font-size:20px; line-height:1; padding:2px 4px; }
-    @media (max-width:640px) {
-      .flux-chat-search-panel { top:58px !important; left:12px !important; right:12px; width:auto; max-height:calc(100vh - 78px); }
-      .flux-chat-search-backdrop { background:rgba(0,0,0,.42); }
-    }
   `;
   document.head.appendChild(style);
 }
@@ -532,10 +510,8 @@ function _fluxPositionChatSearchPanel(panel, anchor) {
 }
 
 function _closeFluxChatSearch() {
-  const backdrop = document.getElementById('fluxChatSearchBackdrop');
-  const panel = document.getElementById('fluxChatSearchPanel');
-  if (backdrop) backdrop.remove();
-  if (panel) panel.remove();
+  const tab = document.getElementById('fluxSearchTab');
+  if (tab) tab.classList.remove('show');
   _fluxChatSearchState = null;
 }
 
@@ -624,6 +600,7 @@ async function openFluxChatSearch(conversationId) {
   if (!id) return;
   _closeFluxChatSearch();
   _ensureFluxChatSearchStyles();
+  document.getElementById('fluxProfileTab')?.classList.remove('show');
 
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (!user || activeFluxId !== id) return;
@@ -640,37 +617,26 @@ async function openFluxChatSearch(conversationId) {
 
   _fluxChatSearchState = { conversationId: id, myId: user.id, contact, messages: data || [] };
 
-  const backdrop = document.createElement('div');
-  backdrop.id = 'fluxChatSearchBackdrop';
-  backdrop.className = 'flux-chat-search-backdrop';
-  backdrop.addEventListener('click', _closeFluxChatSearch);
+  const tab = document.getElementById('fluxSearchTab');
+  const input = document.getElementById('fluxChatSearchInput');
+  if (!tab || !input) return;
 
-  const panel = document.createElement('div');
-  panel.id = 'fluxChatSearchPanel';
-  panel.className = 'flux-chat-search-panel';
-  panel.innerHTML = `
-    <div class="flux-chat-search-head">
-      <button type="button" class="flux-chat-search-close" aria-label="Close search">×</button>
-      <div class="flux-chat-search-title">Search messages</div>
-      <div class="flux-chat-search-input-wrap">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
-        <input id="fluxChatSearchInput" class="flux-chat-search-input" type="text" autocomplete="off" placeholder="Search messages...">
-      </div>
-    </div>
-    <div id="fluxChatSearchResults" class="flux-chat-search-results"><div class="flux-chat-search-empty">Search messages in this chat</div></div>
-  `;
-  panel.querySelector('.flux-chat-search-close').addEventListener('click', _closeFluxChatSearch);
-  const input = panel.querySelector('#fluxChatSearchInput');
-  input.addEventListener('input', () => _renderFluxChatSearchResults(input.value));
-  input.addEventListener('keydown', e => { if (e.key === 'Escape') _closeFluxChatSearch(); });
+  input.value = '';
+  _renderFluxChatSearchResults('');
+  input.oninput = () => _renderFluxChatSearchResults(input.value);
+  input.onkeydown = e => { if (e.key === 'Escape') closeFluxChatSearch(); };
 
-  document.body.appendChild(backdrop);
-  document.body.appendChild(panel);
-  const anchor = document.getElementById(isMobile() ? 'fluxFsHeaderMoreBtn' : 'fluxHeaderMoreBtn');
+  tab.getBoundingClientRect();
   requestAnimationFrame(() => {
-    _fluxPositionChatSearchPanel(panel, anchor);
-    input.focus();
+    requestAnimationFrame(() => {
+      tab.classList.add('show');
+      input.focus();
+    });
   });
+}
+
+function closeFluxChatSearch() {
+  _closeFluxChatSearch();
 }
 
 function closeFluxHeaderMoreMenu() {
