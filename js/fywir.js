@@ -627,6 +627,8 @@ function appendIncomingMessage(container, msg, currentUserId, contact) {
 function updateContactLastMsg(userId, msg, currentUserId) {
   const contact = fluxContacts.find(c => c.id === userId);
   if (!contact) return;
+  // A real new message after a clear ends the live-session cleared state.
+  _fluxRealtimeClearedConversations.delete(userId);
   const d = parseSupabaseDate(msg.created_at);
   // Must resolve the sender's name for groups here too — this function runs
   // for the per-conversation channel active while a chat is open, and is a
