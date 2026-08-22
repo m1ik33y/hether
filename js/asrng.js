@@ -1727,7 +1727,15 @@ async function _rehydrateRealtime() {
               contact.unread = true;
               contact.unreadCount = (contact.unreadCount || 0) + 1;
               const d = parseSupabaseDate(msg.created_at);
-              contact.lastMessage = { type: 'received', text: msg.content, media: !!msg.media_url, time: formatMsgTime(d) };
+              // Must resolve the sender's name here, same as the initial
+              // channel setup in openFLUX() (pesej.js). Without it,
+              // lastMessage.senderName is undefined and the sidebar preview
+              // renderer falls back to `c.name`, which for a group IS the
+              // group name — producing "GroupName: message" instead of
+              // "SenderName: message".
+              const senderProfile = contact.isGroup ? contact.groupMemberProfiles?.[msg.sender_id] : null;
+              const senderName = senderProfile?.username || senderProfile?.displayName || senderProfile?.realName || 'User';
+              contact.lastMessage = { type: 'received', text: msg.content, media: !!msg.media_url, time: formatMsgTime(d), senderName };
               contact.lastMessageTs = d.getTime();
               buildFLUXConvList();
             }
@@ -1754,8 +1762,11 @@ async function _rehydrateRealtime() {
             const groupId = payload.new?.group_id;
             if (!groupId || _fluxMyGroupIds.has(groupId)) return;
             try {
+              // preloadAllRelays() (not just loadContacts()) so the "X added
+              // Y" system message shows as the unread preview immediately,
+              // same as a normal openFLUX() load.
               await loadContacts();
-              buildFLUXConvList();
+              await preloadAllRelays();
             } catch (e) {
               console.warn('[FLUX] live group-add refresh failed:', e.message || e);
             }
