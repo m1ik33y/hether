@@ -820,11 +820,6 @@ function showCtxMenu(x, y, bWrap, msg, isSent, contact) {
   copyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy`;
   copyBtn.onclick = () => { if (text) navigator.clipboard.writeText(text).catch(() => {}); closeCtxMenu(); };
 
-  const deleteBtn = document.createElement('button');
-  deleteBtn.className = 'flux-ctx-item danger';
-  deleteBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg> Delete message`;
-  deleteBtn.onclick = () => { closeCtxMenu(); showConfirm('Delete message?', 'This message will be removed from your view.', 'Delete', () => { deleteMessage(msg, bWrap); }); };
-
   if (isSent && msg && msg.id && text && text.trim()) {
     const editCtxBtn = document.createElement('button');
     editCtxBtn.className = 'flux-ctx-item';
@@ -832,16 +827,9 @@ function showCtxMenu(x, y, bWrap, msg, isSent, contact) {
     editCtxBtn.onclick = () => { closeCtxMenu(); editMessage(msg.id, bWrap); };
     menu.appendChild(editCtxBtn);
   }
-  menu.appendChild(replyBtn); menu.appendChild(reactBtn); menu.appendChild(copyBtn); menu.appendChild(deleteBtn);
+  menu.appendChild(replyBtn); menu.appendChild(reactBtn); menu.appendChild(copyBtn);
   if (x + 160 > window.innerWidth) menu.style.left = (x - 160) + 'px';
   if (y + 100 > window.innerHeight) menu.style.top = (y - 100) + 'px';
-}
-
-function deleteMessage(msg, bWrap) {
-  const parentGroup = bWrap.closest('.flux-msg-group');
-  bWrap.remove();
-  if (parentGroup && parentGroup.querySelectorAll('.flux-bubble-wrap').length === 0) parentGroup.remove();
-  if (msg && msg.id) supabaseClient.from('messages').delete().eq('id', msg.id).then(() => {});
 }
 
 // Show action menu for a media collage (3-dot button)
