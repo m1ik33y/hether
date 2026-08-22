@@ -474,14 +474,18 @@ async function openFLUX() {
         })
         .subscribe();
       window._fluxGlobalTypingChannel = globalTypingCh;
-      const relayClearedCh = supabaseClient.channel(`relay-cleared:${user.id}`, {
+      // One persistent clear channel is used for both DMs and groups.
+      // The payload carries the conversation id, not the clearer's user id.
+      // This is important for groups because one user's id is not the group
+      // conversation id, so every member must clear the group by conversation id.
+      const relayClearedCh = supabaseClient.channel('relay-cleared:global', {
         config: { broadcast: { self: false } }
       });
       relayClearedCh
         .on('broadcast', { event: 'relay-cleared' }, ({ payload }) => {
           if (!fluxOpen) return;
-          const clearerId = payload?.clearerId;
-          if (clearerId) _handleRemoteRelayCleared(clearerId);
+          const conversationId = payload?.conversationId;
+          if (conversationId) _handleRemoteRelayCleared(conversationId);
         })
         .subscribe();
       window._fluxRelayClearedChannel = relayClearedCh;
