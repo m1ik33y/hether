@@ -419,8 +419,13 @@ async function openFLUX() {
           const groupId = payload.new?.group_id;
           if (!groupId || _fluxMyGroupIds.has(groupId)) return; // already known locally
           try {
+            // loadContacts() alone only pulls the group row itself, not its
+            // messages — the "X added Y" system message (and any unread
+            // state) wouldn't show up until a reload. preloadAllRelays()
+            // fetches contacts AND messages and rebuilds the list, matching
+            // what happens on a normal openFLUX().
             await loadContacts();
-            buildFLUXConvList();
+            await preloadAllRelays();
           } catch (e) {
             console.warn('[FLUX] live group-add refresh failed:', e.message || e);
           }
