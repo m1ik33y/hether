@@ -295,31 +295,6 @@ body {
 .pd-divider { height: 1px; background: var(--border); margin: 4px 10px; }
 
 /* ── FLUX GROUP SETTINGS POPUP ── */
-.flux-group-settings-popup {
-  width: 460px;
-  max-width: calc(100vw - 40px);
-}
-.fgs-body { display:flex; flex-direction:column; gap:0; }
-.fgs-row {
-  display:flex; align-items:center; justify-content:space-between; gap:18px;
-  padding:15px 0; border-bottom:1px solid rgba(255,255,255,0.08);
-}
-.fgs-row:last-child { border-bottom:none; }
-.fgs-label { font-size:13.5px; font-weight:600; color:#fff; }
-.fgs-sub { margin-top:4px; font-size:11.5px; line-height:1.45; color:#a7a7a7; max-width:330px; }
-.fgs-toggle {
-  position:relative; flex:0 0 auto; width:42px; height:24px; padding:0;
-  border:1px solid #555; border-radius:999px; background:#3a3a3a;
-  cursor:pointer; transition:background .15s ease,border-color .15s ease;
-}
-.fgs-toggle::after {
-  content:''; position:absolute; top:3px; left:3px; width:16px; height:16px;
-  border-radius:50%; background:#aaa; transition:transform .15s ease,background .15s ease;
-}
-.fgs-toggle.on { background:#fff; border-color:#fff; }
-.fgs-toggle.on::after { transform:translateX(18px); background:#111; }
-.fgs-toggle:disabled { opacity:.45; cursor:not-allowed; }
-
 /* ── PROFILE DETAILS POPUP ── */
 .pdp-popup {
   background: #282828; border-radius: 8px;
@@ -1744,14 +1719,6 @@ kbd {
   left: 0;
 }
 
-.flux-group-settings-btn {
-  left: auto;
-  right: 0;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-}
-.flux-group-settings-btn svg { width: 17px; height: 17px; }
 
 .flux-profile-tab-avatar {
   width: 80px;
