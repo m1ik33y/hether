@@ -448,6 +448,14 @@ async function confirmClearRelay() {
   } catch(e) {}
 }
 
+function handleFluxHeaderClear() {
+  const id = activeFluxId;
+  if (!id) return;
+  // The direct header clear button only ever renders for DMs (groups hide
+  // it — see _updateGroupHeaderMuteVisibility), so this is always "Clear all".
+  openClearRelayConfirm(id);
+}
+
 // Shared local cleanup after a group is no longer part of this client's
 // conversation list, whether that's because the current user just left it
 // or because it was deleted for everyone. Removes it from the sidebar data
@@ -514,40 +522,6 @@ async function exitFluxGroup(groupId) {
   const { error } = await supabaseClient.from('flux_group_members')
     .delete().eq('group_id', groupId).eq('user_id', user.id);
   if (error) { alert('Failed to exit group: ' + error.message); return; }
-
-  _fluxRemoveGroupLocally(groupId);
-}
-
-// Full teardown — only ever offered to a group admin/owner via the "Delete
-// for all" action. Unlike exiting, this really does delete the group and
-// every message in it for every member, and cannot be undone.
-function openDeleteGroupForAllConfirm(groupId) {
-  const id = groupId || activeFluxId;
-  if (!id) return;
-  showConfirm(
-    'Delete group for everyone?',
-    'This permanently deletes the group and all of its messages for every member. This cannot be undone.',
-    'Delete for all',
-    () => deleteFluxGroupForAll(id)
-  );
-}
-
-async function deleteFluxGroupForAll(groupId) {
-  const { data: { user } } = await supabaseClient.auth.getUser();
-  if (!user) return;
-
-  try {
-    // Removes the group entirely: messages, memberships, then the group
-    // row itself, so nobody is left with a dangling membership pointing
-    // at a group that no longer exists.
-    await supabaseClient.from('messages').delete().eq('group_id', groupId);
-    await supabaseClient.from('flux_group_members').delete().eq('group_id', groupId);
-    const { error } = await supabaseClient.from('flux_groups').delete().eq('id', groupId);
-    if (error) { alert('Failed to delete group: ' + error.message); return; }
-  } catch (e) {
-    alert('Something went wrong: ' + (e.message || e));
-    return;
-  }
 
   _fluxRemoveGroupLocally(groupId);
 }
