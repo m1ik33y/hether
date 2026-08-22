@@ -339,6 +339,9 @@ function clearRelayUI() {
   renderedMsgIds.clear();
 
   const contact = fluxContacts.find(c => c.id === clearedConvId);
+  if (clearedConvId && typeof _fluxLiveClearedAt !== 'undefined') {
+    _fluxLiveClearedAt.set(clearedConvId, Date.now());
+  }
   if (contact) {
     contact.lastMessage = null;
     contact.lastMessageTs = 0;
@@ -384,6 +387,9 @@ function _handleRemoteRelayCleared(conversationId) {
 
   const isGroup = _fluxConvIsGroup(conversationId);
 
+  if (typeof _fluxLiveClearedAt !== 'undefined') {
+    _fluxLiveClearedAt.set(conversationId, Date.now());
+  }
   contact.lastMessage = null;
   contact.lastMessageTs = 0;
   contact.unread = false;
