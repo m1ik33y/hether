@@ -76,6 +76,63 @@ function _fluxJoinNames(names) {
   return `${list.slice(0, -1).join(', ')}, and ${list[list.length - 1]}`;
 }
 
+// Called when this user's own flux_group_members row for a brand-new group
+// shows up over realtime (see the `group-membership` channel in openFLUX()
+// and _rehydrateRealtime()). loadContacts() alone registers the group
+// locally but fetches no messages, so the "X added Y" system message the
+// creator posts right after group creation would otherwise sit unseen
+// until the panel reopened. createFluxGroup() posts that message several
+// awaited steps AFTER the membership insert, so it usually isn't in the DB
+// yet at the instant this runs — a single immediate fetch would race and
+// miss it. Instead: fetch whatever's already there, and also open a
+// short-lived listener scoped to just this group to catch the message
+// whenever it actually lands, then hand off to the normal
+// global-inbox-groups channel (now that the group is in _fluxMyGroupIds)
+// for everything after that.
+async function _fluxHandleNewGroupMembership(groupId, myUserId) {
+  await loadContacts();
+  buildFLUXConvList();
+
+  const applyIncoming = (msg) => {
+    if (!msg || msg.sender_id === myUserId) return;
+    const contact = fluxContacts.find(c => c.id === groupId);
+    if (!contact) return;
+    contact.unread = true;
+    contact.unreadCount = (contact.unreadCount || 0) + 1;
+    const d = parseSupabaseDate(msg.created_at);
+    const senderName = _fluxGroupMsgSenderName(contact, msg.sender_id) || 'Someone';
+    contact.lastMessage = { type: 'received', text: msg.content, media: !!msg.media_url, time: formatMsgTime(d), senderName };
+    contact.lastMessageTs = d.getTime();
+    _maybePlayMessageSound(groupId, myUserId);
+    buildFLUXConvList();
+  };
+
+  // Catch it if it already landed by the time loadContacts() finished.
+  try {
+    const { data: existingMsgs } = await supabaseClient
+      .from('messages')
+      .select('*')
+      .eq('group_id', groupId)
+      .order('created_at', { ascending: false })
+      .limit(1);
+    if (existingMsgs && existingMsgs[0]) applyIncoming(existingMsgs[0]);
+  } catch (e) {
+    console.warn('[FLUX] new-group message catch-up failed:', e.message || e);
+  }
+
+  // Otherwise wait for it — self-tears-down after the first message, since
+  // the persistent global-inbox-groups channel takes over from there.
+  const oneOffCh = supabaseClient
+    .channel(`new-group-catchup:${groupId}:${myUserId}`)
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages',
+      filter: `group_id=eq.${groupId}` }, (payload) => {
+      applyIncoming(payload.new);
+      supabaseClient.removeChannel(oneOffCh);
+    })
+    .subscribe();
+  setTimeout(() => { try { supabaseClient.removeChannel(oneOffCh); } catch (e) {} }, 15000);
+}
+
 // Applies the correct filter to a Supabase query builder for a given
 // conversation. `q` must be a builder that still supports .eq/.or (i.e.
 // call this before .order()/.range()/.single()).
