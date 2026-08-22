@@ -425,6 +425,29 @@ async function loadContacts() {
   } catch (e) {
     console.warn('[FLUX] group sidebar load failed:', e.message || e);
   }
+  // Only keep groups where the current user has actually sent at least one
+  // message. Membership alone must not resurrect a cleared/inactive group
+  // when loadContacts() rebuilds the sidebar after a refresh.
+  if (groupRows.length) {
+    try {
+      const { data: myGroupMessages, error: myGroupMessagesErr } = await supabaseClient
+        .from('messages')
+        .select('group_id')
+        .eq('sender_id', user.id)
+        .in('group_id', groupRows.map(g => g.id));
+      if (myGroupMessagesErr) throw myGroupMessagesErr;
+
+      const groupIdsWithMyMessage = new Set(
+        (myGroupMessages || []).map(m => m.group_id).filter(Boolean)
+      );
+      groupRows = groupRows.filter(g => groupIdsWithMyMessage.has(g.id));
+    } catch (e) {
+      console.warn('[FLUX] group participation check failed:', e.message || e);
+      // Fail closed: never show a group unless participation can be verified.
+      groupRows = [];
+    }
+  }
+
   _fluxMyGroupIds = new Set(groupRows.map(g => g.id));
 
   fluxCategories.clear();
