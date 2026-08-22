@@ -367,6 +367,7 @@ async function openFLUX() {
           _maybePlayMessageSound(msg.sender_id, user.id);
           const contact = fluxContacts.find(c => c.id === msg.sender_id);
           if (contact) {
+            _fluxRealtimeClearedConversations.delete(msg.sender_id);
             contact.unread = true;
             contact.unreadCount = (contact.unreadCount || 0) + 1;
             const d = parseSupabaseDate(msg.created_at);
@@ -392,6 +393,7 @@ async function openFLUX() {
           _maybePlayMessageSound(msg.group_id, user.id);
           const contact = fluxContacts.find(c => c.id === msg.group_id);
           if (contact) {
+            _fluxRealtimeClearedConversations.delete(msg.group_id);
             contact.unread = true;
             contact.unreadCount = (contact.unreadCount || 0) + 1;
             const d = parseSupabaseDate(msg.created_at);
