@@ -444,8 +444,9 @@ function _ensureFluxChatSearchStyles() {
   const style = document.createElement('style');
   style.id = 'fluxChatSearchStyles';
   style.textContent = `
-    .flux-chat-search-tab-inner { display:flex; flex-direction:column; min-height:0; }
-    .flux-chat-search-tab-body { display:flex; flex-direction:column; min-height:0; flex:1; padding:0 14px 14px; }
+    #fluxSearchTab { width:460px !important; max-width:calc(100vw - 24px); }
+    .flux-chat-search-tab-inner { display:flex; flex-direction:column; min-height:0; width:100%; }
+    .flux-chat-search-tab-body { display:flex; flex-direction:column; min-height:0; flex:1; padding:0 28px 18px; }
     .flux-chat-search-tab-input-wrap { position:relative; flex-shrink:0; margin:2px 0 12px; }
     .flux-chat-search-tab-input-wrap svg { position:absolute; left:12px; top:50%; transform:translateY(-50%); width:16px; height:16px; color:#8b8b91; pointer-events:none; }
     .flux-chat-search-input { width:100%; height:42px; box-sizing:border-box; border:1px solid rgba(255,255,255,.08); outline:none; border-radius:9px; padding:0 12px 0 36px; background:#2a2a2e; color:var(--text,#f4f4f5); font:inherit; font-size:13px; }
@@ -460,8 +461,7 @@ function _ensureFluxChatSearchStyles() {
     .flux-chat-search-result-time { margin-left:auto; flex:0 0 auto; color:var(--text3,#85858c); font-size:10.5px; }
     .flux-chat-search-result-text { color:#c5c5ca; font-size:12px; line-height:1.4; overflow:hidden; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; }
     .flux-chat-search-result-text mark { background:rgba(31,199,137,.22); color:#e9fff6; border-radius:2px; padding:0 1px; }
-    .flux-search-jump-highlight { animation: fluxSearchJump 1.4s ease; }
-    @keyframes fluxSearchJump { 0%,100% { outline:2px solid transparent; } 20%,70% { outline:2px solid rgba(31,199,137,.72); outline-offset:3px; } }
+
   `;
   document.head.appendChild(style);
 }
@@ -590,8 +590,6 @@ async function _jumpToFluxSearchMessage(messageId) {
 
   if (target) {
     target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    target.classList.add('flux-search-jump-highlight');
-    setTimeout(() => target?.classList.remove('flux-search-jump-highlight'), 1400);
   }
 }
 
