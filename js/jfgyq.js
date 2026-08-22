@@ -19,6 +19,12 @@ let activeFluxNickname = null;
 let _fluxLoadToken = 0;
 let replyingTo = null;
 
+// Conversations cleared during the current realtime session. This is a
+// client-side tombstone: it prevents stale preload/realtime hydration from
+// putting the deleted last message back into the sidebar. A brand-new INSERT
+// for the conversation removes the tombstone and resumes normal previews.
+const _fluxRealtimeClearedConversations = new Set();
+
 // ── Group-chat aware message helpers ──────────────────────────────────────
 // Groups carry their messages via messages.group_id instead of the DM
 // sender_id/receiver_id pair. These two helpers are the single source of
@@ -97,6 +103,7 @@ async function _fluxHandleNewGroupMembership(groupId, myUserId) {
     if (!msg || msg.sender_id === myUserId) return;
     const contact = fluxContacts.find(c => c.id === groupId);
     if (!contact) return;
+    _fluxRealtimeClearedConversations.delete(groupId);
     contact.unread = true;
     contact.unreadCount = (contact.unreadCount || 0) + 1;
     const d = parseSupabaseDate(msg.created_at);
