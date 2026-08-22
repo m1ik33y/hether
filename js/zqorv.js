@@ -14,13 +14,6 @@ function _fluxArchivedOf(contactId) {
   return fluxArchived.get(contactId) === true;
 }
 
-// A "Delete for me" cutoff: the conversation stays hidden from the sidebar
-// until its most recent message is newer than the cutoff, at which point it
-// reappears on its own — no explicit "undelete" needed.
-function _fluxDeletedBeforeOf(contactId) {
-  return fluxDeletedBefore.get(contactId) || 0;
-}
-
 // ── UNARCHIVE (from open chat header) ──
 // Archived chats disappear from the sidebar, so the per-conversation "..."
 // menu (which lives on the sidebar row) becomes unreachable for them. This
@@ -83,8 +76,9 @@ function _updateGroupHeaderMuteVisibility(id) {
   const desktopClear = document.getElementById('fluxDeleteRelayBtn');
   const mobileClear = document.getElementById('fluxFsDeleteRelayBtn');
 
-  // The direct clear button exists only for private DMs.
-  // Group chats must use the More menu's "Delete for me" action.
+  // The direct clear button exists only for private DMs. Groups have no
+  // per-message clear action — only the header More menu's admin-only
+  // "Delete for all", or exiting the group from the sidebar/header menu.
   if (desktopClear) desktopClear.style.display = isGroup ? 'none' : 'inline-flex';
   if (mobileClear) mobileClear.style.display = isGroup ? 'none' : 'inline-flex';
 
@@ -256,7 +250,7 @@ function buildFLUXConvList() {
   const searchTerm = (_fluxSidebarSearchTerm || '').trim();
   const baseContacts = _fluxArchivedView
     ? fluxContacts.filter(c => _fluxArchivedOf(c.id))
-    : fluxContacts.filter(c => (c.isGroup || c.sentByMe === true) && !_fluxArchivedOf(c.id) && (c.lastMessageTs || 0) > _fluxDeletedBeforeOf(c.id));
+    : fluxContacts.filter(c => (c.isGroup || c.sentByMe === true) && !_fluxArchivedOf(c.id));
   const withSentMessages = searchTerm
     ? (_fluxArchivedView
         ? baseContacts.filter(c => (c.realName || c.name || '').toLowerCase().includes(searchTerm))
@@ -404,7 +398,7 @@ async function loadContacts() {
   const [{ data }, { data: nicknameRows }, { data: categoryRows }] = await Promise.all([
     supabaseClient.from('profiles').select('id, username, display_name, avatar_url'),
     supabaseClient.from('nicknames').select('target_id, nickname').eq('setter_id', user.id),
-    supabaseClient.from('chat_categories').select('contact_id, group_id, category, muted, pinned, archived, deleted_before').eq('owner_id', user.id)
+    supabaseClient.from('chat_categories').select('contact_id, group_id, category, muted, pinned, archived').eq('owner_id', user.id)
   ]);
   if (!data) return;
 
@@ -440,14 +434,12 @@ async function loadContacts() {
   fluxMuted.clear();
   fluxPinned.clear();
   fluxArchived.clear();
-  fluxDeletedBefore.clear();
   (categoryRows || []).forEach(row => {
     const convId = row.contact_id || row.group_id;
     fluxCategories.set(convId, row.category);
     if (row.muted) fluxMuted.set(convId, true);
     if (row.pinned) fluxPinned.set(convId, true);
     if (row.archived) fluxArchived.set(convId, true);
-    if (row.deleted_before) fluxDeletedBefore.set(convId, new Date(row.deleted_before).getTime());
   });
   // Build a quick lookup: target_id -> nickname
   const nicknameMap = {};
@@ -1662,4 +1654,3 @@ async function saveNicknameForTarget(nickname) {
 
   await loadNicknameSideTab(activeFluxProfileTarget);
 }
-
