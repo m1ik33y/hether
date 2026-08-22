@@ -460,7 +460,7 @@ document.addEventListener('keydown', e => {
   }
   if (e.altKey && e.key === 'Backspace') {
     e.preventDefault();
-    if (fluxOpen && activeFluxId) handleFluxHeaderClear();
+    if (fluxOpen && activeFluxId) openClearRelayConfirm(activeFluxId);
   }
   if (e.key === 'Escape') {
     if (fluxOpen) { closeFLUX(); return; }
