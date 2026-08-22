@@ -628,7 +628,16 @@ function updateContactLastMsg(userId, msg, currentUserId) {
   const contact = fluxContacts.find(c => c.id === userId);
   if (!contact) return;
   const d = parseSupabaseDate(msg.created_at);
-  contact.lastMessage = { type: msg.sender_id === currentUserId ? 'sent' : 'received', text: msg.content, media: !!msg.media_url, time: formatMsgTime(d) };
+  // Must resolve the sender's name for groups here too — this function runs
+  // for the per-conversation channel active while a chat is open, and is a
+  // separate code path from the global-inbox-groups listener. Leaving
+  // senderName out meant the sidebar preview fell back to `c.name` (the
+  // GROUP's own name) as soon as you opened the group and a message came
+  // in, even though the closed-panel preview was already fixed.
+  const senderName = msg.sender_id === currentUserId
+    ? 'You'
+    : (_fluxGroupMsgSenderName(contact, msg.sender_id) || contact.username || contact.realName || contact.name);
+  contact.lastMessage = { type: msg.sender_id === currentUserId ? 'sent' : 'received', text: msg.content, media: !!msg.media_url, time: formatMsgTime(d), senderName };
   contact.lastMessageTs = d.getTime();
   if (msg.sender_id === currentUserId) contact.sentByMe = true;
   if (msg.sender_id !== currentUserId && activeFluxId !== userId) {
