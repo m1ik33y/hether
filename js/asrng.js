@@ -1,5 +1,3 @@
-
-
 // ── CODE EDITOR LINE NUMBERS & AUTO-INDENT ──
 function updateCodeLineNumbers() {
   const ta = document.getElementById('codeInput');
@@ -1739,6 +1737,34 @@ async function _rehydrateRealtime() {
       }
     }
 
+    // 3c. Group membership channel — rebuild if dead. Fires when someone
+    // else adds this user to a group, so the new group can be pulled into
+    // the sidebar live instead of waiting for a reload (mirrors the fix in
+    // openFLUX()'s initial channel setup).
+    const groupMembershipChState = window._fluxGroupMembershipChannel?.state;
+    if (!window._fluxGroupMembershipChannel || groupMembershipChState === 'closed' || groupMembershipChState === 'errored') {
+      try { if (window._fluxGroupMembershipChannel) await supabaseClient.removeChannel(window._fluxGroupMembershipChannel); } catch(e) {}
+      window._fluxGroupMembershipChannel = null;
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      if (user) {
+        const groupMembershipCh = supabaseClient.channel(`group-membership:${user.id}`)
+          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'flux_group_members',
+            filter: `user_id=eq.${user.id}` }, async (payload) => {
+            if (!fluxOpen) return;
+            const groupId = payload.new?.group_id;
+            if (!groupId || _fluxMyGroupIds.has(groupId)) return;
+            try {
+              await loadContacts();
+              buildFLUXConvList();
+            } catch (e) {
+              console.warn('[FLUX] live group-add refresh failed:', e.message || e);
+            }
+          })
+          .subscribe();
+        window._fluxGroupMembershipChannel = groupMembershipCh;
+      }
+    }
+
     // 4. Global typing channel — rebuild if dead
     const globalTypingState = window._fluxGlobalTypingChannel?.state;
     if (!window._fluxGlobalTypingChannel || globalTypingState === 'closed' || globalTypingState === 'errored') {
@@ -2144,6 +2170,3 @@ if (typeof _originalCloseFLUX === 'function') {
     document.title = "Hether - Code n' Arcade";
   };
 }
-
-
-
