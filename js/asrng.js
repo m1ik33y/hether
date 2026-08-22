@@ -1867,14 +1867,18 @@ async function _rehydrateRealtime() {
       window._fluxRelayClearedChannel = null;
       const { data: { user: _ccUser } } = await supabaseClient.auth.getUser();
       if (_ccUser) {
-        const relayClearedCh = supabaseClient.channel(`relay-cleared:${_ccUser.id}`, {
+        // Clear notifications are conversation-scoped, not user-scoped.
+        // A group has multiple members, so listening on `relay-cleared:${user.id}`
+        // cannot receive a broadcast sent to another member. Use one shared
+        // channel and carry the conversation id in the payload.
+        const relayClearedCh = supabaseClient.channel('relay-cleared:global', {
           config: { broadcast: { self: false } }
         });
         relayClearedCh
           .on('broadcast', { event: 'relay-cleared' }, ({ payload }) => {
             if (!fluxOpen) return;
-            const clearerId = payload?.clearerId;
-            if (clearerId) _handleRemoteRelayCleared(clearerId);
+            const conversationId = payload?.conversationId;
+            if (conversationId) _handleRemoteRelayCleared(conversationId);
           })
           .subscribe();
         window._fluxRelayClearedChannel = relayClearedCh;
