@@ -448,14 +448,6 @@ async function confirmClearRelay() {
   } catch(e) {}
 }
 
-function handleFluxHeaderClear() {
-  const id = activeFluxId;
-  if (!id) return;
-  // The direct header clear button only ever renders for DMs (groups hide
-  // it — see _updateGroupHeaderMuteVisibility), so this is always "Clear all".
-  openClearRelayConfirm(id);
-}
-
 // Shared local cleanup after a group is no longer part of this client's
 // conversation list, whether that's because the current user just left it
 // or because it was deleted for everyone. Removes it from the sidebar data
