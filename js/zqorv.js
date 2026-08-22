@@ -1,3 +1,9 @@
+// Conversations cleared during the current live session keep their sidebar
+// row, but their preview must stay blank until a genuinely new message arrives.
+// This is intentionally in-memory only, so after a reload the normal history
+// logic takes over again.
+const _fluxLiveClearedAt = new Map();
+
 function _fluxCategoryOf(contactId) {
   return fluxCategories.get(contactId) || 'primary';
 }
@@ -321,7 +327,9 @@ function buildFLUXConvList() {
         _fluxArchiveEntryUnlocked = false;
         isFsList ? openFsRelay(c.id) : openDesktopRelay(c.id);
       };
-      const lastMsg = c.lastMessage;
+      const clearedAt = _fluxLiveClearedAt.get(c.id) || 0;
+      const hasNewMessageAfterClear = clearedAt > 0 && (c.lastMessageTs || 0) > clearedAt;
+      const lastMsg = (clearedAt > 0 && !hasNewMessageAfterClear) ? null : c.lastMessage;
       const isUnread = c.unread && !(c.id === activeFluxId && _isRelayVisibleFor(c.id));
       const unreadCount = isUnread ? (c.unreadCount || 0) : 0;
 
