@@ -164,6 +164,19 @@ function makeGroupAvatar(contact, senderId) {
   return av;
 }
 
+// For a received message inside a group chat, resolves the actual sender's
+// display name. `contact` here is the GROUP's own contact object (its
+// .username/.realName/.name are the GROUP's name, not any member's) — using
+// those directly for a per-message label is what produced "GroupName" as
+// the shown sender instead of the person who actually sent it.
+function _fluxGroupMsgSenderName(contact, senderId) {
+  if (!contact || !contact.isGroup || !senderId) return null;
+  const gp = contact.groupMemberProfiles?.[senderId];
+  if (gp) return gp.username || gp.displayName || null;
+  const member = fluxContacts.find(c => c.id === senderId);
+  return member ? (member.username || member.realName || member.name) : null;
+}
+
 function makeSystemMsgEl(text) {
   const wrap = document.createElement('div');
   wrap.className = 'flux-system-msg';
@@ -396,7 +409,7 @@ function makeMediaCollageBubble(mediaGroup, isSent, contact, currentUserId) {
   const replyBtn = document.createElement('button');
   replyBtn.className = 'flux-reply-btn'; replyBtn.title = 'Reply';
   replyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>`;
-  replyBtn.onclick = (e) => { e.stopPropagation(); startReply('Photo', isSent ? (profile.username ? profile.username.slice(1) : 'me') : (contact ? (contact.username || contact.realName || contact.name) : 'User'), mediaGroup.id, urls[0]); };
+  replyBtn.onclick = (e) => { e.stopPropagation(); startReply('Photo', isSent ? (profile.username ? profile.username.slice(1) : 'me') : (_fluxGroupMsgSenderName(contact, mediaGroup.sender_id) || (contact ? (contact.username || contact.realName || contact.name) : 'User')), mediaGroup.id, urls[0]); };
 
   const moreBtn = document.createElement('button');
   moreBtn.className = 'flux-more-btn'; moreBtn.title = 'More options';
@@ -587,7 +600,7 @@ function makeBubbleWrap(msg, isSent, contact, currentUserId) {
   bWrap.className = 'flux-bubble-wrap';
   bWrap.dataset.msgId = msg.id || '';
   bWrap.dataset.text = msg.content || msg.text || '';
-  bWrap.dataset.sender = isSent ? (profile.username ? profile.username.slice(1) : 'me') : (contact ? (contact.username || contact.realName || contact.name) : 'User');
+  bWrap.dataset.sender = isSent ? (profile.username ? profile.username.slice(1) : 'me') : (_fluxGroupMsgSenderName(contact, msg.sender_id) || (contact ? (contact.username || contact.realName || contact.name) : 'User'));
 
   // Stamp the raw timestamp on the wrap — used by grouping logic
   const rawTs = msg.created_at || msg.ts || '';
@@ -597,7 +610,7 @@ function makeBubbleWrap(msg, isSent, contact, currentUserId) {
   const rawContent = msg.content || msg.text || '';
   const msgText = rawContent.replace(/(?<![a-zA-Z])[Tt]-[Tt](?![a-zA-Z])/g, '😭');
   if (msg.content) msg.content = msg.content.replace(/(?<![a-zA-Z])[Tt]-[Tt](?![a-zA-Z])/g, '😭');
-  const msgSender = isSent ? (profile.username ? profile.username.slice(1) : 'me') : (contact ? (contact.username || contact.realName || contact.name) : 'User');
+  const msgSender = isSent ? (profile.username ? profile.username.slice(1) : 'me') : (_fluxGroupMsgSenderName(contact, msg.sender_id) || (contact ? (contact.username || contact.realName || contact.name) : 'User'));
 
   const replyBtn = document.createElement('button');
   replyBtn.className = 'flux-reply-btn'; replyBtn.title = 'Reply';
@@ -1162,4 +1175,3 @@ let fluxDesktopLoadingMore = false;
 let fluxDesktopUserId = null;
 let fluxDesktopUser = null;
 let fluxDesktopContact = null;
-
