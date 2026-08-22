@@ -344,7 +344,7 @@ async function openFluxHeaderMoreMenu(e) {
   const isGroup = _fluxConvIsGroup(id);
   const isMuted = _fluxMutedOf(id);
   const isArchived = _fluxArchivedOf(id);
-  const contact = fluxContacts.find(c => c.id === id);
+
   menu.innerHTML = '';
 
   const makeItem = (label, iconPath, onClick, opts) => {
@@ -361,39 +361,66 @@ async function openFluxHeaderMoreMenu(e) {
   };
 
   const infoIcon = '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>';
-  const trashIcon = '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>';
+  const clearIcon = '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 6 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><line x1="15" x2="9" y1="9" y2="15"/><line x1="9" x2="15" y1="15" y2="9"/>';
   const archiveIcon = '<path d="M21 8v13H3V8"/><rect x="1" y="3" width="22" height="5" rx="1"/><path d="M10 12h4"/>';
   const muteIcon = isMuted
     ? '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>'
     : '<path d="M8.7 3A6 6 0 0 1 18 8c0 2.1.8 3.9 1.6 5.2"/><path d="M17 17H3s3-2 3-9c0-.7.1-1.4.3-2"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/><path d="m2 2 20 20"/>';
-  const clearIcon = '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 6 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><line x1="15" x2="9" y1="9" y2="15"/><line x1="9" x2="15" y1="15" y2="9"/>';
-  const exitIcon = '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/>';
 
   if (isGroup) {
-    menu.appendChild(makeItem('Add member',
+    // All group members have identical group actions.
+    menu.appendChild(makeItem(
+      'Add member',
       '<path d="M2 21a8 8 0 0 1 13.292-6"/><circle cx="10" cy="8" r="5"/><path d="M19 16v6"/><path d="M22 19h-6"/>',
-      () => openAddMembersToGroup(id)));
+      () => openAddMembersToGroup(id)
+    ));
 
     menu.appendChild(makeItem('Group info', infoIcon, () => openNicknamePanel()));
 
-    menu.appendChild(makeItem('Clear all', clearIcon,
-      () => openClearRelayConfirm(id), { danger: true }));
-
-    menu.appendChild(makeItem('Exit group', exitIcon,
-      () => openExitGroupConfirm(id), { danger: true }));
+    // Every group member can clear the whole group chat.
+    menu.appendChild(makeItem(
+      'Clear all',
+      clearIcon,
+      () => openClearRelayConfirm(id),
+      { danger: true }
+    ));
   } else {
     menu.appendChild(makeItem('Profile info', infoIcon, () => openNicknamePanel()));
-
-    menu.appendChild(makeItem(isArchived ? 'Unarchive' : 'Archive', archiveIcon,
-      () => toggleFluxArchive(id)));
-
-    menu.appendChild(makeItem(isMuted ? 'Unmute' : 'Mute', muteIcon,
-      () => toggleFluxMute(id)));
-
-    menu.appendChild(makeItem('Clear all', clearIcon,
-      () => openClearRelayConfirm(id), { danger: true }));
+    menu.appendChild(makeItem(
+      isArchived ? 'Unarchive' : 'Archive',
+      archiveIcon,
+      () => toggleFluxArchive(id)
+    ));
+    menu.appendChild(makeItem(
+      isMuted ? 'Unmute' : 'Mute',
+      muteIcon,
+      () => toggleFluxMute(id)
+    ));
+    menu.appendChild(makeItem(
+      'Clear all',
+      clearIcon,
+      () => openClearRelayConfirm(id),
+      { danger: true }
+    ));
   }
 
+  const btn = e.currentTarget || e.target;
+  const rect = btn && btn.getBoundingClientRect
+    ? btn.getBoundingClientRect()
+    : { left: e.clientX, top: e.clientY, width: 0, height: 0 };
+
+  menu.style.position = 'fixed';
+  menu.style.left = Math.max(8, Math.min(
+    window.innerWidth - menu.offsetWidth - 8,
+    rect.right - menu.offsetWidth
+  )) + 'px';
+  menu.style.top = Math.min(
+    window.innerHeight - menu.offsetHeight - 8,
+    rect.bottom + 6
+  ) + 'px';
+  menu.classList.add('show');
+  _headerMoreMenuOpen = true;
+}
 function closeFluxHeaderMoreMenu() {
   const menu = document.getElementById('fluxHeaderMoreMenu');
   if (!menu) return;
