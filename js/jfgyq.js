@@ -1912,7 +1912,7 @@ function sendStagedMedia() {
           background: var(--surface) !important;
         }
         #fluxFullscreen .flux-fs-input-area {
-          background: var(--surface) !important;
+          background: none !important;
         }
         #fluxFullscreen .flux-fs-input-row,
         #fluxFullscreen .flux-input-row {
