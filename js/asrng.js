@@ -2060,6 +2060,7 @@ function _maybePlayMessageSound(conversationId, currentUserId) {
   if (!_notificationsEnabled || !_soundEnabled) return;
   if (conversationId === currentUserId) return;
   if (_fluxMutedOf(conversationId)) return; // person or group is muted
+  if (_fluxArchivedOf(conversationId)) return; // archived chats/groups are treated as muted — no sound
   if (activeFluxId === conversationId && document.hasFocus() && document.visibilityState === 'visible' && _isFLUXPanelOpen()) return;
   _playLowBlip();
 }
@@ -2155,6 +2156,7 @@ function _updateTitleUnreadBadge() {
   const unreadUsers = (typeof fluxContacts !== 'undefined')
     ? fluxContacts.filter(c => {
         if (!c.unread) return false;
+        if (_fluxArchivedOf(c.id)) return false; // archived chats/groups don't drive the notification badge
         if (c.id === activeFluxId && _isRelayVisibleFor(c.id)) return false;
         return true;
       }).length
