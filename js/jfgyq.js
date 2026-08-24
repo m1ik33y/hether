@@ -233,6 +233,15 @@ let _convMenuActiveItem = null;
 function openFluxConvMenu(e, contactId) {
   e.stopPropagation();
   const menu = document.getElementById('fluxConvMenu');
+  const clickedBtn = e.currentTarget || e.target?.closest?.('.flux-conv-menu-btn');
+  if (_convMenuOpen && clickedBtn && menu && !menu.contains(clickedBtn)) {
+    // Clicking the same conversation-menu button while its dropdown is open
+    // closes it instead of immediately reopening it.
+    closeFluxConvMenu();
+    return;
+  }
+  // A different dropdown button should never leave another FLUX dropdown open.
+  if (_headerMoreMenuOpen) closeFluxHeaderMoreMenu();
   const currentCategory = _fluxCategoryOf(contactId);
   const isMuted = _fluxMutedOf(contactId);
   const isPinned = _fluxPinnedOf(contactId);
@@ -334,7 +343,10 @@ function closeFluxConvMenu() {
 }
 
 document.addEventListener('click', (e) => {
-  if (_convMenuOpen && !document.getElementById('fluxConvMenu').contains(e.target) && !e.target.closest('.flux-conv-menu-btn')) closeFluxConvMenu();
+  const menu = document.getElementById('fluxConvMenu');
+  if (_convMenuOpen && menu && !menu.contains(e.target) && !e.target.closest('.flux-conv-menu-btn')) {
+    closeFluxConvMenu();
+  }
 });
 
 // ── CHAT HEADER MORE MENU (groups + DMs) ──
@@ -342,6 +354,14 @@ let _headerMoreMenuOpen = false;
 
 async function openFluxHeaderMoreMenu(e) {
   e.stopPropagation();
+  const clickedBtn = e.currentTarget || e.target?.closest?.('#fluxHeaderMoreBtn, #fluxFsHeaderMoreBtn');
+  if (_headerMoreMenuOpen && clickedBtn) {
+    // Clicking the currently-open three-dot button closes the dropdown.
+    closeFluxHeaderMoreMenu();
+    return;
+  }
+  // Keep only one FLUX dropdown open at a time.
+  if (_convMenuOpen) closeFluxConvMenu();
   const id = activeFluxId;
   if (!id) return;
 
@@ -386,7 +406,7 @@ async function openFluxHeaderMoreMenu(e) {
     menu.appendChild(makeItem('Search', searchIcon, () => openFluxChatSearch(id)));
     menu.appendChild(makeItem('Group info', infoIcon, () => openNicknamePanel()));
 
-    // Every group member can clear the whole group chat.
+    // Keep the destructive action last in the three-dot menu.
     menu.appendChild(makeItem(
       'Clear all',
       clearIcon,
@@ -406,6 +426,8 @@ async function openFluxHeaderMoreMenu(e) {
       muteIcon,
       () => toggleFluxMute(id)
     ));
+
+    // Keep the destructive action last in the three-dot menu.
     menu.appendChild(makeItem(
       'Clear all',
       clearIcon,
@@ -419,21 +441,28 @@ async function openFluxHeaderMoreMenu(e) {
     ? btn.getBoundingClientRect()
     : { left: e.clientX, top: e.clientY, width: 0, height: 0 };
 
-  // closeFluxHeaderMoreMenu() hides the menu with an inline display:none.
-  // Clear that inline value before measuring/showing it so the button can be
-  // opened repeatedly without requiring a page reload.
-  menu.style.display = '';
+  // Force the menu to its visible/measurable state before calculating its
+  // position.  Otherwise offsetWidth can be 0 on the first click because
+  // closeFluxHeaderMoreMenu() leaves it inline-hidden.
   menu.style.position = 'fixed';
-  menu.style.left = Math.max(8, Math.min(
-    window.innerWidth - menu.offsetWidth - 8,
-    rect.right - menu.offsetWidth
-  )) + 'px';
-  menu.style.top = Math.min(
-    window.innerHeight - menu.offsetHeight - 8,
-    rect.bottom + 6
-  ) + 'px';
+  menu.style.visibility = 'hidden';
+  menu.style.display = 'block';
   menu.classList.add('show');
-  menu.style.display = '';
+
+  const menuWidth = menu.offsetWidth;
+  const menuHeight = menu.offsetHeight;
+
+  // Always open to the LEFT of the three-dot button.
+  // Keep it inside the viewport if the button is close to the left edge.
+  const left = Math.max(8, rect.right - menuWidth - 6);
+  const top = Math.max(8, Math.min(
+    window.innerHeight - menuHeight - 8,
+    rect.bottom + 6
+  ));
+
+  menu.style.left = left + 'px';
+  menu.style.top = top + 'px';
+  menu.style.visibility = '';
   _headerMoreMenuOpen = true;
 }
 // ── CHAT HISTORY SEARCH ──
@@ -448,6 +477,34 @@ function _ensureFluxChatSearchStyles() {
        Do not set a fixed width here: the base .flux-profile-tab rule collapses
        the panel when .show is removed. */
     #fluxSearchTab { max-width:calc(100vw - 24px); }
+    @media (max-width:640px) {
+      #fluxSearchTab {
+        position:fixed !important;
+        inset:0 !important;
+        top:0 !important;
+        right:0 !important;
+        bottom:0 !important;
+        left:0 !important;
+        width:100vw !important;
+        max-width:none !important;
+        height:100dvh !important;
+        max-height:none !important;
+        margin:0 !important;
+        border-radius:0 !important;
+        transform:none !important;
+      }
+      #fluxSearchTab .flux-chat-search-tab-inner {
+        width:100%;
+        height:100%;
+        min-height:100%;
+        border-radius:0;
+      }
+      #fluxSearchTab .flux-chat-search-tab-body {
+        padding-left:12px;
+        padding-right:12px;
+        padding-bottom:18px;
+      }
+    }
     .flux-chat-search-tab-inner { display:flex; flex-direction:column; min-height:0; width:100%; }
     .flux-chat-search-tab-body { display:flex; flex-direction:column; min-height:0; flex:1; padding:0 0px 18px; }
     .flux-chat-search-tab-input-wrap { position:relative; flex-shrink:0; margin:2px 0 12px; }
@@ -619,7 +676,13 @@ async function _jumpToFluxSearchMessage(messageId) {
   }
 
   if (target) {
-    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // A result click returns to the normal message view first, then scrolls
+    // to the matched message. This is especially important on phone where
+    // Search occupies the entire screen.
+    _closeFluxChatSearch();
+    requestAnimationFrame(() => {
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
   }
 }
 
@@ -709,9 +772,10 @@ function closeFluxHeaderMoreMenu() {
 }
 
 document.addEventListener('click', (e) => {
+  const menu = document.getElementById('fluxHeaderMoreMenu');
   if (
-    _headerMoreMenuOpen &&
-    !document.getElementById('fluxHeaderMoreMenu').contains(e.target) &&
+    _headerMoreMenuOpen && menu &&
+    !menu.contains(e.target) &&
     !e.target.closest('#fluxHeaderMoreBtn') &&
     !e.target.closest('#fluxFsHeaderMoreBtn')
   ) closeFluxHeaderMoreMenu();
@@ -1267,7 +1331,7 @@ function renderSearchDropdown(dropdown, matches, mode) {
     item.className = 'flux-search-item';
     const realName = c.realName || c.name;
     item.innerHTML = `
-      <div class="flux-search-avatar default-avatar" style="background:#e8e8ec;overflow:hidden;position:relative;">
+      <div class="flux-search-avatar default-avatar" style="overflow:hidden;position:relative;">
         ${c.avatarUrl ? `<img src="${c.avatarUrl}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;position:absolute;inset:0;">` : DEFAULT_AVATAR_SVG}
       </div>
       <div class="flux-search-name">${escHtml(realName)}</div>
