@@ -537,7 +537,7 @@ async function closeFLUX() {
   fluxDesktopContact = null;
   fluxMobileContact = null;
   // Reset title immediately — no notifications when panel is closed
-  document.title = "Hether - Code n' Arcade ";
+  document.title = "Hether - Web Player";
   document.getElementById('fluxOverlay').classList.remove('show');
   document.getElementById('fluxFullscreen').classList.remove('show');
   document.getElementById('fluxProfileTab')?.classList.remove('show');
