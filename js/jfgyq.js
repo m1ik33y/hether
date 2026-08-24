@@ -233,15 +233,6 @@ let _convMenuActiveItem = null;
 function openFluxConvMenu(e, contactId) {
   e.stopPropagation();
   const menu = document.getElementById('fluxConvMenu');
-  const clickedBtn = e.currentTarget || e.target?.closest?.('.flux-conv-menu-btn');
-  if (_convMenuOpen && clickedBtn && menu && !menu.contains(clickedBtn)) {
-    // Clicking the same conversation-menu button while its dropdown is open
-    // closes it instead of immediately reopening it.
-    closeFluxConvMenu();
-    return;
-  }
-  // A different dropdown button should never leave another FLUX dropdown open.
-  if (_headerMoreMenuOpen) closeFluxHeaderMoreMenu();
   const currentCategory = _fluxCategoryOf(contactId);
   const isMuted = _fluxMutedOf(contactId);
   const isPinned = _fluxPinnedOf(contactId);
@@ -343,10 +334,7 @@ function closeFluxConvMenu() {
 }
 
 document.addEventListener('click', (e) => {
-  const menu = document.getElementById('fluxConvMenu');
-  if (_convMenuOpen && menu && !menu.contains(e.target) && !e.target.closest('.flux-conv-menu-btn')) {
-    closeFluxConvMenu();
-  }
+  if (_convMenuOpen && !document.getElementById('fluxConvMenu').contains(e.target) && !e.target.closest('.flux-conv-menu-btn')) closeFluxConvMenu();
 });
 
 // ── CHAT HEADER MORE MENU (groups + DMs) ──
@@ -354,14 +342,6 @@ let _headerMoreMenuOpen = false;
 
 async function openFluxHeaderMoreMenu(e) {
   e.stopPropagation();
-  const clickedBtn = e.currentTarget || e.target?.closest?.('#fluxHeaderMoreBtn, #fluxFsHeaderMoreBtn');
-  if (_headerMoreMenuOpen && clickedBtn) {
-    // Clicking the currently-open three-dot button closes the dropdown.
-    closeFluxHeaderMoreMenu();
-    return;
-  }
-  // Keep only one FLUX dropdown open at a time.
-  if (_convMenuOpen) closeFluxConvMenu();
   const id = activeFluxId;
   if (!id) return;
 
@@ -441,28 +421,21 @@ async function openFluxHeaderMoreMenu(e) {
     ? btn.getBoundingClientRect()
     : { left: e.clientX, top: e.clientY, width: 0, height: 0 };
 
-  // Force the menu to its visible/measurable state before calculating its
-  // position.  Otherwise offsetWidth can be 0 on the first click because
-  // closeFluxHeaderMoreMenu() leaves it inline-hidden.
+  // closeFluxHeaderMoreMenu() hides the menu with an inline display:none.
+  // Clear that inline value before measuring/showing it so the button can be
+  // opened repeatedly without requiring a page reload.
+  menu.style.display = '';
   menu.style.position = 'fixed';
-  menu.style.visibility = 'hidden';
-  menu.style.display = 'block';
-  menu.classList.add('show');
-
-  const menuWidth = menu.offsetWidth;
-  const menuHeight = menu.offsetHeight;
-
-  // Always open to the LEFT of the three-dot button.
-  // Keep it inside the viewport if the button is close to the left edge.
-  const left = Math.max(8, rect.right - menuWidth - 6);
-  const top = Math.max(8, Math.min(
-    window.innerHeight - menuHeight - 8,
+  menu.style.left = Math.max(8, Math.min(
+    window.innerWidth - menu.offsetWidth - 8,
+    rect.right - menu.offsetWidth
+  )) + 'px';
+  menu.style.top = Math.min(
+    window.innerHeight - menu.offsetHeight - 8,
     rect.bottom + 6
-  ));
-
-  menu.style.left = left + 'px';
-  menu.style.top = top + 'px';
-  menu.style.visibility = '';
+  ) + 'px';
+  menu.classList.add('show');
+  menu.style.display = '';
   _headerMoreMenuOpen = true;
 }
 // ── CHAT HISTORY SEARCH ──
@@ -477,6 +450,44 @@ function _ensureFluxChatSearchStyles() {
        Do not set a fixed width here: the base .flux-profile-tab rule collapses
        the panel when .show is removed. */
     #fluxSearchTab { max-width:calc(100vw - 24px); }
+    @media (max-width:640px) {
+      #fluxSearchTab, #fluxSearchTab.show {
+        position:fixed !important;
+        top:0 !important;
+        right:0 !important;
+        bottom:0 !important;
+        left:0 !important;
+        width:100vw !important;
+        max-width:none !important;
+        height:100dvh !important;
+        max-height:none !important;
+        margin:0 !important;
+        border-radius:0 !important;
+        transform:none !important;
+        z-index:10050 !important;
+        box-sizing:border-box !important;
+      }
+      #fluxSearchTab .flux-chat-search-tab-inner {
+        width:100% !important;
+        height:100% !important;
+        min-height:100% !important;
+        border-radius:0 !important;
+        box-sizing:border-box !important;
+      }
+      #fluxSearchTab .flux-chat-search-tab-body {
+        min-height:0 !important;
+        flex:1 1 auto !important;
+        overflow:hidden !important;
+        padding-left:12px !important;
+        padding-right:12px !important;
+      }
+      #fluxSearchTab .flux-chat-search-results {
+        min-height:0 !important;
+        flex:1 1 auto !important;
+        overflow-y:auto !important;
+        -webkit-overflow-scrolling:touch;
+      }
+    }
     .flux-chat-search-tab-inner { display:flex; flex-direction:column; min-height:0; width:100%; }
     .flux-chat-search-tab-body { display:flex; flex-direction:column; min-height:0; flex:1; padding:0 0px 18px; }
     .flux-chat-search-tab-input-wrap { position:relative; flex-shrink:0; margin:2px 0 12px; }
@@ -648,7 +659,12 @@ async function _jumpToFluxSearchMessage(messageId) {
   }
 
   if (target) {
-    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // Leave the search screen before scrolling so the matched message is
+    // visible in the normal conversation view, including phone fullscreen.
+    _closeFluxChatSearch();
+    requestAnimationFrame(() => {
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
   }
 }
 
@@ -656,14 +672,9 @@ async function openFluxChatSearch(conversationId) {
   const id = conversationId || activeFluxId;
   if (!id) return;
 
-  // Search and Profile/Group Info share the same side-tab slot. Opening one
-  // while the other is open now simply swaps it out instead of being blocked.
   const profileTab = document.getElementById('fluxProfileTab');
   const replacingProfileTab = !!profileTab?.classList.contains('show');
   if (replacingProfileTab) {
-    // When switching between the two shared side-tabs, do not play the
-    // closing animation. The old panel should disappear in the same frame
-    // the new panel takes its place.
     profileTab.style.transition = 'none';
     profileTab.classList.remove('show');
     void profileTab.offsetWidth;
@@ -674,29 +685,38 @@ async function openFluxChatSearch(conversationId) {
   const openToken = ++_fluxChatSearchOpenToken;
   _ensureFluxChatSearchStyles();
 
-  // If Profile/Group Info is currently occupying the shared side-tab slot,
-  // replace it with Search immediately. Do not wait for the message query;
-  // the Search panel should take the exact same frame with no visible gap.
+  // Open the Search panel FIRST. Do not wait for auth/message loading.
+  // The search results area intentionally starts empty; typing a query will
+  // filter whatever messages have finished loading into the local state.
   const searchTab = document.getElementById('fluxSearchTab');
   const searchInput = document.getElementById('fluxChatSearchInput');
-  if (replacingProfileTab && searchTab && searchInput) {
-    searchInput.value = '';
-    searchTab.style.transition = 'none';
-    searchTab.classList.add('show');
-    void searchTab.offsetWidth;
-    searchTab.style.transition = '';
-    _renderFluxChatSearchResults('');
-    searchInput.focus();
-  }
+  if (!searchTab || !searchInput) return;
 
+  searchInput.value = '';
+  searchInput.oninput = () => _renderFluxChatSearchResults(searchInput.value);
+  searchInput.onkeydown = e => { if (e.key === 'Escape') closeFluxChatSearch(); };
+  _fluxChatSearchState = { conversationId: id, myId: null, contact: fluxContacts.find(c => c.id === id), messages: [] };
+  _renderFluxChatSearchResults('');
+
+  searchTab.style.transition = 'none';
+  searchTab.classList.add('show');
+  void searchTab.offsetWidth;
+  searchTab.style.transition = '';
+  searchInput.focus();
+
+  // Load the searchable messages in the background after the panel is already
+  // visible. If the user starts typing while this is loading, the final state
+  // is rendered using the current input value.
   const { data: { user } } = await supabaseClient.auth.getUser();
-  if (!user || activeFluxId !== id) return;
+  if (!user || openToken !== _fluxChatSearchOpenToken || activeFluxId !== id) return;
+
   const contact = fluxContacts.find(c => c.id === id);
   const isGroup = _fluxConvIsGroup(id);
   const { data, error } = await _fluxApplyConvFilter(
     supabaseClient.from('messages').select('id, sender_id, receiver_id, group_id, content, created_at, media_url, is_video, message_type'),
     id, user.id, isGroup
   ).order('created_at', { ascending: true });
+
   if (error) {
     console.warn('[FLUX] chat search load failed:', error.message || error);
     return;
@@ -704,25 +724,7 @@ async function openFluxChatSearch(conversationId) {
 
   if (openToken !== _fluxChatSearchOpenToken || activeFluxId !== id) return;
   _fluxChatSearchState = { conversationId: id, myId: user.id, contact, messages: data || [] };
-
-  const tab = document.getElementById('fluxSearchTab');
-  const input = document.getElementById('fluxChatSearchInput');
-  if (!tab || !input) return;
-
-  input.value = '';
-  _renderFluxChatSearchResults('');
-  input.oninput = () => _renderFluxChatSearchResults(input.value);
-  input.onkeydown = e => { if (e.key === 'Escape') closeFluxChatSearch(); };
-
-  tab.getBoundingClientRect();
-  requestAnimationFrame(() => {
-    if (openToken !== _fluxChatSearchOpenToken) return;
-    requestAnimationFrame(() => {
-      if (openToken !== _fluxChatSearchOpenToken) return;
-      tab.classList.add('show');
-      input.focus();
-    });
-  });
+  _renderFluxChatSearchResults(searchInput.value);
 }
 
 function closeFluxChatSearch() {
@@ -738,10 +740,9 @@ function closeFluxHeaderMoreMenu() {
 }
 
 document.addEventListener('click', (e) => {
-  const menu = document.getElementById('fluxHeaderMoreMenu');
   if (
-    _headerMoreMenuOpen && menu &&
-    !menu.contains(e.target) &&
+    _headerMoreMenuOpen &&
+    !document.getElementById('fluxHeaderMoreMenu').contains(e.target) &&
     !e.target.closest('#fluxHeaderMoreBtn') &&
     !e.target.closest('#fluxFsHeaderMoreBtn')
   ) closeFluxHeaderMoreMenu();
