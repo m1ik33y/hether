@@ -323,6 +323,7 @@ body {
 .pdp-close svg { width: 20px; height: 20px; }
 
 .pdp-body { display: flex; align-items: center; gap: 24px; }
+.vault-popup .pdp-body { display: flex; flex-direction: column; align-items: stretch; gap: 4px; }
 .pdp-avatar-wrap {
   flex-shrink: 0; width: 128px; height: 128px; border-radius: 50%;
   cursor: pointer; position: relative;
@@ -1356,6 +1357,8 @@ kbd {
 
 .btn-cancel { padding: 8px 14px; border-radius: var(--radius); border: 1px solid var(--border); background: transparent; color: var(--text2); font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer; transition: all var(--t); }
 .btn-cancel:hover { background: var(--surface2); color: var(--text); }
+.vault-popup .btn-cancel { color: #fff; }
+.vault-popup .btn-cancel:hover { background: transparent; color: #fff; }
 .btn-confirm { padding: 8px 16px; border-radius: var(--radius); border: none; background: var(--accent); color: #fff; font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer; transition: background var(--t); font-weight: 450; }
 .btn-confirm:hover { background: var(--accent-hover); }
 .btn-confirm:disabled { opacity: 0.7; cursor: not-allowed; }
@@ -1364,6 +1367,9 @@ kbd {
   border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff;
   border-radius: 50%; animation: btn-spin 0.7s linear infinite;
   vertical-align: middle;
+}
+#vaultVerifyBtn .spinner {
+  border: 2px solid #d8d8d8; border-top-color: #000;
 }
 @keyframes btn-spin { to { transform: rotate(360deg); } }
 
