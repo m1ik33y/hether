@@ -29,8 +29,16 @@ html[data-accent="green"] {
   --accent: #21C063 !important;
   --accent-hover: #1ba854 !important;
 }
-html[data-accent="green"] #vaultVerifyBtn { background: #498723 !important; }
-html[data-accent="green"] #vaultVerifyBtn:hover { background: #3a6c1c !important; }
+html[data-accent="green"] #vaultVerifyBtn,
+html[data-accent="green"] #vaultVerifyBtn:hover,
+html[data-accent="green"] #vaultVerifyBtn:focus,
+html[data-accent="green"] #vaultVerifyBtn:active {
+  background: #fff !important;
+  background-color: #fff !important;
+  background-image: none !important;
+  color: #000 !important;
+  box-shadow: none !important;
+}
 
 body {
   font-family: 'DM Sans', sans-serif;
