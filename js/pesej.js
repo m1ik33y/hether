@@ -1,27 +1,8 @@
-// ── SERVER-VERIFIED VAULT SESSION ──
-// `vaultAuthenticated` / `_vaultSessionValid` are kept ONLY as instant local
-// UI hints (so the overlay can react without a network round trip). They are
-// NEVER trusted for anything real anymore — the actual gate is
-// `_vaultSessionToken`, a token issued by the server (verify_admin_key RPC)
-// that is re-validated against the database (is_admin_session_valid RPC)
-// before anything privileged is allowed to happen. Setting the local
-// booleans by hand in devtools no longer does anything, because nothing
-// downstream trusts them.
-//
-// SESSION WINDOW: the server only considers the token valid for 7 seconds
-// after it's issued (see is_admin_session_valid() in Supabase). That window
-// only has to cover the moment of entry — verifyVault() calls openFLUX()
-// immediately on success, and openFLUX() is the ONLY place that calls
-// _verifyVaultSessionServer(). Once that single check has passed and the
-// panel is open, nothing re-checks the token again, so the panel keeps
-// working normally even after the 7s window lapses — the person doesn't get
-// kicked out mid-session. The token is only needed again to open the panel
-// a second time (after a close), which is exactly when closeFLUX() /
-// closeVaultPopup() revoke it and null it out below.
+
 let _vaultSessionValid = false;
 let _vaultSessionToken = null;
 
-// Internal: only hides the overlay UI, does NOT touch auth flags.
+
 function _dismissVaultOverlay() {
   const overlay = document.getElementById('vaultOverlay');
   const input = document.getElementById('vaultInput');
@@ -31,14 +12,11 @@ function _dismissVaultOverlay() {
   document.getElementById('vaultError').style.display = 'none';
 }
 
-// Public close — called by Cancel button, ESC, clicking outside, browser events.
+
 function closeVaultPopup() {
   _vaultSessionValid = false;
   vaultAuthenticated = false;
-  // Best-effort: tell the server to kill the session too, don't block on it.
-  // NOTE: supabaseClient.rpc(...) returns a Postgrest query builder, not a
-  // real Promise — it only implements .then(), not .catch(). Wrapping it in
-  // Promise.resolve() first gives us a real Promise so .catch() works.
+
   if (_vaultSessionToken) {
     const tokenToRevoke = _vaultSessionToken;
     Promise.resolve(
