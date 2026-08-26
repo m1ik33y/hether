@@ -1,8 +1,27 @@
-
+// ── SERVER-VERIFIED VAULT SESSION ──
+// `vaultAuthenticated` / `_vaultSessionValid` are kept ONLY as instant local
+// UI hints (so the overlay can react without a network round trip). They are
+// NEVER trusted for anything real anymore — the actual gate is
+// `_vaultSessionToken`, a token issued by the server (verify_admin_key RPC)
+// that is re-validated against the database (is_admin_session_valid RPC)
+// before anything privileged is allowed to happen. Setting the local
+// booleans by hand in devtools no longer does anything, because nothing
+// downstream trusts them.
+//
+// SESSION WINDOW: the server only considers the token valid for 7 seconds
+// after it's issued (see is_admin_session_valid() in Supabase). That window
+// only has to cover the moment of entry — verifyVault() calls openFLUX()
+// immediately on success, and openFLUX() is the ONLY place that calls
+// _verifyVaultSessionServer(). Once that single check has passed and the
+// panel is open, nothing re-checks the token again, so the panel keeps
+// working normally even after the 7s window lapses — the person doesn't get
+// kicked out mid-session. The token is only needed again to open the panel
+// a second time (after a close), which is exactly when closeFLUX() /
+// closeVaultPopup() revoke it and null it out below.
 let _vaultSessionValid = false;
 let _vaultSessionToken = null;
 
-
+// Internal: only hides the overlay UI, does NOT touch auth flags.
 function _dismissVaultOverlay() {
   const overlay = document.getElementById('vaultOverlay');
   const input = document.getElementById('vaultInput');
@@ -12,11 +31,14 @@ function _dismissVaultOverlay() {
   document.getElementById('vaultError').style.display = 'none';
 }
 
-
+// Public close — called by Cancel button, ESC, clicking outside, browser events.
 function closeVaultPopup() {
   _vaultSessionValid = false;
   vaultAuthenticated = false;
-
+  // Best-effort: tell the server to kill the session too, don't block on it.
+  // NOTE: supabaseClient.rpc(...) returns a Postgrest query builder, not a
+  // real Promise — it only implements .then(), not .catch(). Wrapping it in
+  // Promise.resolve() first gives us a real Promise so .catch() works.
   if (_vaultSessionToken) {
     const tokenToRevoke = _vaultSessionToken;
     Promise.resolve(
@@ -720,7 +742,112 @@ function _appendFluxAiMsg(role, text) {
   return wrap;
 }
 
+// ── Shared "AI is thinking" status indicator ──
+// Calm gray shimmer-text + icon, with the phrase rotating every couple
+// seconds while the reply is generated (instead of a coloured dot pulse).
+const _AI_THINKING_PHRASES = [
+  'Analysing the request',
+  'Thinking it through',
+  'Reading between the lines',
+  'Putting a reply together',
+  'Considering the best answer',
+  'Working on this',
+  'Piecing thoughts together',
+  'Looking into it'
+];
+const _AI_THINKING_ICON_SVG = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z" fill="currentColor"/></svg>';
+
+function _pickAiThinkingPhrase(exclude) {
+  const pool = exclude ? _AI_THINKING_PHRASES.filter(p => p !== exclude) : _AI_THINKING_PHRASES;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function _buildAiThinkingBubbleHtml() {
+  const firstPhrase = _pickAiThinkingPhrase();
+  return `<div class="ai-thinking"><span class="ai-thinking-icon">${_AI_THINKING_ICON_SVG}</span><span class="ai-status-text" data-ai-thinking-label>${firstPhrase}</span></div>`;
+}
+
+function _startAiThinkingRotation(wrap) {
+  const label = wrap.querySelector('[data-ai-thinking-label]');
+  if (!label) return;
+  wrap._aiThinkingInterval = setInterval(() => {
+    const next = _pickAiThinkingPhrase(label.textContent);
+    label.style.opacity = '0';
+    setTimeout(() => {
+      label.textContent = next;
+      label.style.opacity = '';
+    }, 180);
+  }, 2200);
+}
+
+function _stopAiThinkingRotation(wrap) {
+  if (wrap && wrap._aiThinkingInterval) {
+    clearInterval(wrap._aiThinkingInterval);
+    wrap._aiThinkingInterval = null;
+  }
+}
+
+// ── Shared "AI reply failed" error box ──
+// Gray box with a bug icon + message, and an outline-only Retry button
+// that resends the message that failed (no retyping needed).
+const _AI_ERROR_BUG_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bug-icon lucide-bug"><path d="M12 20v-9"/><path d="M14 7a4 4 0 0 1 4 4v3a6 6 0 0 1-12 0v-3a4 4 0 0 1 4-4z"/><path d="M14.12 3.88 16 2"/><path d="M21 21a4 4 0 0 0-3.81-4"/><path d="M21 5a4 4 0 0 1-3.55 3.97"/><path d="M22 13h-4"/><path d="M3 21a4 4 0 0 1 3.81-4"/><path d="M3 5a4 4 0 0 0 3.55 3.97"/><path d="M6 13H2"/><path d="m8 2 1.88 1.88"/><path d="M9 7.13V6a3 3 0 1 1 6 0v1.13"/></svg>';
+
+function _buildAiErrorBoxHtml() {
+  return `<div class="ai-error-box"><div class="ai-error-text-wrap"><span class="ai-error-icon">${_AI_ERROR_BUG_SVG}</span><span class="ai-error-text">There seems to be an error on our side</span></div><button type="button" class="ai-error-retry-btn">Retry</button></div>`;
+}
+
+function _appendFluxAiError(onRetry) {
+  const container = document.getElementById('fluxAiMessages');
+  if (!container) return null;
+  const wrap = document.createElement('div');
+  wrap.className = 'flux-ai-msg ai';
+  const av = document.createElement('div');
+  av.className = 'flux-ai-avatar';
+  av.textContent = 'AI';
+  const bubble = document.createElement('div');
+  bubble.className = 'flux-ai-bubble ai-error-bubble';
+  bubble.innerHTML = _buildAiErrorBoxHtml();
+  wrap.appendChild(av);
+  wrap.appendChild(bubble);
+  container.appendChild(wrap);
+  container.scrollTop = container.scrollHeight;
+  const retryBtn = bubble.querySelector('.ai-error-retry-btn');
+  if (retryBtn) {
+    retryBtn.onclick = () => {
+      retryBtn.disabled = true;
+      onRetry();
+    };
+  }
+  return wrap;
+}
+
+function _appendCompanionError(onRetry) {
+  const container = document.getElementById('companionMessages');
+  if (!container) return null;
+  const wrap = document.createElement('div');
+  wrap.className = 'companion-msg ai';
+  const av = document.createElement('div');
+  av.className = 'companion-avatar';
+  av.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>';
+  const bubble = document.createElement('div');
+  bubble.className = 'companion-bubble ai-error-bubble';
+  bubble.innerHTML = _buildAiErrorBoxHtml();
+  wrap.appendChild(av);
+  wrap.appendChild(bubble);
+  container.appendChild(wrap);
+  container.scrollTop = container.scrollHeight;
+  const retryBtn = bubble.querySelector('.ai-error-retry-btn');
+  if (retryBtn) {
+    retryBtn.onclick = () => {
+      retryBtn.disabled = true;
+      onRetry();
+    };
+  }
+  return wrap;
+}
+
 function _removeFluxAiTyping(el) {
+  _stopAiThinkingRotation(el);
   if (el && el.parentNode) el.parentNode.removeChild(el);
 }
 
@@ -734,19 +861,21 @@ function _appendFluxAiTyping() {
   av.textContent = 'AI';
   const bubble = document.createElement('div');
   bubble.className = 'flux-ai-bubble';
-  bubble.innerHTML = '<div class="flux-ai-typing"><span></span><span></span><span></span></div>';
+  bubble.innerHTML = _buildAiThinkingBubbleHtml();
   wrap.appendChild(av);
   wrap.appendChild(bubble);
   container.appendChild(wrap);
   container.scrollTop = container.scrollHeight;
+  _startAiThinkingRotation(wrap);
   return wrap;
 }
 
-async function sendFluxAiMessage() {
+async function sendFluxAiMessage(retryText) {
   const input = document.getElementById('fluxAiInput');
   const btn = document.getElementById('fluxAiSendBtn');
   if (!input) return;
-  const text = input.value.trim();
+  const isRetry = retryText !== undefined;
+  const text = isRetry ? retryText : input.value.trim();
   if (!text || _fluxAiTyping) return;
   _appendFluxAiMsg('user', text);
   _fluxAiHistory.push({ role: 'user', content: text });
@@ -762,7 +891,7 @@ async function sendFluxAiMessage() {
     _fluxAiHistory.push({ role: 'ai', content: reply });
   } catch (err) {
     _removeFluxAiTyping(typingEl);
-    _appendFluxAiMsg('ai', `Error: ${err.message}`);
+    _appendFluxAiError(() => sendFluxAiMessage(text));
   }
   _fluxAiTyping = false;
   btn.disabled = false;
@@ -847,19 +976,26 @@ function _appendCompanionTyping() {
   av.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>';
   const bubble = document.createElement('div');
   bubble.className = 'companion-bubble';
-  bubble.innerHTML = '<div class="companion-typing"><span></span><span></span><span></span></div>';
+  bubble.innerHTML = _buildAiThinkingBubbleHtml();
   wrap.appendChild(av);
   wrap.appendChild(bubble);
   container.appendChild(wrap);
   container.scrollTop = container.scrollHeight;
+  _startAiThinkingRotation(wrap);
   return wrap;
 }
 
-async function sendCompanionMessage() {
+function _removeCompanionTyping(el) {
+  _stopAiThinkingRotation(el);
+  if (el && el.parentNode) el.parentNode.removeChild(el);
+}
+
+async function sendCompanionMessage(retryText) {
   const input = document.getElementById('companionInput');
   const btn = document.getElementById('companionSendBtn');
   if (!input) return;
-  const text = input.value.trim();
+  const isRetry = retryText !== undefined;
+  const text = isRetry ? retryText : input.value.trim();
   if (!text || _companionTyping) return;
   _appendCompanionMsg('user', text);
   _companionHistory.push({ role: 'user', content: text });
@@ -870,12 +1006,12 @@ async function sendCompanionMessage() {
   const typingEl = _appendCompanionTyping();
   try {
     const reply = await geminiChat(_companionHistory);
-    if (typingEl && typingEl.parentNode) typingEl.parentNode.removeChild(typingEl);
+    _removeCompanionTyping(typingEl);
     _appendCompanionMsg('ai', reply);
     _companionHistory.push({ role: 'ai', content: reply });
   } catch (err) {
-    if (typingEl && typingEl.parentNode) typingEl.parentNode.removeChild(typingEl);
-    _appendCompanionMsg('ai', `Error: ${err.message}`);
+    _removeCompanionTyping(typingEl);
+    _appendCompanionError(() => sendCompanionMessage(text));
   }
   _companionTyping = false;
   btn.disabled = false;
