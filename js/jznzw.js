@@ -1,8 +1,63 @@
 
+// ── STARTUP SPLASH ──
+// Keep the login and app hidden until Supabase has finished checking the saved session.
+function ensureStartupSplash() {
+  let splash = document.getElementById('startupSplash');
+  if (splash) return splash;
+
+  splash = document.createElement('div');
+  splash.id = 'startupSplash';
+  splash.style.cssText = 'position:fixed;inset:0;z-index:999999;background:#121212;display:flex;align-items:center;justify-content:center;color:#fff;';
+
+  const center = document.createElement('div');
+  center.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;';
+  const logo = document.querySelector('.auth-logo-icon img');
+  if (logo) {
+    const splashLogo = logo.cloneNode(true);
+    splashLogo.style.cssText = 'display:block;width:min(68px,22vw);height:auto;object-fit:contain;';
+    center.appendChild(splashLogo);
+  } else {
+    const fallback = document.createElement('div');
+    fallback.textContent = 'hether';
+    fallback.style.cssText = 'font-size:54px;font-weight:700;letter-spacing:-1px;';
+    center.appendChild(fallback);
+  }
+  splash.appendChild(center);
+
+  const name = document.createElement('div');
+  name.textContent = 'Hether';
+  name.style.cssText = 'position:absolute;left:50%;bottom:56px;transform:translateX(-50%);font-size:18px;font-weight:400;letter-spacing:-.4px;opacity:1;white-space:nowrap;';
+  splash.appendChild(name);
+
+  const bottom = document.createElement('div');
+  bottom.style.cssText = 'position:absolute;left:50%;bottom:34px;transform:translateX(-50%);display:flex;align-items:center;gap:7px;font-size:13px;color:#9b9b9b;opacity:.85;white-space:nowrap;';
+  bottom.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-headphones-icon lucide-headphones"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/></svg><span>Handcrafted music</span>';
+  splash.appendChild(bottom);
+  document.body.appendChild(splash);
+  return splash;
+}
+
+function hideStartupSplash() {
+  const splash = document.getElementById('startupSplash');
+  if (!splash) return;
+  splash.style.transition = 'opacity 180ms ease';
+  splash.style.opacity = '0';
+  setTimeout(() => splash.remove(), 180);
+}
+
 async function checkAuth() {
-  const { data: { session } } = await supabaseClient.auth.getSession();
-  if (session) { showApp(); loadUserProfile(); }
-  else showAuthPage();
+  ensureStartupSplash();
+  try {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (session) {
+      showApp();
+      await loadUserProfile();
+    } else {
+      showAuthPage();
+    }
+  } finally {
+    hideStartupSplash();
+  }
 }
 
 function clearAuthFields() {
@@ -121,7 +176,7 @@ async function preloadAllRelays() {
   const { data, error } = await supabaseClient.from('messages').select('*')
     .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
     .order('created_at', { ascending: false });
-  if (error || !data) { buildFLUXConvList(); return; }
+  if (error || !data) { throw (error || new Error('Initial DM preload returned no data')); }
 
   // Group messages don't carry receiver_id, so the OR filter above never
   // sees them — pull them separately for every group the user belongs to
@@ -131,7 +186,8 @@ async function preloadAllRelays() {
     const { data: gData, error: gErr } = await supabaseClient.from('messages').select('*')
       .in('group_id', [..._fluxMyGroupIds])
       .order('created_at', { ascending: false });
-    if (!gErr && gData) groupMsgs = gData;
+    if (gErr || !gData) throw (gErr || new Error('Initial group message preload returned no data'));
+    groupMsgs = gData;
   }
 
   const latestMap = new Map();    // otherId -> latest msg
