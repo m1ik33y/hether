@@ -655,6 +655,7 @@ body {
   animation: msgIn 0.18s ease;
   max-width: 88%;
 }
+.companion-msg.ai { animation: none; }
 .companion-msg.user { flex-direction: row-reverse; margin-left: auto; }
 .companion-msg.ai   { margin-right: auto; }
 
@@ -690,30 +691,34 @@ body {
   border-radius: 16px 16px 16px 4px;
 }
 
-.companion-typing {
-  display: flex; gap: 5px; padding: 6px 3px;
+/* AI "thinking" status — replaces the old coloured dot pulse with a calm
+   gray shimmer-text indicator (icon + rotating status phrase). Shared by
+   the companion popup and the flux-ai panel via .ai-thinking / .ai-status-text. */
+.ai-thinking {
+  display: flex;
   align-items: center;
+  gap: 7px;
+  padding: 6px 3px;
 }
-.companion-typing span {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--accent);
-  opacity: 0;
-  animation:
-    companionDotPopIn 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) backwards,
-    companionDotBounce 1.2s ease-in-out infinite;
+.ai-thinking-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: var(--text2);
+  animation: aiThinkingIconPulse 1.8s ease-in-out infinite;
 }
-.companion-typing span:nth-child(1) { animation-delay: 0s,    0.28s; }
-.companion-typing span:nth-child(2) { animation-delay: 0.09s, 0.37s; }
-.companion-typing span:nth-child(3) { animation-delay: 0.18s, 0.46s; }
-
-@keyframes companionDotPopIn {
-  0%   { opacity: 0; transform: scale(0.2); }
-  70%  { opacity: 1; transform: scale(1.2); }
-  100% { opacity: 1; transform: scale(1); }
+.ai-thinking-icon svg { width: 100%; height: 100%; display: block; }
+@keyframes aiThinkingIconPulse {
+  0%, 100% { opacity: 0.35; transform: scale(0.88); }
+  50%      { opacity: 1;    transform: scale(1); }
 }
-@keyframes companionDotBounce {
-  0%, 60%, 100% { transform: translateY(0); opacity: 0.55; }
-  30%           { transform: translateY(-4px); opacity: 1; }
+.ai-thinking .ai-status-text {
+  font-size: 13px;
+  font-weight: 450;
+  white-space: nowrap;
 }
 
 /* Input area */
@@ -802,6 +807,7 @@ body {
 .messages::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 2px; }
 
 .message { width: 100%; max-width: 760px; margin: 0 auto 20px; padding: 0 10px; display: flex; gap: 12px; animation: msgIn 0.2s ease; box-sizing: border-box; }
+.message.ai { animation: none; }
 @keyframes msgIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 .message.user { flex-direction: row-reverse; }
 
@@ -995,22 +1001,111 @@ body {
   to { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
-/* typing */
-.typing-dots { display: flex; align-items: center; padding: 4px 0; }
-.typing-dots .pulse-dot {
-  width: 11px; height: 11px; border-radius: 50%;
-  animation:
-    mainPulseBreathe 1.6s ease-in-out infinite,
-    mainPulseColor 3.2s ease-in-out infinite;
+/* AI status indicator (front-page chat) — icon + shimmering status phrase,
+   replaces the old colored pulsing dot. */
+.ai-status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 0;
+  font-size: 13px;
+  font-weight: 450;
+  color: var(--text2);
 }
-@keyframes mainPulseBreathe {
-  0%, 100% { transform: scale(0.92); }
-  50%      { transform: scale(1.08); }
+.ai-status-icon {
+  width: 14px; height: 14px;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--accent);
+  animation: aiStatusIconPulse 1.6s ease-in-out infinite;
 }
-@keyframes mainPulseColor {
-  0%   { background: #a3e635; } /* lime */
-  50%  { background: #5c7a4f; } /* moss */
-  100% { background: #a3e635; }
+.ai-status-icon svg { width: 100%; height: 100%; display: block; }
+@keyframes aiStatusIconPulse {
+  0%, 100% { transform: scale(0.88); opacity: .65; }
+  50%      { transform: scale(1.05); opacity: 1; }
+}
+.ai-error-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  width: 100%;
+  background: #191a1d;
+  border-radius: 10px;
+  padding: 10px 10px 10px 14px;
+}
+.ai-error-text-wrap {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+.ai-error-icon {
+  flex-shrink: 0;
+  width: 18px; height: 18px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text3);
+}
+.ai-error-icon svg { width: 100%; height: 100%; display: block; }
+.ai-error-text {
+  font-size: 13.5px;
+  color: var(--text2);
+  white-space: nowrap;
+}
+.ai-error-retry-btn {
+  flex-shrink: 0;
+  padding: 6px 13px;
+  border-radius: 7px;
+  border: 1px solid rgba(255,255,255,0.16);
+  background: transparent;
+  color: #fff;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--t), border-color var(--t);
+}
+.ai-error-retry-btn:hover {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.22);
+}
+.ai-error-retry-btn:disabled {
+  cursor: not-allowed;
+}
+.bubble.ai-error-bubble,
+.flux-ai-bubble.ai-error-bubble,
+.companion-bubble.ai-error-bubble {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  flex: 1 1 auto !important;
+}
+.ai-status-text {
+  display: inline-block;
+  transition: opacity 0.18s ease;
+  color: var(--text2);
+  -webkit-mask-image: linear-gradient(100deg,
+    rgba(0,0,0,.5) 0%,
+    rgba(0,0,0,.5) 35%,
+    rgba(0,0,0,1) 50%,
+    rgba(0,0,0,.5) 65%,
+    rgba(0,0,0,.5) 100%);
+  mask-image: linear-gradient(100deg,
+    rgba(0,0,0,.5) 0%,
+    rgba(0,0,0,.5) 35%,
+    rgba(0,0,0,1) 50%,
+    rgba(0,0,0,.5) 65%,
+    rgba(0,0,0,.5) 100%);
+  -webkit-mask-size: 220% 100%;
+  mask-size: 220% 100%;
+  animation: aiStatusShimmer 2.6s linear infinite;
+}
+@keyframes aiStatusShimmer {
+  0%   { -webkit-mask-position: 130% 0; mask-position: 130% 0; }
+  100% { -webkit-mask-position: -130% 0; mask-position: -130% 0; }
 }
 
 .flux-typing-indicator {
@@ -1397,6 +1492,8 @@ kbd {
 }
 
 .flux-titlebar {
+  position: relative;
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1429,6 +1526,104 @@ kbd {
    below the AI panel while the AI panel is open */
 .flux-popup:has(.flux-ai-panel.show) .flux-sidebar-header {
   z-index: 1;
+}
+
+/* FLUX initial-hydration layering: titlebar always above the loader;
+   loader above Messages/SECURE/sidebar/chat content. */
+.flux-popup > .flux-body { position: relative; z-index: 1; }
+.flux-popup .flux-sidebar-header,
+.flux-popup .flux-relay-messages,
+.flux-popup .flux-fs-body,
+.flux-popup .flux-fs-header { z-index: 1; }
+.flux-initial-loader {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  top: 31px;
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 72px;
+  background: var(--surface);
+  color: #fff;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: all;
+  transition: opacity .18s ease, visibility .18s ease;
+}
+.flux-initial-loader.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.flux-initial-loader-inner {
+  width: min(260px, 72vw);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.flux-initial-loader-icon {
+  width: 64px; height: 64px;
+  display: flex; align-items: center; justify-content: center;
+  opacity: .16;
+}
+.flux-initial-loader-logo {
+  width: 64px; height: 64px;
+  display: block;
+  object-fit: contain;
+  filter: grayscale(1) brightness(0) invert(1);
+  opacity: .86;
+  -webkit-mask-image: linear-gradient(100deg,
+    rgba(0,0,0,.6) 0%,
+    rgba(0,0,0,.6) 35%,
+    rgba(0,0,0,1) 50%,
+    rgba(0,0,0,.6) 65%,
+    rgba(0,0,0,.6) 100%);
+  mask-image: linear-gradient(100deg,
+    rgba(0,0,0,.6) 0%,
+    rgba(0,0,0,.6) 35%,
+    rgba(0,0,0,1) 50%,
+    rgba(0,0,0,.6) 65%,
+    rgba(0,0,0,.6) 100%);
+  -webkit-mask-size: 260% 100%;
+  mask-size: 260% 100%;
+  animation: fluxLogoShimmer 3.4s linear infinite;
+  animation-delay: 0s;
+  animation-fill-mode: both;
+}
+@keyframes fluxLogoShimmer {
+  0%   { -webkit-mask-position: 130% 0; mask-position: 130% 0; }
+  100% { -webkit-mask-position: -130% 0; mask-position: -130% 0; }
+}
+@keyframes fluxLogoShimmer {
+  0%   { -webkit-mask-position: 130% 0; mask-position: 130% 0; }
+  100% { -webkit-mask-position: -130% 0; mask-position: -130% 0; }
+}
+.flux-initial-loader-title {
+  font-size: 14px; font-weight: 500; color: #fff;
+  letter-spacing: .15px;
+}
+.flux-initial-loader-bar {
+  width: 180px;
+  max-width: 60vw;
+  height: 4px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255,255,255,.16);
+}
+.flux-initial-loader-fill {
+  width: 38%; height: 100%; border-radius: inherit;
+  background: #fff;
+  animation: fluxLoaderUneven 1.4s ease-in-out infinite;
+  transform-origin: left center;
+}
+@keyframes fluxLoaderUneven {
+  0% { width: 22%; background-position: 115% 0; opacity: .42; }
+  27% { width: 61%; background-position: 70% 0; opacity: .9; }
+  51% { width: 34%; background-position: 25% 0; opacity: .58; }
+  76% { width: 78%; background-position: -20% 0; opacity: .96; }
+  100% { width: 24%; background-position: 115% 0; opacity: .42; }
 }
 
 /* AI circle button */
@@ -1558,6 +1753,7 @@ kbd {
   width: 100%;
   align-self: center;
 }
+.flux-ai-msg.ai { animation: none; }
 .flux-ai-msg.user { flex-direction: row-reverse; }
 .flux-ai-msg.ai { }
 
@@ -1596,17 +1792,6 @@ kbd {
   padding-right: 0;
 }
 .flux-ai-msg.ai .flux-ai-avatar { display: none; }
-
-.flux-ai-typing {
-  display: flex; gap: 5px; padding: 4px 2px;
-}
-.flux-ai-typing span {
-  width: 5px; height: 5px; border-radius: 50%;
-  background: var(--text2);
-  animation: typingWave 1.4s ease-in-out infinite;
-}
-.flux-ai-typing span:nth-child(2) { animation-delay: 0.18s; }
-.flux-ai-typing span:nth-child(3) { animation-delay: 0.36s; }
 
 .flux-ai-input-area {
   padding: 10px 14px 10px;
@@ -2768,13 +2953,15 @@ kbd {
   width: 0%;
   border-radius: 0 2px 2px 0;
   transition: width 0.38s cubic-bezier(0.25, 1, 0.5, 1);
+  background: #21C063;
+  box-shadow: 2px 0 6px 0px rgba(33, 192, 99, 0.25);
 }
 
 
-/* Dark mode: electric cyan to violet */
+/* Dark mode: solid green */
 [data-theme="dark"] .flux-load-bar-fill {
-  background: linear-gradient(90deg, #00d2ff 0%, #7b2ff7 60%, #a855f7 100%);
-  box-shadow: 2px 0 6px 0px rgba(0, 210, 255, 0.2);
+  background: #21C063;
+  box-shadow: 2px 0 6px 0px rgba(33, 192, 99, 0.25);
 }
 
 .flux-relay-messages.flux-loading {
@@ -5665,3 +5852,32 @@ html, body { background: #060000 !important; }
 #mainApp .flux-fs-input-row { background: #060000 !important; }
 /* Keep terminal completely independent from the front-page background. */
 #vaultTerminal, #vaultTerminal * { box-sizing: border-box; }
+/* Keep the initial loader below the desktop Flux titlebar but above all message UI. */
+.flux-popup > .flux-initial-loader { top: 31px; }
+
+/* Final Flux hydration stacking order: Flux titlebar > loader > all message UI. */
+.flux-popup > .flux-titlebar {
+  position: relative;
+  z-index: 1001 !important;
+}
+.flux-popup > .flux-body {
+  position: relative;
+  z-index: 1 !important;
+}
+.flux-popup > .flux-initial-loader {
+  position: absolute;
+  top: 31px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 900 !important;
+}
+.flux-popup .flux-sidebar-header,
+.flux-popup .flux-sidebar-title,
+.flux-popup .flux-secure-badge,
+.flux-popup .flux-relay-messages,
+.flux-popup .flux-relay-panel,
+.flux-popup .flux-relay-content {
+  position: relative;
+  z-index: 1 !important;
+}
