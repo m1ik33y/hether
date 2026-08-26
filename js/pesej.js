@@ -1,4 +1,25 @@
+// ── SERVER-VERIFIED VAULT SESSION ──
+// `vaultAuthenticated` / `_vaultSessionValid` are kept ONLY as instant local
+// UI hints (so the overlay can react without a network round trip). They are
+// NEVER trusted for anything real anymore — the actual gate is
+// `_vaultSessionToken`, a token issued by the server (verify_admin_key RPC)
+// that is re-validated against the database (is_admin_session_valid RPC)
+// before anything privileged is allowed to happen. Setting the local
+// booleans by hand in devtools no longer does anything, because nothing
+// downstream trusts them.
+//
+// SESSION WINDOW: the server only considers the token valid for 7 seconds
+// after it's issued (see is_admin_session_valid() in Supabase). That window
+// only has to cover the moment of entry — verifyVault() calls openFLUX()
+// immediately on success, and openFLUX() is the ONLY place that calls
+// _verifyVaultSessionServer(). Once that single check has passed and the
+// panel is open, nothing re-checks the token again, so the panel keeps
+// working normally even after the 7s window lapses — the person doesn't get
+// kicked out mid-session. The token is only needed again to open the panel
+// a second time (after a close), which is exactly when closeFLUX() /
+// closeVaultPopup() revoke it and null it out below.
 let _vaultSessionValid = false;
+let _vaultSessionToken = null;
 
 // Internal: only hides the overlay UI, does NOT touch auth flags.
 function _dismissVaultOverlay() {
@@ -14,6 +35,17 @@ function _dismissVaultOverlay() {
 function closeVaultPopup() {
   _vaultSessionValid = false;
   vaultAuthenticated = false;
+  // Best-effort: tell the server to kill the session too, don't block on it.
+  // NOTE: supabaseClient.rpc(...) returns a Postgrest query builder, not a
+  // real Promise — it only implements .then(), not .catch(). Wrapping it in
+  // Promise.resolve() first gives us a real Promise so .catch() works.
+  if (_vaultSessionToken) {
+    const tokenToRevoke = _vaultSessionToken;
+    Promise.resolve(
+      supabaseClient.rpc('revoke_admin_session', { token: tokenToRevoke })
+    ).catch(() => {});
+  }
+  _vaultSessionToken = null;
   // Stop any active typing broadcast so the remote side doesn't get stuck showing "Typing…"
   if (isCurrentlyTyping) stopTypingBroadcast();
   document.getElementById('fluxProfileTab')?.classList.remove('show');
@@ -24,6 +56,7 @@ function openVaultPopup() {
   if (window._guestMode) return; // disabled in guest / "Try for Free" mode
   _vaultSessionValid = false;
   vaultAuthenticated = false;
+  _vaultSessionToken = null;
   const input = document.getElementById('vaultInput');
   document.getElementById('vaultOverlay').classList.add('show');
   input.value = '';
@@ -53,12 +86,16 @@ async function verifyVault() {
   spinner.style.display = 'inline-block';
 
   let match = false;
+  let token = null;
   try {
-    // Server-side check via RPC — only true/false ever comes back,
-    // the password value itself never leaves the database.
+    // Server-side check via RPC. On success this now also returns a
+    // real, DB-backed session token — the raw key still never leaves
+    // the database either way.
     const { data, error } = await supabaseClient.rpc('verify_admin_key', { key: val });
     if (error) throw error;
-    match = data === true;
+    const row = Array.isArray(data) ? data[0] : data;
+    match = !!row && row.valid === true;
+    token = row ? row.session_token : null;
   } catch (e) {
     console.warn('[Vault] Verification request failed', e);
     match = false;
@@ -69,23 +106,55 @@ async function verifyVault() {
   spinner.style.display = 'none';
   label.style.display = 'inline';
 
-  if (match) {
+  if (match && token) {
     // Grant access FIRST, then dismiss overlay WITHOUT wiping flags
     _vaultSessionValid = true;
     vaultAuthenticated = true;
+    _vaultSessionToken = token;
     _dismissVaultOverlay(); // just hides UI, flags stay true
     openFLUX();
   } else {
+    _vaultSessionValid = false;
+    vaultAuthenticated = false;
+    _vaultSessionToken = null;
     err.style.display = 'block';
     input.value = '';
     input.focus();
   }
 }
 
-// Uses a flag-check function so it reads live variable values, not closures.
+// Cheap, LOCAL-ONLY hint used purely for instant UI feedback (e.g. whether
+// to bother showing a spinner before the real check resolves). This is not
+// a security boundary — see _verifyVaultSessionServer() below for that.
 function _isFluxAuthValid() { return vaultAuthenticated === true && _vaultSessionValid === true; }
 
+// The actual security boundary: asks the SERVER whether _vaultSessionToken
+// is a real, non-expired session belonging to the current logged-in user.
+// A console user can set vaultAuthenticated/_vaultSessionValid/_vaultSessionToken
+// to anything they like, but unless is_admin_session_valid() finds a matching
+// row in admin_sessions for their own auth.uid(), this returns false.
+async function _verifyVaultSessionServer() {
+  if (!_vaultSessionToken) return false;
+  try {
+    const { data, error } = await supabaseClient.rpc('is_admin_session_valid', {
+      token: _vaultSessionToken
+    });
+    if (error) throw error;
+    return data === true;
+  } catch (e) {
+    console.warn('[Vault] Server session check failed', e);
+    return false;
+  }
+}
+
 (function _patchFluxSecurity() {
+  // This DOM-level patch is now just a fast local guard to avoid a UI flash
+  // before the real (server) check in openFLUX() runs. It intentionally
+  // still uses the cheap local flags — that's fine, because it's no longer
+  // the only thing standing between someone and the data. openFLUX() itself
+  // performs the real, server-verified check below and will forcibly close
+  // the panel again if that check fails, even if this local guard was
+  // bypassed by hand in the console.
   const fluxOvEl = document.getElementById('fluxOverlay');
   const fluxFsEl = document.getElementById('fluxFullscreen');
 
@@ -332,6 +401,23 @@ async function markConversationSeen(senderId) {
 }
 
 async function openFLUX() {
+  // SECURITY: re-verify with the server before doing anything else.
+  // This is the check that actually matters — setting vaultAuthenticated /
+  // _vaultSessionValid by hand in devtools does NOT satisfy this, because
+  // is_admin_session_valid() looks up _vaultSessionToken in the
+  // admin_sessions table on the server and checks it against auth.uid().
+  // A forged local flag with no real token behind it will fail here.
+  const serverOk = await _verifyVaultSessionServer();
+  if (!serverOk) {
+    console.warn('[Security] openFLUX() blocked — no valid server-verified vault session.');
+    _vaultSessionValid = false;
+    vaultAuthenticated = false;
+    _vaultSessionToken = null;
+    document.getElementById('fluxOverlay')?.classList.remove('show');
+    document.getElementById('fluxFullscreen')?.classList.remove('show');
+    return;
+  }
+
   fluxOpen = true;
   if (isMobile()) {
     document.getElementById('fluxFullscreen').classList.add('show');
@@ -502,6 +588,21 @@ async function closeFLUX() {
   // Wipe auth flags unconditionally — no path should leave these true after close
   vaultAuthenticated = false;
   _vaultSessionValid = false;
+  // Kill the server-side session token too. The 7s window on
+  // is_admin_session_valid() would expire it on its own shortly anyway, but
+  // wiping it here means a fresh key is required immediately on next entry
+  // rather than depending on the window running out. Best-effort — don't
+  // block the (synchronous, no-await) close path on this network call.
+  // NOTE: supabaseClient.rpc(...) returns a Postgrest query builder, not a
+  // real Promise — it only implements .then(), not .catch(). Wrapping it in
+  // Promise.resolve() first gives us a real Promise so .catch() works.
+  if (_vaultSessionToken) {
+    const tokenToRevoke = _vaultSessionToken;
+    Promise.resolve(
+      supabaseClient.rpc('revoke_admin_session', { token: tokenToRevoke })
+    ).catch(() => {});
+  }
+  _vaultSessionToken = null;
   _dismissVaultOverlay();
 
   stopTypingBroadcast();
