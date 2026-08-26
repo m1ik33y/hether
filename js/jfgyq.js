@@ -1718,10 +1718,11 @@ async function geminiChat(history) {
   return data.reply;
 }
 
-async function sendMessage() {
+async function sendMessage(retryText) {
   const input = document.getElementById('userInput');
-  const text = input.value.trim();
-  if (!text && !aiStagedMedia || isTyping) return;
+  const isRetry = retryText !== undefined;
+  const text = isRetry ? retryText : input.value.trim();
+  if ((!text && !aiStagedMedia) || isTyping) return;
 
   if (window._guestMode) {
     const welcome = document.getElementById('welcomeScreen');
@@ -1739,7 +1740,7 @@ async function sendMessage() {
   if (welcome) welcome.style.display = "none";
   document.getElementById('relayView').classList.remove('welcome-mode');
 
-  if (aiStagedMedia) {
+  if (!isRetry && aiStagedMedia) {
     const caption = document.getElementById('mediaStagingCaption').value.trim();
     appendMediaMessage('user', aiStagedMedia.dataUrl, aiStagedMedia.isVideo, caption);
     clearAIStaging();
@@ -1764,7 +1765,7 @@ async function sendMessage() {
     relayHistory.push({ role: 'ai', content: reply });
   } catch (err) {
     removeTyping(typingEl);
-    await appendMessageWordByWord(`Error: ${err.message}`);
+    appendError(() => sendMessage(text));
   }
   isTyping = false;
 }
@@ -1845,7 +1846,7 @@ function appendMessageWordByWord(text) {
       bubble.innerHTML = formatText(partial);
       msgs.scrollTop = msgs.scrollHeight;
       if (i < words.length) {
-        setTimeout(step, 14 + Math.random() * 17.5);
+        setTimeout(step, 2 + Math.random() * 3);
       } else {
         resolve();
       }
@@ -1858,14 +1859,32 @@ function appendTyping() {
   const msgs = document.getElementById('messages');
   const div = document.createElement('div'); div.className = 'message ai'; div.id = 'typingIndicator';
   const bubble = document.createElement('div'); bubble.className = 'bubble';
-  bubble.innerHTML = '<div class="typing-dots"><span class="pulse-dot"></span></div>';
+  bubble.innerHTML = _buildAiThinkingBubbleHtml();
   div.appendChild(bubble); msgs.appendChild(div);
   const typingBubbleHeight = (div.querySelector('.bubble')?.offsetHeight) || div.offsetHeight || 0;
   const maxScrollTip = msgs.scrollHeight - msgs.clientHeight;
   msgs.scrollTop = Math.min(msgs.scrollTop + typingBubbleHeight, maxScrollTip);
+  _startAiThinkingRotation(div);
   return div;
 }
-function removeTyping(el) { if (el && el.parentNode) el.remove(); }
+function removeTyping(el) { _stopAiThinkingRotation(el); if (el && el.parentNode) el.remove(); }
+
+function appendError(onRetry) {
+  const msgs = document.getElementById('messages');
+  const div = document.createElement('div'); div.className = 'message ai';
+  const bubble = document.createElement('div'); bubble.className = 'bubble ai-error-bubble';
+  bubble.innerHTML = _buildAiErrorBoxHtml();
+  div.appendChild(bubble); msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  const retryBtn = bubble.querySelector('.ai-error-retry-btn');
+  if (retryBtn) {
+    retryBtn.onclick = () => {
+      retryBtn.disabled = true;
+      onRetry();
+    };
+  }
+  return div;
+}
 
 function formatText(text) {
   return text
