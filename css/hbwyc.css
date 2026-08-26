@@ -819,7 +819,7 @@ body {
 
 .bubble { padding: 10px 14px; border-radius: 12px; border: 1px solid var(--border); font-size: 16.3px; line-height: 1.65; max-width: 100%; word-break: break-word; overflow-wrap: break-word; min-width: 0; }
 .message.ai .bubble { background: transparent;font-size:16px; border: none; padding: 0; }
-.message.user .bubble { background: var(--user-bubble); border-color: transparent; max-width: 80%; }
+.message.user .bubble { background: var(--user-bubble); border-color: transparent; max-width: 70%; }
 .bubble code { font-family: 'DM Mono', monospace; font-size: 12.5px; background: var(--surface2); padding: 1px 5px; border-radius: 4px; }
 .bubble pre { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; overflow-x: auto; margin: 8px 0; font-family: 'DM Mono', monospace; font-size: 12.5px; white-space: pre-wrap; word-break: break-all; }
 
@@ -3102,7 +3102,7 @@ kbd {
   font-style: italic;
   text-align: center;
   user-select: none;
-  max-width: 80%;
+  max-width: 70%;
 }
 
 .flux-group-time { display: none; }
@@ -4357,23 +4357,50 @@ label.emoji-btn { margin-right: 4px; }
 
 /* ── AUTH PAGE ── */
 .auth-page {
-  display: flex; align-items: center; justify-content: center;
-  height: 100vh; width: 100%;
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-start;
+  height: 100vh;
+  width: 100%;
   background: #060000;
-  position: fixed; inset: 0; z-index: 1000;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
   overflow: hidden;
 }
 .auth-page.hidden { display: none; }
 
-.auth-page::before {
-  display: none;
+/* Left 80%: full-bleed authentication artwork */
+.auth-page::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 30%;
+  border-left: 1px solid #252525;
+  pointer-events: none;
 }
 
+.auth-page::before {
+  content: '';
+  display: block;
+  width: 70%;
+  height: 100%;
+  flex: 0 0 70%;
+  background: url('entry_bg.png') center center / cover no-repeat;
+}
+
+/* Right 20%: auth controls with no surrounding parent box */
 .auth-card {
   position: relative;
-  width: 100%;
-  max-width: 400px;
-  padding: 0 24px;
+  width: 30%;
+  max-width: none;
+  min-width: 260px;
+  height: 100%;
+  padding: 40px 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   animation: authCardIn 0.5s cubic-bezier(0.22,1,0.36,1);
 }
 
@@ -4401,11 +4428,11 @@ label.emoji-btn { margin-right: 4px; }
 }
 
 .auth-panel {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 32px 28px;
-  box-shadow: 0 4px 40px rgba(0,0,0,0.06);
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
 }
 
 .auth-panel-title {
@@ -4434,8 +4461,8 @@ label.emoji-btn { margin-right: 4px; }
 .auth-landing-btns { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
 
 .auth-main-btn {
-  width: 100%; padding: 11px 18px; border-radius: 10px; border: none;
-  font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 450;
+  width: 100%; padding: 14px 18px; border-radius: 999px; border: none;
+  font-family: 'DM Sans', sans-serif; font-size: 15.5px; font-weight: 450;
   cursor: pointer; transition: all 0.18s ease;
   display: flex; align-items: center; justify-content: center; gap: 8px;
 }
@@ -4454,18 +4481,18 @@ label.emoji-btn { margin-right: 4px; }
 .auth-field-label { font-size: 11.5px; font-weight: 450; color: var(--text3); text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 5px; }
 .auth-field { display: flex; flex-direction: column; }
 .auth-input {
-  width: 100%; padding: 10px 13px; border: 1px solid var(--border);
-  border-radius: 9px; background: var(--bg); color: var(--text);
+  width: 100%; padding: 14px 16px; border: 1px solid #565656;
+  border-radius: 4px; background: #2f2f2f; color: #fff;
   font-family: 'DM Sans', sans-serif; font-size: 13.5px; outline: none;
   transition: border-color var(--t), box-shadow var(--t);
 }
-.auth-input:focus { border-color: var(--accent); }
+.auth-input:focus { border-color: #fff; }
 .auth-input::placeholder { color: var(--text3); }
 
 .auth-submit-btn {
-  width: 100%; padding: 11px; border-radius: 10px; border: none;
+  width: 100%; padding: 14px; border-radius: 999px; border: none;
   background: #7BA84A; color: #fff; opacity: 0.96; font-family: 'DM Sans', sans-serif;
-  font-size: 14px; font-weight: 450; cursor: pointer;
+  font-size: 15.5px; font-weight: 450; cursor: pointer;
   transition: background var(--t), opacity var(--t), transform var(--t), box-shadow var(--t);
   margin-top: 4px; box-shadow: 0 2px 14px rgba(123,168,74,0.28);
 }
@@ -5880,4 +5907,28 @@ html, body { background: #060000 !important; }
 .flux-popup .flux-relay-content {
   position: relative;
   z-index: 1 !important;
+}
+
+/* ── AUTH SPLIT LAYOUT RESPONSIVE ── */
+@media (max-width: 900px) {
+  .auth-page::before { width: 70%; flex-basis: 70%; }
+  .auth-card { width: 30%; min-width: 250px; padding: 32px 22px; }
+}
+
+@media (max-width: 650px) {
+  .auth-page { display: block; overflow-y: auto; overflow-x: hidden; }
+  .auth-page::before {
+    display: block;
+    width: 100%;
+    height: 38vh;
+    min-height: 220px;
+    background-position: center center;
+  }
+  .auth-card {
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    min-height: 62vh;
+    padding: 34px 24px 42px;
+  }
 }
