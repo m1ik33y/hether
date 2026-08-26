@@ -289,7 +289,12 @@ async function loadLibrary(force) {
       .select('*')
       .order('created_at', { ascending: false });
     if (error) throw error;
-    libSongsCache = data || [];
+    libSongsCache = (data || []).map(song => {
+      if (song.duration_seconds != null && isFinite(Number(song.duration_seconds))) {
+        song._durationText = formatLibTime(Number(song.duration_seconds));
+      }
+      return song;
+    });
     libLoaded = true;
     libUserIsAdmin = await isLibUserAdmin();
     reconcileLibLastPlayedWithCache();
@@ -469,22 +474,36 @@ function libRowHtml(song, i, serial) {
 `;
 }
 
-// Lazily probe each song's audio file for its duration (metadata-only load) and
-// fill in the duration bubble once known. Cached on the song object so repeated
-// re-renders don't re-fetch.
+// Durations come from songs.duration_seconds, so the library never probes
+// remote audio files just to display their duration. This keeps app startup
+// from generating unnecessary audio egress.
 function loadLibCardDurations() {
   libSongsCache.forEach((song, i) => {
-    if (song._durationText || !song.music_url) return;
+    const text = (song.duration_seconds != null && isFinite(Number(song.duration_seconds)))
+      ? formatLibTime(Number(song.duration_seconds))
+      : '--:--';
+    song._durationText = text;
+    document.querySelectorAll(`[data-dur-index="${i}"]`).forEach(el => { el.textContent = text; });
+  });
+}
+
+// Read the selected local music file's duration before upload. This uses a
+// local object URL, so it does not create a Supabase Storage download.
+function getLocalAudioDuration(file) {
+  return new Promise((resolve) => {
+    const objectUrl = URL.createObjectURL(file);
     const probe = new Audio();
     probe.preload = 'metadata';
-    probe.src = song.music_url;
-    probe.addEventListener('loadedmetadata', () => {
-      song._durationText = formatLibTime(probe.duration);
-      document.querySelectorAll(`[data-dur-index="${i}"]`).forEach(el => { el.textContent = song._durationText; });
-    });
-    probe.addEventListener('error', () => {
-      document.querySelectorAll(`[data-dur-index="${i}"]`).forEach(el => { el.textContent = '--:--'; });
-    });
+    probe.onloadedmetadata = () => {
+      const duration = Number(probe.duration);
+      URL.revokeObjectURL(objectUrl);
+      resolve(isFinite(duration) && duration >= 0 ? Math.round(duration) : null);
+    };
+    probe.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(null);
+    };
+    probe.src = objectUrl;
   });
 }
 
@@ -993,12 +1012,15 @@ async function submitLibUpload() {
     const title = rawTitle.split(/\s+/).filter(Boolean).slice(0, 3).join(' ');
     const artist = document.getElementById('libArtistInput').value.trim() || null;
 
+    const durationSeconds = await getLocalAudioDuration(libSelectedMusicFile);
+
     const { error: insertErr } = await libraryClient.from('songs').insert({
       title,
       artist,
       thumbnail_url: thumbUrlData.publicUrl,
       music_url: musicUrlData.publicUrl,
       file_path: musicPath,
+      duration_seconds: durationSeconds,
       uploader_name: (currentUser && (currentUser.user_metadata?.display_name || currentUser.email)) || 'Anonymous'
     });
     if (insertErr) throw new Error('Saving song failed: ' + insertErr.message);
@@ -1099,23 +1121,10 @@ function updateNpQueueCard() {
   document.getElementById('npQueueAuthor').textContent = nextSong.artist || 'Anonymous';
 
   const durEl = document.getElementById('npQueueDuration');
-  if (nextSong._durationText) {
-    durEl.textContent = nextSong._durationText;
-  } else {
-    durEl.textContent = '--:--';
-    if (nextSong.music_url) {
-      const probe = new Audio();
-      probe.preload = 'metadata';
-      probe.src = nextSong.music_url;
-      probe.addEventListener('loadedmetadata', () => {
-        nextSong._durationText = formatLibTime(probe.duration);
-        if (document.getElementById('npQueueThumb')?.src === (nextSong.thumbnail_url || '')) {
-          durEl.textContent = nextSong._durationText;
-        }
-      });
-      probe.addEventListener('error', () => { durEl.textContent = '--:--'; });
-    }
-  }
+  durEl.textContent = nextSong._durationText ||
+    ((nextSong.duration_seconds != null && isFinite(Number(nextSong.duration_seconds)))
+      ? formatLibTime(Number(nextSong.duration_seconds))
+      : '--:--');
 }
 function toggleLibPlayback() {
   const audio = document.getElementById('libAudio');
@@ -1499,4 +1508,4 @@ function updateNowPlayingPanelVisibility(view) {
 
 // ── PRESENCE SYSTEM ──
 // Uses broadcast heartbeats instead of Supabase Presence to get instant
-// online/offline detection. Each user pings their own channel every 5s while
+// online/offline detection. Each user pings their own channel every 5s while
