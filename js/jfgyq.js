@@ -564,39 +564,6 @@ function _fluxSearchMessageText(msg) {
   return '';
 }
 
-// Escape a value for a Postgres ILIKE pattern. This keeps %, _ and \\ from
-// becoming wildcards while still allowing normal text search.
-function _fluxSearchEscapeIlike(value) {
-  return String(value || '').replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');
-}
-
-async function _fluxFetchMatchingConvMessages(id, myId, isGroup, query) {
-  const PAGE_SIZE = 500;
-  const pattern = `%${_fluxSearchEscapeIlike(query)}%`;
-  let all = [];
-  let from = 0;
-
-  // Search directly in the database instead of filtering only the currently
-  // loaded chat window. Pagination means chats with thousands of messages are
-  // searched completely, including messages beyond Supabase's first 1000 rows.
-  while (true) {
-    let q = _fluxApplyConvFilter(
-      supabaseClient.from('messages').select('id, sender_id, receiver_id, group_id, content, created_at, media_url, is_video, message_type'),
-      id, myId, isGroup
-    );
-    q = q.ilike('content', pattern).order('created_at', { ascending: false }).range(from, from + PAGE_SIZE - 1);
-
-    const { data, error } = await q;
-    if (error) return { data: null, error };
-
-    all = all.concat(data || []);
-    if (!data || data.length < PAGE_SIZE) break;
-    from += PAGE_SIZE;
-  }
-
-  return { data: all, error: null };
-}
-
 function _fluxPositionChatSearchPanel(panel, anchor) {
   if (!panel) return;
   if (isMobile()) {
@@ -616,11 +583,9 @@ function _fluxPositionChatSearchPanel(panel, anchor) {
 }
 
 let _fluxChatSearchOpenToken = 0;
-let _fluxChatSearchQueryToken = 0;
 
 function _closeFluxChatSearch() {
   _fluxChatSearchOpenToken++;
-  _fluxChatSearchQueryToken++;
   const tab = document.getElementById('fluxSearchTab');
   if (tab) tab.classList.remove('show');
   _fluxChatSearchState = null;
@@ -632,22 +597,23 @@ function _fluxUpdateOpenChatSearchWithMessage(msg, conversationId) {
   const id = conversationId || state.conversationId;
   if (!id || id !== state.conversationId) return;
 
+  // Realtime INSERT payloads are the source of truth for messages arriving
+  // after Search was opened. Keep the in-memory search dataset live instead
+  // of forcing the user to close/reopen the Search tab.
   const msgId = msg.id != null ? String(msg.id) : '';
   if (msgId && state.messages.some(existing => String(existing?.id) === msgId)) return;
+
   state.messages.push(msg);
 
   const input = document.getElementById('fluxChatSearchInput');
   if (input && document.getElementById('fluxSearchTab')?.classList.contains('show')) {
-    const q = input.value.trim();
-    if (q && _fluxSearchMessageText(msg).toLocaleLowerCase().includes(q.toLocaleLowerCase())) {
-      _renderFluxChatSearchResults(q);
-    }
+    _renderFluxChatSearchResults(input.value);
   }
 }
 
 window._fluxUpdateOpenChatSearchWithMessage = _fluxUpdateOpenChatSearchWithMessage;
 
-async function _renderFluxChatSearchResults(query) {
+function _renderFluxChatSearchResults(query) {
   const state = _fluxChatSearchState;
   const resultsEl = document.getElementById('fluxChatSearchResults');
   if (!state || !resultsEl) return;
@@ -658,38 +624,15 @@ async function _renderFluxChatSearchResults(query) {
     return;
   }
 
-  const myToken = ++_fluxChatSearchQueryToken;
-  resultsEl.innerHTML = '<div class="flux-chat-search-empty">Searching messages...</div>';
-
-  const isGroup = _fluxConvIsGroup(state.conversationId);
-  const { data, error } = await _fluxFetchMatchingConvMessages(
-    state.conversationId, state.myId, isGroup, q
-  );
-
-  // Ignore an older request if the user typed another query, closed Search,
-  // or switched conversations while the database request was in flight.
-  if (myToken !== _fluxChatSearchQueryToken || state !== _fluxChatSearchState) return;
-
-  if (error) {
-    console.warn('[FLUX] chat search query failed:', error.message || error);
-    resultsEl.innerHTML = '<div class="flux-chat-search-empty">Could not search messages</div>';
-    return;
-  }
-
-  const matches = data || [];
+  const lower = q.toLocaleLowerCase();
+  const matches = state.messages.filter(msg => _fluxSearchMessageText(msg).toLocaleLowerCase().includes(lower));
   if (!matches.length) {
     resultsEl.innerHTML = '<div class="flux-chat-search-empty">No messages found</div>';
     return;
   }
 
-  // Keep the complete server result set in memory too, so a realtime INSERT
-  // can be reflected immediately without losing older search matches.
-  const byId = new Map((state.messages || []).map(msg => [String(msg.id), msg]));
-  matches.forEach(msg => byId.set(String(msg.id), msg));
-  state.messages = Array.from(byId.values());
-
   const fragment = document.createDocumentFragment();
-  matches.forEach(msg => {
+  matches.slice().reverse().forEach(msg => {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'flux-chat-search-result';
@@ -714,43 +657,94 @@ async function _renderFluxChatSearchResults(query) {
 async function _jumpToFluxSearchMessage(messageId) {
   if (!messageId || !_fluxChatSearchState) return;
   const state = _fluxChatSearchState;
+  const messageKey = String(messageId);
+  const selector = `.flux-bubble-wrap[data-msg-id="${CSS.escape(messageKey)}"], .flux-system-msg[data-msg-id="${CSS.escape(messageKey)}"]`;
   const containers = [document.getElementById('fluxRelayMessages'), document.getElementById('fluxFsMessages')].filter(Boolean);
+
+  // First use the currently rendered DOM when the message is already loaded.
   let target = null;
+  let targetContainer = null;
   for (const container of containers) {
-    target = container.querySelector(`.flux-bubble-wrap[data-msg-id="${CSS.escape(String(messageId))}"], .flux-system-msg[data-msg-id="${CSS.escape(String(messageId))}"]`);
-    if (target) break;
+    target = container.querySelector(selector);
+    if (target) {
+      targetContainer = container;
+      break;
+    }
   }
 
-  // Older results may not be in the paginated message window. In that case,
-  // fetch the full conversation once, render it, and then jump to the exact row.
+  // Search results can point to messages that are outside the normal chat's
+  // paginated/virtualized window. Fetch the exact conversation in pages so a
+  // PostgREST 1000-row cap can never make us render the wrong history.
   if (!target) {
     const isGroup = _fluxConvIsGroup(state.conversationId);
-    const { data, error } = await _fluxApplyConvFilter(
-      supabaseClient.from('messages').select('*'), state.conversationId, state.myId, isGroup
-    ).order('created_at', { ascending: true });
-    if (error || !data) return;
+    const { data, error } = await _fluxFetchAllConvMessages(
+      state.conversationId, state.myId, isGroup
+    );
+    if (error || !data) {
+      console.warn('[FLUX] could not load search target:', error?.message || error);
+      return;
+    }
+
+    const exact = data.find(m => String(m?.id) === messageKey);
+    if (!exact) {
+      console.warn('[FLUX] search target message was not found in conversation:', messageId);
+      return;
+    }
 
     const currentContainer = isMobile()
       ? document.getElementById('fluxFsMessages')
       : document.getElementById('fluxRelayMessages');
-    if (currentContainer) {
-      const groups = groupMessages(data.map(m => ({ ...m, ts: m.created_at })));
-      renderGroupedMessages(currentContainer, groups, state.myId, state.contact);
-      renderedMsgIds.clear();
-      data.forEach(m => { if (m.id) renderedMsgIds.add(m.id); });
-      currentContainer.querySelectorAll('.flux-bubble-wrap[data-msg-id], .flux-system-msg[data-msg-id]').forEach(() => {});
-      target = currentContainer.querySelector(`.flux-bubble-wrap[data-msg-id="${CSS.escape(String(messageId))}"], .flux-system-msg[data-msg-id="${CSS.escape(String(messageId))}"]`);
+    if (!currentContainer) return;
+
+    // Preserve the exact chronological order used by the normal chat.
+    data.sort((a, b) => parseSupabaseDate(a.created_at).getTime() - parseSupabaseDate(b.created_at).getTime());
+    const groups = groupMessages(data.map(m => ({ ...m, ts: m.created_at })));
+    renderGroupedMessages(currentContainer, groups, state.myId, state.contact);
+
+    // renderGroupedMessages clears/rebuilds the DOM, so only query for the
+    // target AFTER rendering. Never reuse a stale DOM node from before it.
+    targetContainer = currentContainer;
+    target = currentContainer.querySelector(selector);
+    if (!target) {
+      console.warn('[FLUX] exact search target rendered data but no DOM node exists:', messageId);
+      return;
     }
   }
 
-  if (target) {
-    // Leave the search screen before scrolling so the matched message is
-    // visible in the normal conversation view, including phone fullscreen.
-    _closeFluxChatSearch();
-    requestAnimationFrame(() => {
-      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    });
-  }
+  // Close the search UI without relying on scrollIntoView(), which can choose
+  // the wrong scroll ancestor when the target was loaded from far back in the
+  // conversation. Wait for the chat layout to settle, then calculate the
+  // target's position relative to the actual messages scroller.
+  _closeFluxChatSearch();
+
+  const scrollToExactTarget = (attempt = 0) => {
+    if (!targetContainer || !document.contains(targetContainer)) return;
+
+    // The normal chat loader can repaint the message list immediately after
+    // Search closes. Re-find the message by ID on every attempt so we never
+    // scroll to a detached/stale element.
+    const liveTarget = targetContainer.querySelector(selector);
+    if (!liveTarget) {
+      if (attempt < 12) requestAnimationFrame(() => scrollToExactTarget(attempt + 1));
+      return;
+    }
+
+    const containerRect = targetContainer.getBoundingClientRect();
+    const targetRect = liveTarget.getBoundingClientRect();
+    const targetTop = targetRect.top - containerRect.top + targetContainer.scrollTop;
+    const centeredTop = targetTop - (targetContainer.clientHeight / 2) + (targetRect.height / 2);
+    targetContainer.scrollTop = Math.max(0, centeredTop);
+
+    // Verify the exact message is actually near the viewport. If another
+    // async chat render shifted it, retry against the newly rendered node.
+    const afterRect = liveTarget.getBoundingClientRect();
+    const visible = afterRect.bottom >= containerRect.top && afterRect.top <= containerRect.bottom;
+    if (!visible && attempt < 12) {
+      requestAnimationFrame(() => scrollToExactTarget(attempt + 1));
+    }
+  };
+
+  requestAnimationFrame(() => requestAnimationFrame(() => scrollToExactTarget()));
 }
 
 async function openFluxChatSearch(conversationId) {
@@ -770,22 +764,17 @@ async function openFluxChatSearch(conversationId) {
   const openToken = ++_fluxChatSearchOpenToken;
   _ensureFluxChatSearchStyles();
 
+  // Open the Search panel FIRST. Do not wait for auth/message loading.
+  // The search results area intentionally starts empty; typing a query will
+  // filter whatever messages have finished loading into the local state.
   const searchTab = document.getElementById('fluxSearchTab');
   const searchInput = document.getElementById('fluxChatSearchInput');
   if (!searchTab || !searchInput) return;
 
   searchInput.value = '';
-  searchInput.oninput = () => {
-    _renderFluxChatSearchResults(searchInput.value);
-  };
+  searchInput.oninput = () => _renderFluxChatSearchResults(searchInput.value);
   searchInput.onkeydown = e => { if (e.key === 'Escape') closeFluxChatSearch(); };
-
-  _fluxChatSearchState = {
-    conversationId: id,
-    myId: null,
-    contact: fluxContacts.find(c => c.id === id),
-    messages: []
-  };
+  _fluxChatSearchState = { conversationId: id, myId: null, contact: fluxContacts.find(c => c.id === id), messages: [] };
   _renderFluxChatSearchResults('');
 
   searchTab.style.transition = 'none';
@@ -794,18 +783,24 @@ async function openFluxChatSearch(conversationId) {
   searchTab.style.transition = '';
   searchInput.focus();
 
+  // Load the searchable messages in the background after the panel is already
+  // visible. If the user starts typing while this is loading, the final state
+  // is rendered using the current input value.
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (!user || openToken !== _fluxChatSearchOpenToken || activeFluxId !== id) return;
 
   const contact = fluxContacts.find(c => c.id === id);
-  _fluxChatSearchState.myId = user.id;
-  _fluxChatSearchState.contact = contact;
+  const isGroup = _fluxConvIsGroup(id);
+  const { data, error } = await _fluxFetchAllConvMessages(id, user.id, isGroup);
 
-  // Do not rely on the normal chat's paginated/rendered message window.
-  // Search itself queries the entire conversation on demand, so every old
-  // message remains searchable even when it has never been loaded into UI.
-  const currentQuery = searchInput.value.trim();
-  if (currentQuery) _renderFluxChatSearchResults(currentQuery);
+  if (error) {
+    console.warn('[FLUX] chat search load failed:', error.message || error);
+    return;
+  }
+
+  if (openToken !== _fluxChatSearchOpenToken || activeFluxId !== id) return;
+  _fluxChatSearchState = { conversationId: id, myId: user.id, contact, messages: data || [] };
+  _renderFluxChatSearchResults(searchInput.value);
 }
 
 function closeFluxChatSearch() {
