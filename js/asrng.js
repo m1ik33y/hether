@@ -2087,7 +2087,7 @@ async function loadNotifications() {
 function _syncNotificationsToggleUI() {
   const btn = document.getElementById('notificationsToggle');
   if (btn) btn.classList.toggle('on', _notificationsEnabled);
-  if (!_notificationsEnabled) document.title = "Hether - Code n' Arcade";
+  if (!_notificationsEnabled) document.title = "Hether - Music Player";
 }
 
 function _syncSoundToggleUI() {
@@ -2157,7 +2157,7 @@ function _isRelayVisibleFor(userId) {
 
 function _updateTitleUnreadBadge() {
   if (!fluxOpen || !_notificationsEnabled) {
-    document.title = "Hether - Code n' Arcade";
+    document.title = "Hether - Music Player";
     return;
   }
   const unreadUsers = (typeof fluxContacts !== 'undefined')
@@ -2169,9 +2169,9 @@ function _updateTitleUnreadBadge() {
       }).length
     : 0;
   if (unreadUsers <= 0) {
-    document.title = "Hether - Code n' Arcade";
+    document.title = "Hether - Music Player";
   } else {
-    document.title = `(${unreadUsers}) Hether - Code n' Arcade`;
+    document.title = `(${unreadUsers}) Hether - Music Player`;
   }
 }
 
@@ -2189,6 +2189,6 @@ const _originalCloseFLUX = window.closeFLUX;
 if (typeof _originalCloseFLUX === 'function') {
   window.closeFLUX = async function() {
     await _originalCloseFLUX.apply(this, arguments);
-    document.title = "Hether - Code n' Arcade";
+    document.title = "Hether - Music Player";
   };
 }
