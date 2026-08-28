@@ -1690,7 +1690,11 @@ async function _rehydrateRealtime() {
             filter: `receiver_id=eq.${user.id}` }, (payload) => {
             if (!fluxOpen) return;
             const msg = payload.new;
-            if (msg.sender_id === activeFluxId && _isRelayVisibleFor(msg.sender_id)) return;
+            // See matching comment in openFLUX() (pesej.js) — must defer to
+            // the per-conversation channel whenever the message belongs to
+            // the active conversation, not only when it's visible, or both
+            // channels increment unreadCount for the same message.
+            if (msg.sender_id === activeFluxId) return;
             _maybePlayMessageSound(msg.sender_id, user.id);
             const contact = fluxContacts.find(c => c.id === msg.sender_id);
             if (contact) {
@@ -2087,7 +2091,7 @@ async function loadNotifications() {
 function _syncNotificationsToggleUI() {
   const btn = document.getElementById('notificationsToggle');
   if (btn) btn.classList.toggle('on', _notificationsEnabled);
-  if (!_notificationsEnabled) document.title = "Hether - Music Player";
+  if (!_notificationsEnabled) document.title = "Hether - Code n' Arcade";
 }
 
 function _syncSoundToggleUI() {
@@ -2157,7 +2161,7 @@ function _isRelayVisibleFor(userId) {
 
 function _updateTitleUnreadBadge() {
   if (!fluxOpen || !_notificationsEnabled) {
-    document.title = "Hether - Music Player";
+    document.title = "Hether - Code n' Arcade";
     return;
   }
   const unreadUsers = (typeof fluxContacts !== 'undefined')
@@ -2169,9 +2173,9 @@ function _updateTitleUnreadBadge() {
       }).length
     : 0;
   if (unreadUsers <= 0) {
-    document.title = "Hether - Music Player";
+    document.title = "Hether - Code n' Arcade";
   } else {
-    document.title = `(${unreadUsers}) Hether - Music Player`;
+    document.title = `(${unreadUsers}) Hether - Code n' Arcade`;
   }
 }
 
@@ -2189,6 +2193,6 @@ const _originalCloseFLUX = window.closeFLUX;
 if (typeof _originalCloseFLUX === 'function') {
   window.closeFLUX = async function() {
     await _originalCloseFLUX.apply(this, arguments);
-    document.title = "Hether - Music Player";
+    document.title = "Hether - Code n' Arcade";
   };
 }
