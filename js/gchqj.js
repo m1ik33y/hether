@@ -222,7 +222,13 @@ function showRemoteTyping(userId) {
     const item = list.querySelector(`.flux-conv-item[data-id="${userId}"]`);
     if (!item) return;
     const preview = item.querySelector('.flux-conv-preview');
-    if (preview) {
+    // Only stash the real preview text the first time we flip into "typing".
+    // Without this guard, every re-call (e.g. the 3s typing heartbeat, or the
+    // duplicate save already done by the global typing-notify handler right
+    // before this runs) overwrites dataset.prevText with "Typing…" itself —
+    // so when typing stops, hideRemoteTyping() "restores" the preview to
+    // "Typing…" (or blanks it) instead of the last real message.
+    if (preview && !preview.classList.contains('typing')) {
       preview.dataset.prevText = preview.textContent;
       preview.dataset.prevClass = preview.className;
       preview.className = 'flux-conv-preview typing';
