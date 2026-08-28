@@ -1,4 +1,3 @@
-
 // ── STARTUP SPLASH ──
 // Keep the login and app hidden until Supabase has finished checking the saved session.
 function ensureStartupSplash() {
@@ -173,21 +172,39 @@ async function preloadAllRelays() {
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (!user) return;
 
-  const { data, error } = await supabaseClient.from('messages').select('*')
-    .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
-    .order('created_at', { ascending: false });
-  if (error || !data) { throw (error || new Error('Initial DM preload returned no data')); }
+  // ── DM messages ──
+  // This used to throw straight out of preloadAllRelays on any error, which
+  // aborted the ENTIRE preload (DMs *and* groups) and left every sidebar
+  // preview blank until you opened that specific chat (loadMessages() has
+  // its own updateContactLastMsg() call that only fixes up the one contact
+  // you clicked). Fetching DMs and groups independently, and swallowing
+  // per-section errors instead of throwing, means a hiccup in one never
+  // blanks out previews that would otherwise have loaded fine.
+  let data = [];
+  try {
+    const { data: dmData, error } = await supabaseClient.from('messages').select('*')
+      .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    data = dmData || [];
+  } catch (e) {
+    console.warn('[FLUX] DM preload failed:', e.message || e);
+  }
 
   // Group messages don't carry receiver_id, so the OR filter above never
   // sees them — pull them separately for every group the user belongs to
   // so group previews/sorting populate the same way DM previews do.
   let groupMsgs = [];
   if (_fluxMyGroupIds.size > 0) {
-    const { data: gData, error: gErr } = await supabaseClient.from('messages').select('*')
-      .in('group_id', [..._fluxMyGroupIds])
-      .order('created_at', { ascending: false });
-    if (gErr || !gData) throw (gErr || new Error('Initial group message preload returned no data'));
-    groupMsgs = gData;
+    try {
+      const { data: gData, error: gErr } = await supabaseClient.from('messages').select('*')
+        .in('group_id', [..._fluxMyGroupIds])
+        .order('created_at', { ascending: false });
+      if (gErr) throw gErr;
+      groupMsgs = gData || [];
+    } catch (e) {
+      console.warn('[FLUX] Group message preload failed:', e.message || e);
+    }
   }
 
   const latestMap = new Map();    // otherId -> latest msg
