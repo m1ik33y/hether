@@ -449,7 +449,14 @@ async function openFLUX() {
           filter: `receiver_id=eq.${user.id}` }, (payload) => {
           if (!fluxOpen) return; // panel closed — ignore all incoming events
           const msg = payload.new;
-          if (msg.sender_id === activeFluxId && _isRelayVisibleFor(msg.sender_id)) return;
+          // The per-conversation channel (loadMessages/loadFsMessages in
+          // fywir.js) already owns unread-count updates for whichever
+          // conversation is currently active, in BOTH the visible and
+          // not-visible case. This must defer to it whenever the message
+          // belongs to the active conversation — not only when visible —
+          // or both channels increment unreadCount for the same message,
+          // double-counting it.
+          if (msg.sender_id === activeFluxId) return;
           _maybePlayMessageSound(msg.sender_id, user.id);
           const contact = fluxContacts.find(c => c.id === msg.sender_id);
           if (contact) {
