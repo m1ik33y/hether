@@ -172,39 +172,68 @@ async function preloadAllRelays() {
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (!user) return;
 
-  // ── DM messages ──
-  // This used to throw straight out of preloadAllRelays on any error, which
-  // aborted the ENTIRE preload (DMs *and* groups) and left every sidebar
-  // preview blank until you opened that specific chat (loadMessages() has
-  // its own updateContactLastMsg() call that only fixes up the one contact
-  // you clicked). Fetching DMs and groups independently, and swallowing
-  // per-section errors instead of throwing, means a hiccup in one never
-  // blanks out previews that would otherwise have loaded fine.
-  let data = [];
-  try {
-    const { data: dmData, error } = await supabaseClient.from('messages').select('*')
-      .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
-      .order('created_at', { ascending: false });
-    if (error) throw error;
-    data = dmData || [];
-  } catch (e) {
-    console.warn('[FLUX] DM preload failed:', e.message || e);
+  // ── Paginated fetch helper ──
+  // A single unbounded `.select('*')` here relies on PostgREST's default
+  // row cap (1000). Once total DM history across every conversation crosses
+  // that cap, messages ordered newest-first get truncated *before* reaching
+  // the actual latest message of a less-recently-active conversation — that
+  // contact then gets no lastMessage at all and shows blank in the sidebar,
+  // even though nothing is actually wrong with its data. It only "fixes
+  // itself" when you open that chat directly, because that query is scoped
+  // to just the one conversation and never hits the cap.
+  //
+  // Fix: page through results (newest first) and keep going until a page
+  // stops introducing any conversation partner we haven't already seen —
+  // at that point every partner's true latest message has necessarily
+  // already been captured, since anything on a later page is by definition
+  // older than what we recorded for them. A hard page cap is kept as a
+  // safety net against pathological volumes.
+  const PAGE_SIZE = 1000;
+  const MAX_PAGES = 25;
+
+  async function fetchAllPaginated(queryBuilderFn, idFromMsg) {
+    const seenIds = new Set();
+    const rows = [];
+    let offset = 0;
+    for (let page = 0; page < MAX_PAGES; page++) {
+      let pageData;
+      try {
+        const { data: d, error } = await queryBuilderFn()
+          .order('created_at', { ascending: false })
+          .range(offset, offset + PAGE_SIZE - 1);
+        if (error) throw error;
+        pageData = d || [];
+      } catch (e) {
+        console.warn('[FLUX] message preload page failed:', e.message || e);
+        break;
+      }
+      if (pageData.length === 0) break;
+      rows.push(...pageData);
+      const sizeBefore = seenIds.size;
+      pageData.forEach(msg => seenIds.add(idFromMsg(msg)));
+      const introducedNewPartner = seenIds.size > sizeBefore;
+      if (pageData.length < PAGE_SIZE) break; // last page, nothing more to fetch
+      if (!introducedNewPartner) break; // diminishing returns — everyone's latest is already captured
+      offset += PAGE_SIZE;
+    }
+    return rows;
   }
+
+  // ── DM messages ──
+  const data = await fetchAllPaginated(
+    () => supabaseClient.from('messages').select('*').or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`),
+    msg => msg.sender_id === user.id ? msg.receiver_id : msg.sender_id
+  );
 
   // Group messages don't carry receiver_id, so the OR filter above never
   // sees them — pull them separately for every group the user belongs to
   // so group previews/sorting populate the same way DM previews do.
   let groupMsgs = [];
   if (_fluxMyGroupIds.size > 0) {
-    try {
-      const { data: gData, error: gErr } = await supabaseClient.from('messages').select('*')
-        .in('group_id', [..._fluxMyGroupIds])
-        .order('created_at', { ascending: false });
-      if (gErr) throw gErr;
-      groupMsgs = gData || [];
-    } catch (e) {
-      console.warn('[FLUX] Group message preload failed:', e.message || e);
-    }
+    groupMsgs = await fetchAllPaginated(
+      () => supabaseClient.from('messages').select('*').in('group_id', [..._fluxMyGroupIds]),
+      msg => msg.group_id
+    );
   }
 
   const latestMap = new Map();    // otherId -> latest msg
