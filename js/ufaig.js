@@ -360,6 +360,15 @@ function makeMediaCollageBubble(mediaGroup, isSent, contact, currentUserId) {
   bWrap.className = 'flux-bubble-wrap';
   bWrap.dataset.msgId = mediaGroup.id || '';
   bWrap.dataset.mediaUrls = urls.join('||');
+  // A collage represents several individual messages, but only the FIRST
+  // message's id was ever stamped as data-msg-id above. Anything that needs
+  // to jump to one of the OTHER messages in this collage (e.g. clicking a
+  // chat-search result for the 2nd/3rd photo in the group) couldn't find a
+  // matching element and silently failed. Stamp every id in the collage so
+  // callers can match against any of them.
+  if (mediaGroup.msgs && mediaGroup.msgs.length) {
+    bWrap.dataset.msgIds = mediaGroup.msgs.map(m => String(m.id || '')).filter(Boolean).join(' ');
+  }
 
   const collage = document.createElement('div');
   const countClass = count === 2 ? 'count-2' : count === 3 ? 'count-3' : count === 4 ? 'count-4' : 'count-5up';
