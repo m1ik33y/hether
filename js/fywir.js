@@ -69,6 +69,14 @@ async function loadMessages(userId, loadToken) {
         if (renderedMsgIds.has(newMsg.id)) return;
         renderedMsgIds.add(newMsg.id);
         if (activeFluxId === userId) {
+          // The global inbox channel defers to us for sound whenever this is
+          // the open conversation (see comment in pesej.js/openFLUX), but it
+          // never actually played it itself. _maybePlayMessageSound() already
+          // gates on focus/visibility/panel-open, so calling it here is safe
+          // for both the "actively looking at it" and blurred/other-tab cases.
+          if (!isGroupConv && newMsg.sender_id !== user.id) {
+            _maybePlayMessageSound(userId, user.id);
+          }
           // FIX 2: instead of full reload, smartly append into correct group
           appendIncomingMessage(msgsEl, newMsg, user.id, fluxDesktopContact);
           updateContactLastMsg(userId, newMsg, user.id);
@@ -353,6 +361,13 @@ async function loadFsMessages(userId) {
         if (renderedMsgIds.has(newMsg.id)) return;
         renderedMsgIds.add(newMsg.id);
         if (activeFluxId === userId) {
+          // See matching comment in loadMessages() — the global inbox
+          // channel defers sound-playing to us for the open conversation but
+          // never actually triggers it; _maybePlayMessageSound() itself
+          // already gates on focus/visibility/panel-open state.
+          if (!isGroupConv && newMsg.sender_id !== user.id) {
+            _maybePlayMessageSound(userId, user.id);
+          }
           appendIncomingMessage(msgsEl, newMsg, user.id, fluxMobileContact);
           updateContactLastMsg(userId, newMsg, user.id);
           // Only mark as seen if the tab is actually visible & focused. Group
