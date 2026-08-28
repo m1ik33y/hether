@@ -714,99 +714,92 @@ async function _renderFluxChatSearchResults(query) {
 async function _jumpToFluxSearchMessage(messageId) {
   if (!messageId || !_fluxChatSearchState) return;
   const state = _fluxChatSearchState;
-  const wantedId = String(messageId);
-  const selector = `.flux-bubble-wrap[data-msg-id="${CSS.escape(wantedId)}"], .flux-system-msg[data-msg-id="${CSS.escape(wantedId)}"]`;
-
-  const getContainer = () => isMobile()
+  const messageKey = String(messageId);
+  const isGroup = _fluxConvIsGroup(state.conversationId);
+  const currentContainer = isMobile()
     ? document.getElementById('fluxFsMessages')
     : document.getElementById('fluxRelayMessages');
+  if (!currentContainer) return;
 
-  const findTarget = () => {
-    const container = getContainer();
-    return container ? container.querySelector(selector) : null;
-  };
+  // Always resolve the message from the database first.  The normal chat is
+  // virtual/paginated, so an old search result may not have a DOM node yet.
+  // Do NOT use scrollIntoView on a stale node: after prepending/rendering it
+  // can resolve against the wrong scroll container and land at a random spot.
+  let target = currentContainer.querySelector(
+    `.flux-bubble-wrap[data-msg-id="${CSS.escape(messageKey)}"], .flux-system-msg[data-msg-id="${CSS.escape(messageKey)}"]`
+  );
 
-  let target = findTarget();
-
-  // If the searched message is outside the currently loaded/paginated window,
-  // load that exact message from the database first. Do not guess its position
-  // from the current scroll state or from an incomplete message list.
   if (!target) {
-    const isGroup = _fluxConvIsGroup(state.conversationId);
-    const { data: exactRows, error: exactError } = await _fluxApplyConvFilter(
-      supabaseClient
-        .from('messages')
-        .select('*')
-        .eq('id', wantedId),
-      state.conversationId,
-      state.myId,
-      isGroup
-    ).limit(1);
-
-    if (exactError || !exactRows || !exactRows.length) {
-      console.warn('[FLUX] Could not load searched message:', exactError?.message || wantedId);
-      return;
-    }
-
-    // Fetch the complete conversation in chronological order so the renderer
-    // builds the exact same DOM structure/ordering as the normal chat. This is
-    // intentionally done only when the target is not already rendered.
     const { data, error } = await _fluxApplyConvFilter(
       supabaseClient.from('messages').select('*'),
       state.conversationId,
       state.myId,
       isGroup
     ).order('created_at', { ascending: true });
-    if (error || !data) {
-      console.warn('[FLUX] Could not load conversation for search jump:', error?.message || error);
-      return;
-    }
 
-    const currentContainer = getContainer();
-    if (!currentContainer) return;
+    if (error || !data?.length) return;
 
+    // Render the complete conversation into the actual active container.
+    // This guarantees that the target exists even when it is far outside the
+    // currently loaded window.  Keep the full message set as the loaded state
+    // so the user can continue scrolling all the way to the bottom normally.
+    currentContainer.innerHTML = '';
+    renderedMsgIds.clear();
+    data.forEach(m => { if (m.id) renderedMsgIds.add(m.id); });
     const groups = groupMessages(data.map(m => ({ ...m, ts: m.created_at })));
     renderGroupedMessages(currentContainer, groups, state.myId, state.contact);
-    renderedMsgIds.clear();
-    data.forEach(m => { if (m.id) renderedMsgIds.add(String(m.id)); });
 
-    // renderGroupedMessages can update the DOM synchronously, but allow any
-    // follow-up layout/render work to finish before locating the target.
-    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-    target = findTarget();
+    if (isMobile()) {
+      fluxMobileOffset = 0;
+      fluxMobileAllLoaded = true;
+    } else {
+      fluxDesktopOffset = 0;
+      fluxDesktopAllLoaded = true;
+    }
+
+    target = currentContainer.querySelector(
+      `.flux-bubble-wrap[data-msg-id="${CSS.escape(messageKey)}"], .flux-system-msg[data-msg-id="${CSS.escape(messageKey)}"]`
+    );
   }
 
-  if (!target) {
-    console.warn('[FLUX] Searched message rendered but target DOM node was not found:', wantedId);
-    return;
-  }
+  if (!target) return;
 
-  const container = getContainer();
-  if (!container) return;
-
-  // Close search only after the exact target has been resolved. Then calculate
-  // the target's position against the actual scroll container instead of using
-  // scrollIntoView, which can land on the wrong place when the chat has nested
-  // scroll containers or is being re-rendered at the same time.
+  // Close Search before measuring.  Then wait for the newly rendered groups,
+  // fonts and media to settle.  We calculate the scroll position relative to
+  // THIS chat scroller rather than calling scrollIntoView, which may choose a
+  // parent/side-panel scroller and produce the "random message" behaviour.
   _closeFluxChatSearch();
 
-  await new Promise(resolve => requestAnimationFrame(resolve));
+  const scrollToExactTarget = () => {
+    const liveTarget = currentContainer.querySelector(
+      `.flux-bubble-wrap[data-msg-id="${CSS.escape(messageKey)}"], .flux-system-msg[data-msg-id="${CSS.escape(messageKey)}"]`
+    );
+    if (!liveTarget) return;
 
-  const freshTarget = findTarget() || target;
-  if (!freshTarget) return;
+    const containerRect = currentContainer.getBoundingClientRect();
+    const targetRect = liveTarget.getBoundingClientRect();
+    const targetTop = currentContainer.scrollTop + (targetRect.top - containerRect.top);
+    const desiredTop = Math.max(0, targetTop - (currentContainer.clientHeight / 2) + (targetRect.height / 2));
+    const maxTop = Math.max(0, currentContainer.scrollHeight - currentContainer.clientHeight);
 
-  const containerRect = container.getBoundingClientRect();
-  const targetRect = freshTarget.getBoundingClientRect();
-  const relativeTop = targetRect.top - containerRect.top + container.scrollTop;
-  const centeredTop = Math.max(0, relativeTop - (container.clientHeight / 2) + (freshTarget.offsetHeight / 2));
+    currentContainer.scrollTo({
+      top: Math.min(desiredTop, maxTop),
+      behavior: 'smooth'
+    });
 
-  container.scrollTo({
-    top: centeredTop,
-    behavior: 'smooth'
+    // Flash only the exact resolved node after the scroll has been scheduled.
+    liveTarget.classList.remove('flux-search-jump-highlight');
+    void liveTarget.offsetWidth;
+    liveTarget.classList.add('flux-search-jump-highlight');
+    setTimeout(() => liveTarget.classList.remove('flux-search-jump-highlight'), 1800);
+  };
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      // A third frame handles grouped-message layout after the first paint.
+      requestAnimationFrame(scrollToExactTarget);
+    });
   });
-
-  freshTarget.classList.add('flux-search-jump-highlight');
-  setTimeout(() => freshTarget.classList.remove('flux-search-jump-highlight'), 1800);
 }
 
 async function openFluxChatSearch(conversationId) {
