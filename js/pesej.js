@@ -1,27 +1,8 @@
-// ── SERVER-VERIFIED VAULT SESSION ──
-// `vaultAuthenticated` / `_vaultSessionValid` are kept ONLY as instant local
-// UI hints (so the overlay can react without a network round trip). They are
-// NEVER trusted for anything real anymore — the actual gate is
-// `_vaultSessionToken`, a token issued by the server (verify_admin_key RPC)
-// that is re-validated against the database (is_admin_session_valid RPC)
-// before anything privileged is allowed to happen. Setting the local
-// booleans by hand in devtools no longer does anything, because nothing
-// downstream trusts them.
-//
-// SESSION WINDOW: the server only considers the token valid for 7 seconds
-// after it's issued (see is_admin_session_valid() in Supabase). That window
-// only has to cover the moment of entry — verifyVault() calls openFLUX()
-// immediately on success, and openFLUX() is the ONLY place that calls
-// _verifyVaultSessionServer(). Once that single check has passed and the
-// panel is open, nothing re-checks the token again, so the panel keeps
-// working normally even after the 7s window lapses — the person doesn't get
-// kicked out mid-session. The token is only needed again to open the panel
-// a second time (after a close), which is exactly when closeFLUX() /
-// closeVaultPopup() revoke it and null it out below.
+
 let _vaultSessionValid = false;
 let _vaultSessionToken = null;
 
-// Internal: only hides the overlay UI, does NOT touch auth flags.
+
 function _dismissVaultOverlay() {
   const overlay = document.getElementById('vaultOverlay');
   const input = document.getElementById('vaultInput');
@@ -31,14 +12,11 @@ function _dismissVaultOverlay() {
   document.getElementById('vaultError').style.display = 'none';
 }
 
-// Public close — called by Cancel button, ESC, clicking outside, browser events.
+
 function closeVaultPopup() {
   _vaultSessionValid = false;
   vaultAuthenticated = false;
-  // Best-effort: tell the server to kill the session too, don't block on it.
-  // NOTE: supabaseClient.rpc(...) returns a Postgrest query builder, not a
-  // real Promise — it only implements .then(), not .catch(). Wrapping it in
-  // Promise.resolve() first gives us a real Promise so .catch() works.
+
   if (_vaultSessionToken) {
     const tokenToRevoke = _vaultSessionToken;
     Promise.resolve(
@@ -88,9 +66,7 @@ async function verifyVault() {
   let match = false;
   let token = null;
   try {
-    // Server-side check via RPC. On success this now also returns a
-    // real, DB-backed session token — the raw key still never leaves
-    // the database either way.
+
     const { data, error } = await supabaseClient.rpc('verify_admin_key', { key: val });
     if (error) throw error;
     const row = Array.isArray(data) ? data[0] : data;
@@ -123,16 +99,10 @@ async function verifyVault() {
   }
 }
 
-// Cheap, LOCAL-ONLY hint used purely for instant UI feedback (e.g. whether
-// to bother showing a spinner before the real check resolves). This is not
-// a security boundary — see _verifyVaultSessionServer() below for that.
+
 function _isFluxAuthValid() { return vaultAuthenticated === true && _vaultSessionValid === true; }
 
-// The actual security boundary: asks the SERVER whether _vaultSessionToken
-// is a real, non-expired session belonging to the current logged-in user.
-// A console user can set vaultAuthenticated/_vaultSessionValid/_vaultSessionToken
-// to anything they like, but unless is_admin_session_valid() finds a matching
-// row in admin_sessions for their own auth.uid(), this returns false.
+
 async function _verifyVaultSessionServer() {
   if (!_vaultSessionToken) return false;
   try {
@@ -148,13 +118,7 @@ async function _verifyVaultSessionServer() {
 }
 
 (function _patchFluxSecurity() {
-  // This DOM-level patch is now just a fast local guard to avoid a UI flash
-  // before the real (server) check in openFLUX() runs. It intentionally
-  // still uses the cheap local flags — that's fine, because it's no longer
-  // the only thing standing between someone and the data. openFLUX() itself
-  // performs the real, server-verified check below and will forcibly close
-  // the panel again if that check fails, even if this local guard was
-  // bypassed by hand in the console.
+
   const fluxOvEl = document.getElementById('fluxOverlay');
   const fluxFsEl = document.getElementById('fluxFullscreen');
 
@@ -263,9 +227,7 @@ async function pollSeenStatus(myUserId) {
   } catch(e) {}
 }
 
-// 1. Supabase realtime UPDATE (works if REPLICA IDENTITY FULL is set)
-// 2. BroadcastChannel (works when both users are on same origin in different tabs/windows)
-// 3. Polling every 3 seconds (universal fallback for real-time seen updates)
+
 async function startSeenChannel(myUserId) {
   _seenMyUserId = myUserId;
 
@@ -299,9 +261,7 @@ async function startSeenChannel(myUserId) {
     })
     .subscribe();
 
-  // ── Mechanism 2: BroadcastChannel for instant cross-tab seen sync ──
-  // When the receiver (in another tab/window on same origin) calls markConversationSeen,
-  // it broadcasts the seen event so the sender tab updates immediately without DB roundtrip.
+
   try {
     _seenBroadcast = new BroadcastChannel('aloft-seen-updates');
     _seenBroadcast.onmessage = (e) => {
@@ -326,14 +286,7 @@ async function startSeenChannel(myUserId) {
     // BroadcastChannel not supported (rare) — polling covers it
   }
 
-  // ── Polling fallback REMOVED ──
-  // This used to re-check seen-status every 3s as a fallback for when realtime
-  // UPDATE events don't fire (missing REPLICA IDENTITY FULL). Removed per request —
-  // adds up in egress for no real benefit here. Mechanisms 1 (realtime UPDATE) and
-  // 2 (BroadcastChannel, for same-browser cross-tab sync) still run and cover the
-  // normal case; the tab-focus/visibility one-shot calls to pollSeenStatus() also
-  // still exist below as an extra one-time refresh, so seen-ticks still update,
-  // just without a background timer constantly re-checking.
+  
 }
 
 async function stopSeenChannel() {
@@ -401,12 +354,7 @@ async function markConversationSeen(senderId) {
 }
 
 async function openFLUX() {
-  // SECURITY: re-verify with the server before doing anything else.
-  // This is the check that actually matters — setting vaultAuthenticated /
-  // _vaultSessionValid by hand in devtools does NOT satisfy this, because
-  // is_admin_session_valid() looks up _vaultSessionToken in the
-  // admin_sessions table on the server and checks it against auth.uid().
-  // A forged local flag with no real token behind it will fail here.
+ 
   const serverOk = await _verifyVaultSessionServer();
   if (!serverOk) {
     console.warn('[Security] openFLUX() blocked — no valid server-verified vault session.');
@@ -449,13 +397,7 @@ async function openFLUX() {
           filter: `receiver_id=eq.${user.id}` }, (payload) => {
           if (!fluxOpen) return; // panel closed — ignore all incoming events
           const msg = payload.new;
-          // The per-conversation channel (loadMessages/loadFsMessages in
-          // fywir.js) already owns unread-count updates for whichever
-          // conversation is currently active, in BOTH the visible and
-          // not-visible case. This must defer to it whenever the message
-          // belongs to the active conversation — not only when visible —
-          // or both channels increment unreadCount for the same message,
-          // double-counting it.
+        
           if (msg.sender_id === activeFluxId) return;
           _maybePlayMessageSound(msg.sender_id, user.id);
           const contact = fluxContacts.find(c => c.id === msg.sender_id);
@@ -472,10 +414,7 @@ async function openFLUX() {
         .subscribe();
       // Store so we can remove on close
       window._fluxGlobalChannel = globalCh;
-      // Postgres realtime filters only support a single eq per subscription,
-      // so group inbox updates (any group I'm a member of) can't be
-      // server-filtered the way DMs are above — listen unfiltered and check
-      // membership client-side against _fluxMyGroupIds instead.
+      
       const globalGroupCh = supabaseClient.channel(`global-inbox-groups:${user.id}`)
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
           if (!fluxOpen) return;
@@ -490,14 +429,7 @@ async function openFLUX() {
             contact.unread = true;
             contact.unreadCount = (contact.unreadCount || 0) + 1;
             const d = parseSupabaseDate(msg.created_at);
-            // Resolve the sender's name the same way the open-chat message
-            // renderer does (_fluxGroupMsgSenderName in ufaig.js), instead
-            // of only checking contact.groupMemberProfiles and falling back
-            // straight to the literal string 'User'. That snapshot can be
-            // stale/incomplete for a sender who isn't in it yet (e.g. just
-            // added to the group), which is why the sidebar preview showed
-            // the literal word "User" here even though opening the chat
-            // resolved the real username fine.
+            
             const senderName = _fluxGroupMsgSenderName(contact, msg.sender_id) || 'Someone';
             contact.lastMessage = { type: 'received', text: msg.content, media: !!msg.media_url, time: formatMsgTime(d), senderName };
             contact.lastMessageTs = d.getTime();
@@ -506,15 +438,7 @@ async function openFLUX() {
         })
         .subscribe();
       window._fluxGlobalGroupChannel = globalGroupCh;
-      // ── GROUP MEMBERSHIP (being added to a group) ──
-      // The globalGroupCh listener above only updates a group that's already
-      // in fluxContacts/_fluxMyGroupIds. When someone else adds *this* user to
-      // a group, neither of those is populated yet — loadContacts() only ever
-      // ran at the last openFLUX() — so that listener silently drops the
-      // event and the new group doesn't show up until the next reload.
-      // _fluxHandleNewGroupMembership() registers the group locally and
-      // makes sure the "X added Y" system message arrives as a real unread
-      // notification (sound + bold preview), not just a silent sidebar entry.
+      
       const groupMembershipCh = supabaseClient.channel(`group-membership:${user.id}`)
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'flux_group_members',
           filter: `user_id=eq.${user.id}` }, async (payload) => {
@@ -576,10 +500,7 @@ async function openFLUX() {
         })
         .subscribe();
       window._fluxGlobalTypingChannel = globalTypingCh;
-      // One persistent clear channel is used for both DMs and groups.
-      // The payload carries the conversation id, not the clearer's user id.
-      // This is important for groups because one user's id is not the group
-      // conversation id, so every member must clear the group by conversation id.
+      
       const relayClearedCh = supabaseClient.channel('relay-cleared:global', {
         config: { broadcast: { self: false } }
       });
@@ -602,14 +523,7 @@ async function closeFLUX() {
   // Wipe auth flags unconditionally — no path should leave these true after close
   vaultAuthenticated = false;
   _vaultSessionValid = false;
-  // Kill the server-side session token too. The 7s window on
-  // is_admin_session_valid() would expire it on its own shortly anyway, but
-  // wiping it here means a fresh key is required immediately on next entry
-  // rather than depending on the window running out. Best-effort — don't
-  // block the (synchronous, no-await) close path on this network call.
-  // NOTE: supabaseClient.rpc(...) returns a Postgrest query builder, not a
-  // real Promise — it only implements .then(), not .catch(). Wrapping it in
-  // Promise.resolve() first gives us a real Promise so .catch() works.
+  
   if (_vaultSessionToken) {
     const tokenToRevoke = _vaultSessionToken;
     Promise.resolve(
@@ -621,14 +535,7 @@ async function closeFLUX() {
 
   stopTypingBroadcast();
 
-  // ── Everything below closes the panel SYNCHRONOUSLY, with no awaits ──
-  // This must stay await-free. Background tabs throttle network/websocket
-  // activity, so if the visual close waited on an awaited call (like the
-  // old leavePresence()/removeChannel() chain below), ghost mode would only
-  // finish closing once that call resolved — which the browser delays until
-  // the tab is refocused. That produced exactly the bug this fixes: the
-  // panel staying open while the tab was switched away, then closing a few
-  // seconds after coming back instead of closing the instant focus was lost.
+  
   activeFluxId = null;
   if (typeof fluxContacts !== 'undefined') { fluxContacts.length = 0; }
   // Wipe the RENDERED DOM too — hiding the overlay with a CSS class still
