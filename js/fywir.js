@@ -72,7 +72,6 @@ async function loadMessages(userId, loadToken) {
           // FIX 2: instead of full reload, smartly append into correct group
           appendIncomingMessage(msgsEl, newMsg, user.id, fluxDesktopContact);
           updateContactLastMsg(userId, newMsg, user.id);
-          buildFLUXConvList();
           // Only mark as seen if the tab is actually visible & focused. Group
           // read receipts aren't tracked per-message yet, so skip the DB call
           // for groups — it's a no-op anyway since group rows have no
@@ -88,8 +87,16 @@ async function loadMessages(userId, loadToken) {
               contact.unread = true;
               contact.unreadCount = (contact.unreadCount || 0) + 1;
             }
-            _updateTitleUnreadBadge();
           }
+          // Build the sidebar AFTER the unread state above is set, not
+          // before. Building it first (the old order) rendered the sidebar
+          // using last message's unread/count values, so the dot/bold and
+          // "N new messages" label always lagged one message behind —
+          // message 1 rendered as if nothing arrived, message 2 rendered
+          // message 1's state, message 3 showed "2 new" (message 2's
+          // count), and so on.
+          buildFLUXConvList();
+          _updateTitleUnreadBadge();
         }
       })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages' }, (payload) => {
@@ -348,7 +355,6 @@ async function loadFsMessages(userId) {
         if (activeFluxId === userId) {
           appendIncomingMessage(msgsEl, newMsg, user.id, fluxMobileContact);
           updateContactLastMsg(userId, newMsg, user.id);
-          buildFLUXConvList();
           // Only mark as seen if the tab is actually visible & focused. Group
           // read receipts aren't tracked per-message yet, so skip the DB call
           // for groups — the update is a no-op anyway (no receiver_id) but
@@ -363,8 +369,13 @@ async function loadFsMessages(userId) {
               contact.unread = true;
               contact.unreadCount = (contact.unreadCount || 0) + 1;
             }
-            _updateTitleUnreadBadge();
           }
+          // Build the sidebar AFTER the unread state above is set — see
+          // matching comment in loadMessages() for why the old order (build
+          // first, then set unread state) made the dot/bold and "N new
+          // messages" label always lag one message behind.
+          buildFLUXConvList();
+          _updateTitleUnreadBadge();
         } else {
           const c = fluxContacts.find(c => c.id === userId);
           if (c) { updateContactLastMsg(userId, newMsg, user.id); buildFLUXConvList(); }
