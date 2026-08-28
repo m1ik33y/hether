@@ -534,8 +534,6 @@ function _ensureFluxChatSearchStyles() {
     .flux-chat-search-result-time { margin-left:auto; flex:0 0 auto; color:var(--text3,#85858c); font-size:10.5px; }
     .flux-chat-search-result-text { color:#c5c5ca; font-size:12px; line-height:1.4; overflow:hidden; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; }
     .flux-chat-search-result-text mark { background:rgba(31,199,137,.22); color:#e9fff6; border-radius:2px; padding:0 1px; }
-    .flux-search-jump-highlight { animation: fluxSearchJumpHighlight 1.4s ease; }
-    @keyframes fluxSearchJumpHighlight { 0%,100% { background:transparent; } 20%,70% { background:rgba(255,255,255,.14); } }
 
   `;
   document.head.appendChild(style);
@@ -715,73 +713,43 @@ async function _renderFluxChatSearchResults(query) {
 
 async function _jumpToFluxSearchMessage(messageId) {
   if (!messageId || !_fluxChatSearchState) return;
-
   const state = _fluxChatSearchState;
-  const safeId = String(messageId);
-  const selector = `.flux-bubble-wrap[data-msg-id="${CSS.escape(safeId)}"], .flux-system-msg[data-msg-id="${CSS.escape(safeId)}"]`;
-  const containers = [
-    document.getElementById('fluxRelayMessages'),
-    document.getElementById('fluxFsMessages')
-  ].filter(Boolean);
-
-  // If the result is already rendered, never ask the browser to guess where
-  // it is. Scroll the actual DOM node by id.
+  const containers = [document.getElementById('fluxRelayMessages'), document.getElementById('fluxFsMessages')].filter(Boolean);
+  let target = null;
   for (const container of containers) {
-    const target = container.querySelector(selector);
-    if (target) {
-      _closeFluxChatSearch();
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          target.classList.add('flux-search-jump-highlight');
-          setTimeout(() => target.classList.remove('flux-search-jump-highlight'), 1400);
-        });
-      });
-      return;
+    target = container.querySelector(`.flux-bubble-wrap[data-msg-id="${CSS.escape(String(messageId))}"], .flux-system-msg[data-msg-id="${CSS.escape(String(messageId))}"]`);
+    if (target) break;
+  }
+
+  // Older results may not be in the paginated message window. In that case,
+  // fetch the full conversation once, render it, and then jump to the exact row.
+  if (!target) {
+    const isGroup = _fluxConvIsGroup(state.conversationId);
+    const { data, error } = await _fluxApplyConvFilter(
+      supabaseClient.from('messages').select('*'), state.conversationId, state.myId, isGroup
+    ).order('created_at', { ascending: true });
+    if (error || !data) return;
+
+    const currentContainer = isMobile()
+      ? document.getElementById('fluxFsMessages')
+      : document.getElementById('fluxRelayMessages');
+    if (currentContainer) {
+      const groups = groupMessages(data.map(m => ({ ...m, ts: m.created_at })));
+      renderGroupedMessages(currentContainer, groups, state.myId, state.contact);
+      renderedMsgIds.clear();
+      data.forEach(m => { if (m.id) renderedMsgIds.add(m.id); });
+      currentContainer.querySelectorAll('.flux-bubble-wrap[data-msg-id], .flux-system-msg[data-msg-id]').forEach(() => {});
+      target = currentContainer.querySelector(`.flux-bubble-wrap[data-msg-id="${CSS.escape(String(messageId))}"], .flux-system-msg[data-msg-id="${CSS.escape(String(messageId))}"]`);
     }
   }
 
-  // The search result can point at a message that is outside the currently
-  // paginated chat window. Do NOT render the whole conversation here: that
-  // can hit Supabase's row cap and, more importantly, gives scrollIntoView a
-  // stale/incorrect DOM position. Instead use the chat's existing exact
-  // message loader. It finds the target's position in the conversation,
-  // loads the missing section into the current paginated window, preserves
-  // the existing scroll position while prepending, and only then scrolls to
-  // the exact message node.
-  _closeFluxChatSearch();
-
-  // Make sure the selected conversation is still the active one before using
-  // the normal pagination state.
-  if (activeFluxId !== state.conversationId) return;
-
-  try {
-    await scrollToReplyTarget(safeId, '', '');
-
-    // scrollToReplyTarget normally flashes the target itself. The extra exact
-    // lookup below is intentionally delayed until layout has settled, so a
-    // very old target that was just prepended cannot race the browser layout.
-    const container = isMobile()
-      ? document.getElementById('fluxFsMessages')
-      : document.getElementById('fluxRelayMessages');
-    if (!container) return;
-
-    let attempts = 0;
-    const findAndCenter = () => {
-      const target = container.querySelector(selector);
-      if (target) {
-        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        target.classList.add('flux-search-jump-highlight');
-        setTimeout(() => target.classList.remove('flux-search-jump-highlight'), 1400);
-        return;
-      }
-      // A prepend can take a couple of frames when many grouped bubbles are
-      // being created. Never fall back to a coordinate-based/random scroll.
-      if (++attempts < 20) requestAnimationFrame(findAndCenter);
-    };
-    requestAnimationFrame(findAndCenter);
-  } catch (e) {
-    console.warn('[FLUX] search jump failed:', e?.message || e);
+  if (target) {
+    // Keep the search tab open while navigating to the matched message.
+    // The search panel must remain visible so the user can continue browsing
+    // results without having to reopen it.
+    requestAnimationFrame(() => {
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
   }
 }
 
