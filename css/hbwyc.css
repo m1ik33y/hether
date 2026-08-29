@@ -1712,7 +1712,7 @@ kbd {
 }
 @media (max-width: 768px) {
   .flux-ai-panel::before {
-    background-image: url('chat_bg.svg');
+    background-image: url('chat_bg.png');
     background-size: 320px auto;
   }
 }
@@ -3663,7 +3663,7 @@ label.emoji-btn { margin-right: 4px; }
   content: '';
   position: absolute;
   inset: 0;
-  background-image: url('chat_bg.svg');
+  background-image: url('chat_bg.png');
   background-repeat: repeat;
   background-size: 320px auto;
   pointer-events: none;
@@ -3702,7 +3702,7 @@ label.emoji-btn { margin-right: 4px; }
 }
 
 .flux-fs-messages {
-  flex: 1; overflow-y: auto; overflow-x: hidden; background: url("chat_bg.png");
+  flex: 1; overflow-y: auto; overflow-x: hidden; background: none;
   padding: 14px 14px 10px; display: flex; flex-direction: column; gap: 2px;
   min-height: 0;
   /* Prevent bounce/rubber-band scroll from causing layout issues */
@@ -4607,7 +4607,7 @@ label.emoji-btn { margin-right: 4px; }
 }
 @media (max-width: 768px) {
   #fluxActiveRelayWrap::before {
-    background-image: url('chat_bg.svg');
+    background-image: url('chat_bg.png');
     background-size: 320px auto;
   }
 }
