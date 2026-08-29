@@ -1432,7 +1432,7 @@ kbd {
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 .overlay.show { display: flex; }
 
-.popup { background: #1c1c1e; border: 1px solid var(--border); border-radius: 12px; padding: 26px; width: 350px; animation: popIn 0.18s ease; box-shadow: 0 24px 60px rgba(0,0,0,0.2); }
+.popup { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 26px; width: 350px; animation: popIn 0.18s ease; box-shadow: 0 24px 60px rgba(0,0,0,0.2); }
 @keyframes popIn { from { opacity: 0; transform: scale(0.94) translateY(-10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 .popup h3 { font-size: 15px; font-weight: 450; margin-bottom: 5px; }
 .popup p { font-size: 12.5px; color: var(--text2); margin-bottom: 16px; }
@@ -2977,7 +2977,7 @@ kbd {
   align-items: center;
   justify-content: center;
   gap: 16px;
-  background: #060000;
+  background: var(--surface);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.18s ease;
@@ -3997,8 +3997,8 @@ label.emoji-btn { margin-right: 4px; }
 /* ── CONFIRM DIALOG ── */
 #confirmOverlay { z-index: 10600; }
 .confirm-popup {
-  background: #060000; border: 1px solid var(--border);
-  border-radius: 12px; padding: 22px; width: 340px;
+  background: #171717; border: 1px solid var(--border);
+  border-radius: 10px; padding: 22px; width: 340px;
   animation: popIn 0.18s ease; box-shadow: 0 24px 60px rgba(0,0,0,0.2);
 }
 .confirm-popup h3 { font-size: 15px; font-weight: 450; margin-bottom: 6px; }
@@ -4936,7 +4936,7 @@ label.emoji-btn { margin-right: 4px; }
   /* lib_banner.jpg is the real background. The linear-gradient after it is a fallback:
      if the jpg is missing/fails to load, that layer is simply transparent and this
      orange gradient shows through instead, so the banner never goes blank. */
-  background-image: url('lib_banner.jpg'), linear-gradient(180deg, #ffd9a8 0%, #ffa64d 32%, #ff7a2e 62%, #ff4a20 100%);
+  background-image: url('lib_banner.jpg');
   background-size: cover, cover;
   background-position: center, center;
   background-repeat: no-repeat, no-repeat;
@@ -4964,7 +4964,9 @@ label.emoji-btn { margin-right: 4px; }
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: rgba(0,0,0,0.15);
+  background: url('lib_banner.jpg');
+  background-size: cover;
+  background-repeat: no-repeat;
 }
 @keyframes libBannerBreathe {
   0%, 100% { opacity: 0.78; transform: scale(1);    filter: blur(30px) brightness(0.95) saturate(1); }
@@ -4977,14 +4979,20 @@ label.emoji-btn { margin-right: 4px; }
   75%  { background-position: 4% 5%,   -4% -5%, 5% 4%,   3% -3%,  -5% 4%,  4% 5%; }
   100% { background-position: 0% 0%,   0% 0%,   0% 0%,   0% 0%,   0% 0%,   0% 0%; }
 }
+
+#not_fount_icon{
+  fill:#525252;
+  color:#525252;
+}
 .lib-banner-search {
   display: flex; align-items: center; gap: 8px;
   width: 85%;
   background: rgba(0,0,0,0.22);
-  border: 1px solid rgba(255,255,255,0.18);
+  border: 1px solid rgba(255,255,255,0.28);
   border-radius: 999px;
   padding: 10px 16px;
   margin: 0 0 16px 0;
+  border:none;
 }
 .lib-banner-search svg { flex-shrink: 0; color: #1a0e08; }
 .lib-banner-search input {
