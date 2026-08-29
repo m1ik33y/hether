@@ -568,7 +568,7 @@ body {
   content: '';
   position: absolute;
   inset: 0;
-  background-image: url('/chat_bg_pc.svg');
+  background-image: url('chat_bg_pc.svg');
   background-repeat: repeat;
   background-size: 480px auto;
   pointer-events: none;
@@ -1698,7 +1698,7 @@ kbd {
   content: '';
   position: absolute;
   inset: 0;
-  background-image: url('/chat_bg_pc.svg');
+  background-image: url('chat_bg_pc.svg');
   background-repeat: repeat;
   background-size: 480px auto;
   pointer-events: none;
@@ -1712,7 +1712,7 @@ kbd {
 }
 @media (max-width: 768px) {
   .flux-ai-panel::before {
-    background-image: url('/chat_bg.png');
+    background-image: url('chat_bg.svg');
     background-size: 320px auto;
   }
 }
@@ -3663,7 +3663,7 @@ label.emoji-btn { margin-right: 4px; }
   content: '';
   position: absolute;
   inset: 0;
-  background-image: url('/chat_bg.png');
+  background-image: url('chat_bg.svg');
   background-repeat: repeat;
   background-size: 320px auto;
   pointer-events: none;
@@ -3702,7 +3702,7 @@ label.emoji-btn { margin-right: 4px; }
 }
 
 .flux-fs-messages {
-  flex: 1; overflow-y: auto; overflow-x: hidden; background: none;
+  flex: 1; overflow-y: auto; overflow-x: hidden;
   padding: 14px 14px 10px; display: flex; flex-direction: column; gap: 2px;
   min-height: 0;
   /* Prevent bounce/rubber-band scroll from causing layout issues */
@@ -4387,7 +4387,7 @@ label.emoji-btn { margin-right: 4px; }
   width: 70%;
   height: 100%;
   flex: 0 0 70%;
-  background: url('/entry_bg.png') center center / cover no-repeat;
+  background: url('entry_bg.png') center center / cover no-repeat;
 }
 
 /* Right 20%: auth controls with no surrounding parent box */
@@ -4593,7 +4593,7 @@ label.emoji-btn { margin-right: 4px; }
   content: '';
   position: absolute;
   inset: 0;
-  background-image: url('/chat_bg_pc.svg');
+  background-image: url('chat_bg_pc.svg');
   background-repeat: repeat;
   background-size: 480px auto;
   pointer-events: none;
@@ -4607,7 +4607,7 @@ label.emoji-btn { margin-right: 4px; }
 }
 @media (max-width: 768px) {
   #fluxActiveRelayWrap::before {
-    background-image: url('/chat_bg.png');
+    background-image: url('chat_bg.svg');
     background-size: 320px auto;
   }
 }
@@ -4936,7 +4936,7 @@ label.emoji-btn { margin-right: 4px; }
   /* lib_banner.jpg is the real background. The linear-gradient after it is a fallback:
      if the jpg is missing/fails to load, that layer is simply transparent and this
      orange gradient shows through instead, so the banner never goes blank. */
-  background-image: url('/lib_banner.jpg');
+  background-image: url('lib_banner.jpg');
   background-size: cover, cover;
   background-position: center, center;
   background-repeat: no-repeat, no-repeat;
@@ -4964,7 +4964,7 @@ label.emoji-btn { margin-right: 4px; }
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: url('/lib_banner.jpg');
+  background: url('lib_banner.jpg');
   background-size: cover;
   background-repeat: no-repeat;
 }
@@ -5082,7 +5082,7 @@ label.emoji-btn { margin-right: 4px; }
 /* Search page banner uses its own background image (search_banner.jpg) instead of
    the Library banner's lib_banner.jpg, keeping the same orange gradient fallback. */
 .search-page .lib-banner {
-  background-image: url('/search_banner.jpg'), linear-gradient(180deg, #ffd9a8 0%, #ffa64d 32%, #ff7a2e 62%, #ff4a20 100%);
+  background-image: url('search_banner.jpg'), linear-gradient(180deg, #ffd9a8 0%, #ffa64d 32%, #ff7a2e 62%, #ff4a20 100%);
 }
 .search-page-results { display: flex; flex-direction: column; margin-top: 24px; }
 .search-page-hint {
@@ -5759,7 +5759,7 @@ body.has-player-bar .main { padding-bottom: 84px; }
   content: '';
   position: absolute;
   inset: 0;
-  background-image: url('/chat_bg_pc.svg');
+  background-image: url('chat_bg_pc.svg');
   background-repeat: repeat;
   background-size: 420px auto;
   pointer-events: none;
