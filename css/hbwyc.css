@@ -3997,7 +3997,7 @@ label.emoji-btn { margin-right: 4px; }
 /* ── CONFIRM DIALOG ── */
 #confirmOverlay { z-index: 10600; }
 .confirm-popup {
-  background: #171717; border: 1px solid var(--border);
+  background: #101010; border: 1px solid var(--border);
   border-radius: 10px; padding: 22px; width: 340px;
   animation: popIn 0.18s ease; box-shadow: 0 24px 60px rgba(0,0,0,0.2);
 }
