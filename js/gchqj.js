@@ -438,13 +438,42 @@ async function confirmClearRelay() {
   }
 
   const targetIsGroup = _fluxConvIsGroup(targetId);
-  const { error } = await _fluxApplyConvFilter(
-    supabaseClient.from('messages').delete(), targetId, user.id, targetIsGroup
-  );
 
-  if (error) {
+  // A single unbounded DELETE ... WHERE (OR of sender/receiver ANDs) against
+  // a long conversation can touch thousands of rows in one statement. Under
+  // RLS that turns into a lot of per-row policy evaluation inside one
+  // transaction, and on a big/hot table that's enough to blow past Postgres'
+  // statement_timeout ("canceling statement due to statement timeout").
+  // Deleting in small id-based batches keeps each individual DELETE cheap
+  // (a bounded IN-list on the primary key) and never gives any single
+  // statement enough rows to time out, no matter how long the chat is.
+  const DELETE_BATCH_SIZE = 200;
+  const MAX_BATCHES = 500; // hard safety cap (~100k messages) to avoid an infinite loop
+  let deleteError = null;
+
+  for (let batch = 0; batch < MAX_BATCHES; batch++) {
+    const { data: idRows, error: selectError } = await _fluxApplyConvFilter(
+      supabaseClient.from('messages').select('id'), targetId, user.id, targetIsGroup
+    ).limit(DELETE_BATCH_SIZE);
+
+    if (selectError) { deleteError = selectError; break; }
+    if (!idRows || idRows.length === 0) break;
+
+    const ids = idRows.map(r => r.id);
+    const { error: batchDeleteError } = await supabaseClient
+      .from('messages')
+      .delete()
+      .in('id', ids);
+
+    if (batchDeleteError) { deleteError = batchDeleteError; break; }
+
+    // Fewer rows than the batch size means this was the last page.
+    if (idRows.length < DELETE_BATCH_SIZE) break;
+  }
+
+  if (deleteError) {
     if (clearingActiveRelay) { _clearingRelayForUserId = null; _hideClearingOverlay(); }
-    alert('Failed to clear relay: ' + error.message);
+    alert('Failed to clear relay: ' + deleteError.message);
     return;
   }
 
