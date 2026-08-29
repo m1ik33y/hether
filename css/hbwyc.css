@@ -3702,7 +3702,7 @@ label.emoji-btn { margin-right: 4px; }
 }
 
 .flux-fs-messages {
-  flex: 1; overflow-y: auto; overflow-x: hidden;
+  flex: 1; overflow-y: auto; overflow-x: hidden; background: url("chat_bg.png");
   padding: 14px 14px 10px; display: flex; flex-direction: column; gap: 2px;
   min-height: 0;
   /* Prevent bounce/rubber-band scroll from causing layout issues */
