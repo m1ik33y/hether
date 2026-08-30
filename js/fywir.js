@@ -760,6 +760,15 @@ async function fluxSend(mode) {
   if (!staged.length && !input.value.trim()) { input.style.height = 'auto'; return; }
   if (!activeFluxId) { input.style.height = 'auto'; return; }
 
+  // Defense-in-depth: re-check right before send in case media_perm was
+  // revoked after this member staged the media but before hitting send.
+  if (staged.length && !fluxMediaSendingAllowed()) {
+    _setFluxStaged(mode, []);
+    if (mode === 'mobile') clearFluxFsStaging(); else clearFluxStaging();
+    showMediaPermToast();
+    return;
+  }
+
   const text = input.value.trim().replace(/(?<![a-zA-Z])[Tt]-[Tt](?![a-zA-Z])/g, '😭');
 
   // Lock send button immediately — clear input right away so user knows it's queued
@@ -1119,11 +1128,45 @@ function _renderFluxStaging(mode) {
   if (mode === 'mobile') toggleFluxFsSendBtn(); else toggleFluxSendBtn();
 }
 
+// Single choke point for both the file-picker (stageFluxMedia) and clipboard
+// paste (handleFluxPaste in jfgyq.js) staging paths, so a member with
+// media_perm disabled can't attach a photo/video to a DM or group chat
+// either way. This is a UX-level guard only — the real enforcement lives in
+// the `enforce_media_perm` trigger on the messages table, since a client
+// -side check alone can always be bypassed.
+function fluxMediaSendingAllowed() {
+  return window._cachedMediaPerm !== false;
+}
+
 function stageFluxMediaFromDataUrl(dataUrl, isVideo, mode) {
+  if (!fluxMediaSendingAllowed()) {
+    showMediaPermToast();
+    return;
+  }
   const staged = _getFluxStaged(mode);
   staged.push({ dataUrl, isVideo });
   _setFluxStaged(mode, staged);
   _renderFluxStaging(mode);
+}
+
+// Small, self-contained toast — no dependency on other CSS/markup so it's
+// safe to drop in without touching the stylesheet.
+function showMediaPermToast() {
+  let el = document.getElementById('mediaPermToast');
+  if (el) { el.remove(); }
+  el = document.createElement('div');
+  el.id = 'mediaPermToast';
+  el.textContent = 'Photo and video sending has been disabled for your account.';
+  el.style.cssText = 'position:fixed;left:50%;bottom:32px;transform:translateX(-50%);' +
+    'background:#1c1c1e;color:#fff;padding:11px 18px;border-radius:10px;' +
+    'font-size:13px;font-family:inherit;box-shadow:0 6px 24px rgba(0,0,0,.35);' +
+    'z-index:99999;opacity:0;transition:opacity .18s ease;pointer-events:none;max-width:320px;text-align:center;';
+  document.body.appendChild(el);
+  requestAnimationFrame(() => { el.style.opacity = '1'; });
+  setTimeout(() => {
+    el.style.opacity = '0';
+    setTimeout(() => el.remove(), 250);
+  }, 2600);
 }
 
 function clearFluxStaging() {
