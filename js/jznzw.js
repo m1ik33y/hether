@@ -307,6 +307,10 @@ async function loadUserProfile() {
   if (data) {
     profile = { name: data.display_name || data.username, username: '@' + data.username, email: user.email, avatarUrl: data.avatar_url };
     window._cachedUserRole = data.role || null;
+    // media_perm gates whether this account can send photos/videos or paste
+    // media into chats. Defaults to true (allowed) unless an admin has
+    // explicitly disabled it — see fluxMediaSendingAllowed() in fywir.js.
+    window._cachedMediaPerm = data.media_perm !== false;
   }
   renderProfileEverywhere();
   loadGhostMode();
