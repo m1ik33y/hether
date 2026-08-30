@@ -1156,17 +1156,25 @@ function showMediaPermToast() {
   if (el) { el.remove(); }
   el = document.createElement('div');
   el.id = 'mediaPermToast';
-  el.textContent = 'Photo and video sending has been disabled for your account.';
-  el.style.cssText = 'position:fixed;left:50%;bottom:32px;transform:translateX(-50%);' +
-    'background:#1c1c1e;color:#fff;padding:11px 18px;border-radius:10px;' +
-    'font-size:13px;font-family:inherit;box-shadow:0 6px 24px rgba(0,0,0,.35);' +
-    'z-index:99999;opacity:0;transition:opacity .18s ease;pointer-events:none;max-width:320px;text-align:center;';
+  el.innerHTML = '<div style="font-weight:600;">Error (403)</div>' +
+    '<div style="margin-top:4px;color:#c9c9c9;">Insufficient permission</div>';
+  el.style.cssText = 'position:fixed;top:32px;right:0;width:250px;height:98px;' +
+    'background:#0a0a0a;color:#fff;box-sizing:border-box;' +
+    'border-left:6px solid #76b900;' +
+    'display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:16px 18px;' +
+    'font-size:13px;font-family:inherit;letter-spacing:.2px;line-height:1.4;' +
+    'box-shadow:0 8px 28px rgba(0,0,0,.55);' +
+    'z-index:99999;pointer-events:none;' +
+    'transform:translateX(100%);transition:transform .30s cubic-bezier(.16,.84,.44,1);';
   document.body.appendChild(el);
-  requestAnimationFrame(() => { el.style.opacity = '1'; });
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => { el.style.transform = 'translateX(0)'; });
+  });
   setTimeout(() => {
-    el.style.opacity = '0';
-    setTimeout(() => el.remove(), 250);
-  }, 2600);
+    el.style.transition = 'transform .26s cubic-bezier(.55,0,.85,.35)';
+    el.style.transform = 'translateX(100%)';
+    setTimeout(() => el.remove(), 280);
+  }, 3400);
 }
 
 function clearFluxStaging() {
