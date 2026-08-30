@@ -1064,6 +1064,14 @@ async function removeGroupAvatar(groupId) {
 // without a full reload.
 function _fluxApplyProfileLocally(userId, profileData) {
   if (!userId) return;
+
+  // Keep the local media-sending permission flag in sync live, so an admin
+  // toggling it from the vault terminal takes effect immediately instead of
+  // only after the member's next page load.
+  if (currentUser?.id && userId === currentUser.id && profileData && Object.prototype.hasOwnProperty.call(profileData, 'media_perm')) {
+    window._cachedMediaPerm = profileData.media_perm !== false;
+  }
+
   const avatarUrl = profileData?.avatar_url || null;
   const username = profileData?.username || '';
   const displayName = profileData?.display_name || username || 'User';
