@@ -1,4 +1,3 @@
-
 (function() {
 
   const TERM_HISTORY = [];
@@ -155,6 +154,7 @@
       termPrint('  --check <u1> <u2>        check if two users have message history', 'info');
       termPrint('  --clear <uid1> <uid2>    purge all messages between two users', 'info');
       termPrint('  --clear <uid>            purge all FLUXs for a user with everyone', 'info');
+      termPrint('  --media <uid> <on|off>   allow/disallow a user sending photo/video', 'info');
       termPrint('  --reset                  flush terminal output buffer', 'info');
       termPrint('  --help                   display this index', 'info');
       termPrint('', '');
@@ -181,6 +181,18 @@
         return;
       }
       await cmdCheckHistory(parts[1], parts[2]);
+      return;
+    }
+
+    if (cmd === '--media') {
+      if (parts.length !== 3 || (parts[2].toLowerCase() !== 'on' && parts[2].toLowerCase() !== 'off')) {
+        termPrint('', '');
+        termPrint('  ERR  invalid argument count', 'err');
+        termPrint('  usage: --media <uid> <on|off>', 'err');
+        termPrint('', '');
+        return;
+      }
+      await cmdSetMediaPerm(parts[1], parts[2].toLowerCase() === 'on');
       return;
     }
 
@@ -319,6 +331,43 @@
       termPrint('       messages purged but clients may not sync immediately', 'warn');
     }
 
+    termPrint('', '');
+  }
+
+  async function cmdSetMediaPerm(u, enable) {
+    termPrint('', '');
+    termPrint('  [1/3]  resolving: ' + u, 'info');
+    const { data: profileRow, error: pErr } = await supabaseClient
+      .from('profiles').select('id, username, media_perm').eq('username', u).maybeSingle();
+    if (pErr) {
+      termPrint('  ERR  profiles lookup fault — ' + pErr.message, 'err');
+      termPrint('', '');
+      return;
+    }
+    if (!profileRow) {
+      termPrint('  ERR  no record for handle: ' + u, 'err');
+      termPrint('', '');
+      return;
+    }
+
+    termPrint('  [2/3]  current state: ' + (profileRow.media_perm === false ? 'DISABLED' : 'ENABLED'), 'info');
+    termPrint('  [3/3]  issuing UPDATE on profiles.media_perm...', 'info');
+
+    const { error: updErr } = await supabaseClient
+      .from('profiles')
+      .update({ media_perm: enable })
+      .eq('id', profileRow.id);
+
+    if (updErr) {
+      termPrint('', '');
+      termPrint('  ERR  UPDATE rejected by backend', 'err');
+      termPrint('  db:  ' + updErr.message, 'err');
+      termPrint('  code: ' + (updErr.code || 'n/a') + '  hint: ' + (updErr.hint || 'none'), 'err');
+      termPrint('', '');
+      return;
+    }
+
+    termPrint('       media_perm for ' + profileRow.username + ' set to ' + (enable ? 'ENABLED' : 'DISABLED'), 'ok');
     termPrint('', '');
   }
 
