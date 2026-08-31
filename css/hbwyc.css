@@ -801,10 +801,11 @@ body {
 }
 .status-dot { width: 5px; height: 5px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 0 2px rgba(34,197,94,0.2); }
 
-.messages { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 32px 0; scroll-behavior: smooth; display: flex; flex-direction: column; width: 100%; min-width: 0; }
-.messages::-webkit-scrollbar { width: 4px; }
+.messages { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 32px 0; scroll-behavior: smooth; display: flex; flex-direction: column; width: 100%; min-width: 0; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.18) transparent; }
+.messages::-webkit-scrollbar { width: 6px; }
 .messages::-webkit-scrollbar-track { background: transparent; }
-.messages::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 2px; }
+.messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.16); border-radius: 999px; }
+.messages::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.28); }
 
 .message { width: 100%; max-width: 760px; margin: 0 auto 20px; padding: 0 10px; display: flex; gap: 12px; animation: msgIn 0.2s ease; box-sizing: border-box; }
 .message.ai { animation: none; }
@@ -2687,9 +2688,11 @@ kbd {
 }
 .flux-fs-search-wrap .flux-search-input-row { background: var(--surface2); }
 
-.flux-conv-list { flex: 1; overflow-y: auto; padding: 8px 8px; }
-.flux-conv-list::-webkit-scrollbar { width: 3px; }
-.flux-conv-list::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 2px; }
+.flux-conv-list { flex: 1; overflow-y: auto; padding: 8px 8px; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.18) transparent; }
+.flux-conv-list::-webkit-scrollbar { width: 6px; }
+.flux-conv-list::-webkit-scrollbar-track { background: transparent; }
+.flux-conv-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.16); border-radius: 999px; }
+.flux-conv-list::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.28); }
 
 /* Archived folder has its own spacing. The normal sidebar header padding is untouched. */
 #fluxArchivedSidebar .flux-search-wrap {
@@ -6057,5 +6060,58 @@ html, body { background: #060000 !important; }
     height: 100dvh;
     min-height: 100dvh;
     padding: 34px 24px 42px;
+  }
+}
+
+/* --- Mobile: hide search & more (3-dot) icons in DM chat header (flux popup / full-screen chat) --- */
+@media (max-width: 768px) {
+  #fluxFsHeaderSearchBtn,
+  #fluxFsHeaderMoreBtn {
+    display: none !important;
+  }
+}
+
+/* --- Mobile: hide the "Now Playing" side panel — no room for it next to the mobile bottom nav --- */
+@media (max-width: 640px) {
+  .now-playing-panel {
+    display: none !important;
+  }
+}
+
+/* --- Mobile: lift the bottom player bar above the mobile bottom nav instead of sitting behind it --- */
+@media (max-width: 640px) {
+  .spotify-bar {
+    bottom: calc(64px + env(safe-area-inset-bottom, 12px));
+  }
+  /* Reserve room for both the player bar and the bottom nav stacked together,
+     so message content isn't hidden behind them. */
+  body.has-player-bar .main {
+    padding-bottom: calc(84px + 64px + env(safe-area-inset-bottom, 12px)) !important;
+  }
+}
+
+/* --- Mobile: hide the "connect to a device" button and the volume control in the
+   bottom player bar — no room for them, and they push the bar off the right edge --- */
+@media (max-width: 640px) {
+  .spotify-bar .sb-volume,
+  .spotify-bar [title*="device" i],
+  .spotify-bar [aria-label*="device" i],
+  .spotify-bar .sb-icon-btn.sb-device-active {
+    display: none !important;
+  }
+
+  /* Reclaim the space that freed up and tighten the remaining bar content so
+     it fits within the viewport instead of overflowing off the right side. */
+  .spotify-bar {
+    gap: 10px;
+    padding: 0 12px;
+  }
+  .sb-now-playing {
+    width: auto;
+    max-width: 38vw;
+  }
+  .sb-right {
+    width: auto;
+    gap: 10px;
   }
 }
