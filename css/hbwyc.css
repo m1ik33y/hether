@@ -355,7 +355,7 @@ body {
 .flux-archive-secret-body p {
   margin: 0 0 18px;
   color: #bdbdbd;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.5;
 }
 .flux-archive-secret-input {
@@ -570,7 +570,7 @@ body {
   inset: 0;
   background-image: url('chat_bg_pc.svg');
   background-repeat: repeat;
-  background-size: 480px auto;
+  background-size: 600px auto;
   pointer-events: none;
   z-index: 0;
   opacity: 0.05;
@@ -599,7 +599,7 @@ body {
 }
 .companion-titlebar-label {
   font-family: sans-serif;
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 450;
   color: var(--text2);
 }
@@ -1056,7 +1056,7 @@ body {
 .ai-error-retry-btn {
   flex-shrink: 0;
   padding: 6px 13px;
-  border-radius: 7px;
+  border-radius: 6px;
   border: 1px solid rgba(255,255,255,0.16);
   background: transparent;
   color: #fff;
@@ -1479,8 +1479,8 @@ kbd {
 .flux-overlay.show { display: flex; }
 
 .flux-popup {
-  width: min(1110px, 98vw);
-  height: min(650px, 96vh);
+  width: min(1210px, 98vw);
+  height: min(680px, 96vh);
   background: #060000;
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -1701,7 +1701,7 @@ kbd {
   inset: 0;
   background-image: url('chat_bg_pc.svg');
   background-repeat: repeat;
-  background-size: 480px auto;
+  background-size: 600px auto;
   pointer-events: none;
   z-index: 0;
   opacity: 0.05;
@@ -1714,7 +1714,7 @@ kbd {
 @media (max-width: 768px) {
   .flux-ai-panel::before {
     background-image: url('chat_bg.svg');
-    background-size: 320px auto;
+    background-size: 400px auto;
   }
 }
 
@@ -1846,7 +1846,7 @@ kbd {
   width: 0;
   min-width: 0;
   border-left: 0px solid var(--border);
-  background: var(--surface);
+  background: #161717;
   display: flex;
   flex-shrink: 0;
   overflow: hidden;
@@ -2337,23 +2337,46 @@ kbd {
 .flux-theme-toggle-btn {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
-  width: calc(100% - 32px);
-  margin: 10px auto 0;
-  padding: 8px 0;
+  justify-content: flex-start;
+  gap: 10px;
+  width: 100%;
+  margin: 0;
+  padding: 11px 12px;
+  box-sizing: border-box;
   border: none;
-  background: none;
-  color: var(--text3);
+  border-radius: 8px;
+  background: transparent !important;
+  color: var(--text2);
+  opacity: 0.8;
   font-family: 'DM Sans', sans-serif;
-  font-size: 12.5px;
+  font-size: 15px;
+  font-weight: 500;
   cursor: pointer;
-  transition: color var(--t);
-  border-radius: 7px;
+  transition: opacity 0.15s ease, color 0.15s ease;
   flex-shrink: 0;
 }
-.flux-theme-toggle-btn:hover { color: var(--text); background: none; }
-.flux-theme-toggle-btn svg { flex-shrink: 0; }
+
+.flux-theme-toggle-btn:hover,
+.flux-theme-toggle-btn:active,
+.flux-theme-toggle-btn.active {
+  background: transparent !important;
+  background-color: transparent !important;
+  color: var(--text);
+  opacity: 1;
+}
+
+.flux-theme-toggle-btn svg {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  display: block;
+}
+
+#fluxThemeChevron {
+  margin-left: auto;
+  flex: 0 0 auto;
+  transition: transform 0.18s ease;
+}
 
 /* ── THEME PICKER LIST ── */
 .flux-theme-picker {
@@ -2405,6 +2428,12 @@ kbd {
 }
 
 .flux-theme-preview {
+  background-color: var(--theme-recv, var(--surface2));
+  background-image: url('chat_bg.svg');
+  background-repeat: repeat;
+  background-size: 400px auto;
+  opacity: 1;
+  filter: invert(1);
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -2432,7 +2461,7 @@ kbd {
 }
 
 .flux-sidebar {
-  width: 350px;
+  width: 400px;
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
@@ -2443,6 +2472,7 @@ kbd {
 
 .flux-sidebar-header {
   padding: 18px 18px 12px;
+  background:#151616 !important;
   display: flex;
   position: relative;
   z-index: 999999;
@@ -2625,8 +2655,7 @@ kbd {
   background: var(--surface2);
   border: 1px solid var(--border);
   border-radius: 999px;
-  height: 34px;
-  padding: 0 14px;
+  padding: 10px 14px;
   transition: border-color var(--t);
 }
 .flux-search-input-row:focus-within {
@@ -2717,7 +2746,7 @@ kbd {
 }
 .flux-tab-btn {
   flex: none; background: transparent; cursor: pointer;
-  height: 30px; padding: 0 13px; font-family: 'DM Sans', sans-serif;
+  height: 34px; padding: 0 15px; font-family: 'DM Sans', sans-serif;
   font-size: 12px; font-weight: 450; color: var(--text2);
   border: 1px solid var(--border); border-radius: 999px;
   display: flex; align-items: center; justify-content: center; gap: 6px;
@@ -2769,7 +2798,7 @@ kbd {
 
 .flux-conv-item {
   display: flex; align-items: center; gap: 11px;
-  padding: 11px 10px; border-radius: 10px;
+  padding: 12.5px 10px; border-radius: 10px;
   cursor: pointer;
   position: relative;
   margin-bottom: 2px;
@@ -2778,7 +2807,7 @@ kbd {
 .flux-conv-item.active { background: rgba(120,120,130,0.16); }
 
 .flux-conv-avatar {
-  width: 40px; height: 40px; border-radius: 50%;
+  width: 43px; height: 43px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   font-size: 15px; font-weight: 700; color: #fff;
   flex-shrink: 0; overflow: hidden; position: relative;
@@ -2788,8 +2817,8 @@ kbd {
 .flux-conv-avatar-wrap {
   position: relative;
   flex-shrink: 0;
-  width: 40px;
-  height: 40px;
+  width: 43px;
+  height: 43px;
 }
 
 /* Default group pfp: two overlapping member avatars, back-left + front-right,
@@ -2832,8 +2861,8 @@ kbd {
 
 /* Archived is a sidebar destination, not a user avatar: show only its icon. */
 .flux-archived-sidebar-icon {
-  width: 40px;
-  height: 40px;
+  width: 43px;
+  height: 43px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2863,7 +2892,7 @@ kbd {
 .flux-conv-toprow { display: flex; align-items: baseline; gap: 8px; }
 .flux-conv-bottomrow { display: flex; align-items: center; gap: 8px; margin-top: 3px; transition: padding-right .07s ease; }
 .flux-conv-item:hover .flux-conv-bottomrow { padding-right: 24px; }
-.flux-conv-name { flex: 1; min-width: 0; font-size: 13.5px; font-weight: 450; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.flux-conv-name { flex: 1; min-width: 0; font-size: 13.5px; font-weight: 400; color: #ffffff; opacity: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .flux-conv-preview { flex: 1; min-width: 0; font-size: 12px; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .flux-conv-preview.unread { color: var(--text); font-weight: 700; }
 .flux-conv-time { font-size: 11px; color: var(--text3); flex-shrink: 0; }
@@ -2909,7 +2938,7 @@ kbd {
 
 .flux-empty-state {
   flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-  color: var(--text3); gap: 10px;background:#060000
+  color: var(--text3); gap: 10px;background:#161717 !important;
 }
 [data-theme="dark"] .flux-empty-state { background: none; }
 .flux-empty-state svg { opacity: 0.3; }
@@ -2917,9 +2946,9 @@ kbd {
 
 .flux-relay-topbar {
   padding: 11.7px 18px;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface);
+  background: #151616 !important;
   display: flex; align-items: center; gap: 12px;
+  border-bottom:1px solid #242424;
   flex-shrink: 0;
   position: relative;
   z-index: 2;
@@ -3549,8 +3578,8 @@ kbd {
 
 .flux-input-row {
   display: flex; gap: 6px; align-items: center;
-  background: var(--surface); border: 1px solid rgb(168, 168, 168);
-  border-radius: 22px; padding: 6px 6px 6px 9px;
+  background: #242626 !important;
+  border-radius: 28px; padding: 8px 8px 8px 10px;
   transition: border-color var(--t);
 }
 [data-theme="dark"] .flux-input-row { border-color: var(--border); }
@@ -3558,11 +3587,13 @@ kbd {
 
 #fluxInput {
   flex: 1; background: transparent; border: none; outline: none;
-  color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13.5px;
+  color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14.5px;
   resize: none; min-height: 32px; max-height: 270px; line-height: 1.55;
   padding: 5px 6px; overflow-y: auto;
   display: block; vertical-align: middle;
+  scrollbar-width: none; -ms-overflow-style: none;
 }
+#fluxInput::-webkit-scrollbar { display: none; width: 0; height: 0; }
 #fluxInput::placeholder { color: var(--text3); }
 
 .flux-media-btn {
@@ -3773,7 +3804,7 @@ label.emoji-btn { margin-right: 4px; }
   inset: 0;
   background-image: url('chat_bg.svg');
   background-repeat: repeat;
-  background-size: 320px auto;
+  background-size: 400px auto;
   pointer-events: none;
   z-index: 0;
   opacity: 0.05;
@@ -3785,7 +3816,7 @@ label.emoji-btn { margin-right: 4px; }
 }
 .flux-fs-body > * { position: relative; z-index: 1; }
 .flux-fs-header {
-  padding: 65px 16px; border-bottom: 1px solid var(--border);
+  padding: 12px 16px; border-bottom: 1px solid var(--border);
   display: flex; align-items: center; gap: 10px; background: #060000; flex-shrink: 0;
   /* Truly fixed to top — never moves with scroll or keyboard */
   position: sticky; top: 0; z-index: 10;
@@ -3800,9 +3831,9 @@ label.emoji-btn { margin-right: 4px; }
 .flux-fs-back:hover { background: var(--surface2); }
 .flux-fs-back svg { width: 18px; height: 18px; }
 
-.flux-fs-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; overflow: hidden; flex-shrink: 0; position: relative; }
+.flux-fs-avatar { width: 33px; height: 33px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; overflow: hidden; flex-shrink: 0; position: relative; }
 .flux-fs-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
-.flux-fs-name { font-size: 14px; font-weight: 450; color: var(--text); flex: 1; }
+.flux-fs-name { font-size: 14.3px; font-weight: 450; color: var(--text); flex: 1; }
 
 .flux-fs-status-wrap {
   display: flex; align-items: center; gap: 5px;
@@ -4703,7 +4734,7 @@ label.emoji-btn { margin-right: 4px; }
   inset: 0;
   background-image: url('chat_bg_pc.svg');
   background-repeat: repeat;
-  background-size: 480px auto;
+  background-size: 600px auto;
   pointer-events: none;
   z-index: 0;
   opacity: 0.05;
@@ -4716,7 +4747,7 @@ label.emoji-btn { margin-right: 4px; }
 @media (max-width: 768px) {
   #fluxActiveRelayWrap::before {
     background-image: url('chat_bg.svg');
-    background-size: 320px auto;
+    background-size: 400px auto;
   }
 }
 
@@ -5869,7 +5900,7 @@ body.has-player-bar .main { padding-bottom: 84px; }
   inset: 0;
   background-image: url('chat_bg_pc.svg');
   background-repeat: repeat;
-  background-size: 420px auto;
+  background-size: 520px auto;
   pointer-events: none;
   z-index: 0;
   filter: invert(1);
@@ -6113,5 +6144,259 @@ html, body { background: #060000 !important; }
   .sb-right {
     width: auto;
     gap: 10px;
+  }
+}
+
+/* ===================================================== */
+/* Custom overrides: Flux popup theme tweaks             */
+/* ===================================================== */
+
+/* Chat header (top of Flux popup) */
+.flux-fs-header {
+  background: #151616 !important;
+  border-bottom: none !important;
+}
+
+/* Chat body background, including the svg pattern layer */
+.flux-fs-body,
+.flux-fs-messages,
+.flux-ai-panel {
+  background: #151616 !important;
+}
+
+/* Message textbox */
+.flux-fs-input-row,
+#mainApp .flux-fs-input-row {
+  background: #242626 !important;
+  border: none !important;
+}
+
+/* User search bar */
+.flux-search-input-row,
+.flux-fs-search-wrap .flux-search-input-row {
+  background: #2E2F2F !important;
+}
+
+/* DM sidebar */
+.flux-sidebar {
+  background: #151616 !important;
+}
+
+/* Companion popup / active relay / vault terminal backgrounds,
+   including their svg pattern layers */
+.companion-popup,
+#fluxActiveRelayWrap,
+#vaultTerminal {
+  background: #151616 !important;
+}
+/* ── THEME CARD PREVIEW ──
+   Match the actual Flux chat background SVG treatment. */
+.flux-theme-item {
+  position: relative;
+}
+.flux-theme-preview,
+.flux-theme-item .flux-theme-preview,
+.flux-theme-card,
+.flux-theme-item .flux-theme-card {
+  background-color: var(--surface) !important;
+  background-image: url('chat_bg.svg') !important;
+  background-repeat: repeat !important;
+  background-size: 400px auto !important;
+  background-position: center !important;
+  filter: none;
+}
+
+/* Same SVG treatment used by the chat page background. */
+.flux-theme-preview::before,
+.flux-theme-item .flux-theme-preview::before,
+.flux-theme-card::before,
+.flux-theme-item .flux-theme-card::before {
+  content: none !important;
+}
+
+/* Keep the actual preview SVG treatment consistent with chat page:
+   repeated SVG, subtle opacity, inverted SVG layer. */
+.flux-theme-preview {
+  position: relative;
+  overflow: hidden;
+}
+.flux-theme-preview {
+  background-color: var(--surface) !important;
+}
+.flux-theme-preview {
+  isolation: isolate;
+}
+.flux-theme-preview > * {
+  position: relative;
+  z-index: 1;
+}
+
+
+/* Theme-card visual styling lives here; JS only supplies theme color variables. */
+#fluxThemeModalOverlay .flux-theme-card-bg {
+  background-color: var(--theme-recv, var(--surface2));
+  background-image: url('chat_bg.svg');
+  background-repeat: repeat;
+  background-size: 400px auto;
+  filter: invert(1);
+  opacity: 0.1;
+}
+#fluxThemeModalOverlay .flux-theme-mini-bubble {
+  background: var(--theme-bubble-bg);
+  color: var(--theme-bubble-color);
+}
+#fluxThemeToggleBtn.flux-theme-toggle-btn {
+  width: 100% !important;
+  box-sizing: border-box;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 19px 12px !important;
+  border-radius: 6px !important;
+}
+#fluxThemeToggleBtn.flux-theme-toggle-btn:hover {
+  background: rgba(120,120,130,0.16) !important;
+}
+#fluxThemeToggleBtn.flux-theme-toggle-btn svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+
+/* =========================================================
+   FLUX THEME PICKER — CLEAN INLINE DROPDOWN
+   ========================================================= */
+
+#fluxThemeModalOverlay {
+  display: none !important;
+}
+
+#fluxThemePicker.flux-theme-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  height: 0;
+  max-height: 0;
+  margin: 0;
+  padding: 0 2px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  opacity: 0;
+  overflow: hidden;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-4px);
+  transition:
+    height 0.18s ease,
+    max-height 0.18s ease,
+    opacity 0.14s ease,
+    transform 0.18s ease,
+    padding 0.18s ease,
+    margin 0.18s ease;
+}
+
+#fluxThemePicker.flux-theme-picker.open {
+  height: auto;
+  max-height: none;
+  margin: 4px 0 0;
+  padding: 2px;
+  opacity: 1;
+  overflow: visible;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+  scrollbar-width: none;
+}
+
+#fluxThemePicker.flux-theme-picker::-webkit-scrollbar {
+  display: none;
+}
+
+#fluxThemePicker .flux-theme-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  padding: 8px;
+  box-sizing: border-box;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+#fluxThemePicker .flux-theme-item:hover {
+  background: #252525;
+}
+
+#fluxThemePicker .flux-theme-item.active {
+  background: #252525;
+  border-color: transparent;
+}
+
+#fluxThemePicker .flux-theme-preview {
+  width: 68px;
+  height: 42px;
+  flex: 0 0 68px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  padding: 4px 5px;
+  box-sizing: border-box;
+  border-radius: 7px;
+  overflow: hidden;
+}
+
+#fluxThemePicker .flux-theme-bubble-sent,
+#fluxThemePicker .flux-theme-bubble-recv {
+  max-width: 85%;
+  border-radius: 7px;
+  padding: 2px 5px;
+  font-size: 8px;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#fluxThemePicker .flux-theme-bubble-sent {
+  align-self: flex-end;
+}
+
+#fluxThemePicker .flux-theme-bubble-recv {
+  align-self: flex-start;
+}
+
+#fluxThemePicker .flux-theme-item > div:last-child {
+  min-width: 0;
+  flex: 1;
+}
+
+#fluxThemePicker .flux-theme-item-label {
+  font-size: 12px;
+  line-height: 1.25;
+  font-weight: 550;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#fluxThemePicker .flux-theme-item-sub {
+  margin-top: 2px;
+  font-size: 10px;
+  line-height: 1.2;
+  color: var(--text3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 768px) {
+  #fluxThemePicker.flux-theme-picker.open {
+    max-height: none;
   }
 }
