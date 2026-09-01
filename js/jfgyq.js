@@ -520,7 +520,7 @@ function _ensureFluxChatSearchStyles() {
     .flux-chat-search-tab-body { display:flex; flex-direction:column; min-height:0; flex:1; padding:0 0px 18px; }
     .flux-chat-search-tab-input-wrap { position:relative; flex-shrink:0; margin:2px 0 12px; }
     .flux-chat-search-tab-input-wrap svg { position:absolute; left:12px; top:50%; transform:translateY(-50%); width:16px; height:16px; color:#8b8b91; pointer-events:none; }
-    .flux-chat-search-input { width:100%; height:42px; box-sizing:border-box; border:1px solid rgba(255,255,255,.08); outline:none; border-radius:9px; padding:0 12px 0 36px; background:#2a2a2e; color:var(--text,#f4f4f5); font:inherit; font-size:13px; }
+    .flux-chat-search-input { width:100%; height:42px; box-sizing:border-box; border:1px solid rgba(255,255,255,.08); outline:none; border-radius:29px; padding:0 12px 0 36px; background:#2a2a2e; color:var(--text,#f4f4f5); font:inherit; font-size:13px; }
     .flux-chat-search-input:focus { border-color:rgba(31,199,137,.45); background:#2d2d31; }
     .flux-chat-search-input::placeholder { color:#85858c; }
     .flux-chat-search-results { overflow:auto; min-height:0; flex:1; padding:2px 0 8px;&::-webkit-scrollbar {
