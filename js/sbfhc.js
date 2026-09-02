@@ -61,8 +61,8 @@ const supabaseClient = window.supabase.createClient(
 
 // ── LIBRARY (separate Supabase project) ──
 const libraryClient = window.supabase.createClient(
-  "https://fkstfwciwtialzycuefl.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZrc3Rmd2Npd3RpYWx6eWN1ZWZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYzNTI4MjEsImV4cCI6MjEwMTkyODgyMX0.ZGZJ51xX_SMUjs1TvoBJNvqMMJoxPrZla2dt4lCvjls"
+  "https://okliiiqqllzaaoyshtbg.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9rbGlpaXFxbGx6YWFveXNodGJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzMjYyNzMsImV4cCI6MjEwMzkwMjI3M30.9aQP7LlJuxjXGt4ANnCe4yM8V12_wokF78CMrdeOLm0"
 );
 
 // ── SUBSCRIPTION MANAGER ──
