@@ -2762,6 +2762,8 @@ kbd {
 }
 .flux-tab-count[data-zero="true"] { display: none; }
 
+
+
 /* ── MOVE-TO (PRIMARY/GENERAL) ACTION ON A CONV ROW ── */
 .flux-conv-menu-btn {
   position: absolute; right: 8px; bottom: 8px; z-index: 999;
@@ -3113,8 +3115,14 @@ kbd {
   gap: 2px;
   min-height: 0;
 }
-.flux-relay-messages::-webkit-scrollbar { width: 3px; }
-.flux-relay-messages::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 2px; }
+.flux-relay-messages {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.18) transparent;
+}
+.flux-relay-messages::-webkit-scrollbar { width: 6px; }
+.flux-relay-messages::-webkit-scrollbar-track { background: transparent; }
+.flux-relay-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.16); border-radius: 999px; }
+.flux-relay-messages::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.28); }
 
 .flux-time-separator {
   display: none;
