@@ -4143,6 +4143,65 @@ label.emoji-btn { margin-right: 4px; }
 
 /* ── CONFIRM DIALOG ── */
 #confirmOverlay { z-index: 10600; }
+/* Hether installer download popup — matches the PDP edit-profile style. */
+.confirm-popup.hether-download-popup {
+  background: #282828;
+  border-radius: 8px;
+  padding: 24px;
+  width: 460px;
+  max-width: calc(100vw - 40px);
+  box-shadow: 0 24px 60px rgba(0,0,0,0.4);
+  animation: popIn 0.18s ease;
+}
+.confirm-popup.hether-download-popup h3 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 12px;
+}
+.confirm-popup.hether-download-popup p {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #bdbdbd;
+  margin: 0 0 24px;
+}
+.confirm-popup.hether-download-popup .popup-btns {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.confirm-popup.hether-download-popup .btn-cancel {
+  padding: 12px 18px;
+  border-radius: 500px;
+  border: 1px solid #565656;
+  background: transparent;
+  color: #fff;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+}
+.confirm-popup.hether-download-popup .btn-cancel:hover {
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+}
+.confirm-popup.hether-download-popup .btn-confirm {
+  min-width: 96px;
+  padding: 12px 32px;
+  border: none !important;
+  border-radius: 500px;
+  background: #fff !important;
+  color: #000 !important;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform var(--t), background var(--t);
+}
+.confirm-popup.hether-download-popup .btn-confirm:hover {
+  transform: scale(1.04);
+  background: #f0f0f0 !important;
+}
+
 .confirm-popup {
   background: #101010; border: 1px solid var(--border);
   border-radius: 10px; padding: 22px; width: 340px;
@@ -4196,16 +4255,17 @@ label.emoji-btn { margin-right: 4px; }
 .flux-msg-action-item {
   display: flex; align-items: center; gap: 9px;
   padding: 8px 12px; border-radius: 7px; cursor: pointer;
-  font-size: 13px; color: var(--text2);
+  font-size: 13px; color: rgba(255,255,255,1);
   transition: background var(--t), color var(--t);
   border: none; background: transparent; width: 100%; text-align: left;
   font-family: 'DM Sans', sans-serif;
   white-space: nowrap;
 }
 .flux-msg-action-item:hover { background: var(--surface2); color: var(--text); }
-.flux-msg-action-item.danger { color: #ef4444; }
+.flux-msg-action-item.danger { color: rgba(255,255,255,1); }
 .flux-msg-action-item.danger:hover { background: rgba(239,68,68,0.08); color: #ef4444; }
 .flux-msg-action-item svg { width: 13px; height: 13px; flex-shrink: 0; }
+.flux-msg-action-divider { height: 1px; margin: 5px 6px; background: var(--border); }
 
 /* ── MOBILE BOTTOM NAV BAR ── */
 .mobile-bottom-nav {
