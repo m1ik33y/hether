@@ -1910,32 +1910,63 @@ async function _rehydrateRealtime() {
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') {
     _ghostTrigger();
-  } else if (document.visibilityState === 'visible' && fluxOpen && activeFluxId) {
-    markConversationSeen(activeFluxId);
-    if (_seenMyUserId) pollSeenStatus(_seenMyUserId);
-    const contact = fluxContacts ? fluxContacts.find(c => c.id === activeFluxId) : null;
-    if (contact) { contact.unread = false; contact.unreadCount = 0; }
-    _updateTitleUnreadBadge();
-    buildFLUXConvList();
-    // Reconnect any channels that died while hidden
-    _rehydrateRealtime();
   }
+  // Removed: re-marking conversation seen / polling seen status / rehydrating
+  // realtime channels on every tab refocus (visibilitychange -> 'visible').
+  // This was firing a batch of Supabase requests (auth.getUser, messages
+  // select/update) each time the tab regained focus. Realtime updates
+  // (postgres_changes + BroadcastChannel) still keep seen-state in sync
+  // without needing this extra round trip. Actual dead-channel recovery is
+  // now handled by the socket-health detector below instead.
 });
 
 window.addEventListener('blur', () => { _ghostTrigger(); });
 
-window.addEventListener('focus', () => {
-  if (fluxOpen && activeFluxId) {
-    markConversationSeen(activeFluxId);
-    if (_seenMyUserId) pollSeenStatus(_seenMyUserId);
-    const contact = fluxContacts ? fluxContacts.find(c => c.id === activeFluxId) : null;
-    if (contact) { contact.unread = false; contact.unreadCount = 0; }
-    _updateTitleUnreadBadge();
-    buildFLUXConvList();
-    // Reconnect any channels that dropped while the window was blurred
-    _rehydrateRealtime();
+// Removed: window 'focus' handler that re-ran markConversationSeen,
+// pollSeenStatus, and _rehydrateRealtime on every tab refocus. Same
+// reasoning as the visibilitychange handler above.
+
+// ── REALTIME SOCKET HEALTH DETECTOR ──
+// Instead of blindly re-checking/reconnecting channels every time the tab
+// is focused, this listens directly to the underlying Supabase websocket
+// (the single connection all channels multiplex over) and only reacts when
+// it actually goes down — e.g. wifi drops, or the browser/OS suspends the
+// socket after the tab sits backgrounded for a long time (this is also
+// exactly when Supabase's own heartbeat timeout fires onClose/onError).
+//
+// It deliberately does NOT fire on:
+//   - closeFLUX() / removing individual channels on purpose (that only
+//     closes those channels, not the shared socket)
+//   - plain tab blur/focus or visibilitychange (no socket event = nothing
+//     actually died, so there is nothing to reconnect)
+//
+// When the socket comes back up after having gone down, _rehydrateRealtime()
+// runs once — and it already only rebuilds channels whose .state isn't
+// 'joined', so channels that survived the blip are left alone.
+let _fluxSocketWasDown = false;
+
+function _initRealtimeSocketHealthDetector() {
+  const rt = supabaseClient?.realtime;
+  if (!rt || typeof rt.onOpen !== 'function' || typeof rt.onClose !== 'function' || typeof rt.onError !== 'function') {
+    return; // defensive: skip silently if the realtime client API differs
   }
-});
+
+  rt.onOpen(() => {
+    if (_fluxSocketWasDown) {
+      _fluxSocketWasDown = false;
+      _rehydrateRealtime();
+    }
+  });
+
+  rt.onClose(() => {
+    _fluxSocketWasDown = true;
+  });
+
+  rt.onError(() => {
+    _fluxSocketWasDown = true;
+  });
+}
+_initRealtimeSocketHealthDetector();
 
 async function loadGhostMode() {
   try {
