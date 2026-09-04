@@ -1925,6 +1925,11 @@ async function _rehydrateRealtime() {
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') {
     _ghostTrigger();
+  } else {
+    // Cheap, local-only: just clears the title badge for the conversation
+    // the user already has open. Does not touch the network — that's still
+    // handled entirely by realtime, per the note below.
+    _clearActiveConvBgUnread();
   }
   // Removed: re-marking conversation seen / polling seen status / rehydrating
   // realtime channels on every tab refocus (visibilitychange -> 'visible').
@@ -1936,6 +1941,7 @@ document.addEventListener('visibilitychange', () => {
 });
 
 window.addEventListener('blur', () => { _ghostTrigger(); });
+window.addEventListener('focus', () => { _clearActiveConvBgUnread(); });
 
 // Removed: window 'focus' handler that re-ran markConversationSeen,
 // pollSeenStatus, and _rehydrateRealtime on every tab refocus. Same
@@ -2079,6 +2085,26 @@ async function toggleInboxGrouping() {
 let _notificationsEnabled = false; // default off (mirrors DB default=false)
 let _soundEnabled = false;         // default off (mirrors DB default=false)
 
+// True when a message arrives for the currently-open conversation while
+// this tab/window isn't actually visible & focused (e.g. user is on another
+// browser tab, or the Electron window is in the background). This never
+// touches contact.unread/unreadCount — that stays reserved for conversations
+// the user hasn't got open (see fywir.js) — it only drives the title badge,
+// so switching back to this tab clears it without ever showing a stray dot
+// on the conversation the user already has selected.
+let _fluxActiveConvBgUnread = false;
+
+function _markActiveConvBgUnread(conversationId) {
+  if (activeFluxId !== conversationId) return;
+  _fluxActiveConvBgUnread = true;
+}
+
+function _clearActiveConvBgUnread() {
+  if (!_fluxActiveConvBgUnread) return;
+  _fluxActiveConvBgUnread = false;
+  _updateTitleUnreadBadge();
+}
+
 // ── LOW BLIP SOUND (Discord-style warm blip) ──
 const _notifAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
 function _playLowBlip() {
@@ -2218,10 +2244,17 @@ function _updateTitleUnreadBadge() {
         return true;
       }).length
     : 0;
-  if (unreadUsers <= 0) {
+  // The open conversation intentionally never sets contact.unread (that dot
+  // is reserved for conversations the user hasn't got open), but if it got a
+  // message while this tab was hidden/unfocused, it should still count
+  // toward the badge — otherwise switching tabs on your open chat silently
+  // drops all title notifications for it.
+  const activeConvCounts = (_fluxActiveConvBgUnread && !_isRelayVisibleFor(activeFluxId)) ? 1 : 0;
+  const totalUnread = unreadUsers + activeConvCounts;
+  if (totalUnread <= 0) {
     document.title = "Hether - Web Player";
   } else {
-    document.title = `(${unreadUsers}) Hether - Web Player`;
+    document.title = `(${totalUnread}) Hether - Web Player`;
   }
 }
 
@@ -2239,6 +2272,7 @@ const _originalCloseFLUX = window.closeFLUX;
 if (typeof _originalCloseFLUX === 'function') {
   window.closeFLUX = async function() {
     await _originalCloseFLUX.apply(this, arguments);
+    _fluxActiveConvBgUnread = false;
     document.title = "Hether - Web Player";
   };
 }
