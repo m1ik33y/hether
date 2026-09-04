@@ -54,9 +54,10 @@ async function _fluxGetPinnedMessages(convId) {
     .order('created_at', { ascending: true });
 
   if (pinError) {
-    console.warn('[FLUX] Could not load pinned messages:', pinError.message);
+    console.error('[FLUX][pinned] SELECT on pinned_messages failed — check RLS policy for this table:', pinError);
     return [];
   }
+  console.log('[FLUX][pinned] pinned_messages rows fetched:', pins?.length ?? 0, pins);
   const ids = (pins || []).map(p => p.message_id).filter(Boolean);
   if (!ids.length) return [];
 
@@ -65,7 +66,7 @@ async function _fluxGetPinnedMessages(convId) {
     .select('*')
     .in('id', ids);
   if (msgError) {
-    console.warn('[FLUX] Could not load pinned message rows:', msgError.message);
+    console.error('[FLUX][pinned] SELECT on messages for pinned ids failed:', msgError);
     return [];
   }
 
@@ -214,30 +215,54 @@ function _fluxRenderPinnedMessages(convId, pins, messagesId) {
 
 async function loadFluxPinnedMessages(convId,messagesId){
   const token=++_fluxPinnedLoadToken;
+  console.log('[FLUX][pinned] loadFluxPinnedMessages start',{convId,messagesId,token});
   const pins=await _fluxGetPinnedMessages(convId);
-  if(token!==_fluxPinnedLoadToken || activeFluxId!==convId) return;
+  if(token!==_fluxPinnedLoadToken){
+    console.warn('[FLUX][pinned] load aborted — a newer load was started before this one finished',{convId,messagesId,token,currentToken:_fluxPinnedLoadToken});
+    return;
+  }
+  if(activeFluxId!==convId){
+    console.warn('[FLUX][pinned] load aborted — active conversation changed',{convId,activeFluxId});
+    return;
+  }
+  console.log('[FLUX][pinned] rendering',{convId,messagesId,count:pins.length});
   _fluxRenderPinnedMessages(convId,pins,messagesId);
 }
 
 async function toggleFluxMessagePin(msgId){
-  if(!msgId || !activeFluxId) return;
-  const {data:{user}}=await supabaseClient.auth.getUser();
-  if(!user) return;
+  if(!msgId || !activeFluxId){
+    console.warn('[FLUX][pinned] toggle aborted — missing msgId or activeFluxId',{msgId,activeFluxId});
+    return;
+  }
+  const {data:{user},error:userError}=await supabaseClient.auth.getUser();
+  if(userError){ console.error('[FLUX][pinned] auth.getUser() failed',userError); }
+  if(!user){ console.warn('[FLUX][pinned] toggle aborted — no authenticated user'); return; }
 
   const {data:existing,error:checkError}=await supabaseClient
     .from('pinned_messages').select('message_id').eq('message_id',msgId).maybeSingle();
-  if(checkError){alert('Could not check message pin state: '+checkError.message);return;}
+  if(checkError){
+    console.error('[FLUX][pinned] could not check pin state',checkError);
+    alert('Could not check message pin state: '+checkError.message);
+    return;
+  }
 
   if(existing){
     const {error}=await supabaseClient.from('pinned_messages').delete().eq('message_id',msgId);
-    if(error){alert('Could not unpin message: '+error.message);return;}
+    if(error){
+      console.error('[FLUX][pinned] unpin failed',error);
+      alert('Could not unpin message: '+error.message);
+      return;
+    }
+    console.log('[FLUX][pinned] unpinned',{msgId});
   }else{
     const {error}=await supabaseClient.from('pinned_messages').insert({message_id:msgId,pinned_by:user.id});
     if(error){
+      console.error('[FLUX][pinned] pin insert failed',error);
       if(/maximum|3 pinned|three pinned|too many/i.test(error.message||'')) { showFluxErrorToast?.('You can pin upto 3 elements'); }
       else alert('Could not pin message: '+error.message);
       return;
     }
+    console.log('[FLUX][pinned] pinned',{msgId});
   }
   _fluxPinnedIndex=0;
   await loadFluxPinnedMessages(activeFluxId,'fluxRelayMessages');
@@ -246,17 +271,38 @@ async function toggleFluxMessagePin(msgId){
 
 function _fluxSubscribePinnedMessages(convId){
   if(_fluxPinnedChannel){
-    try{supabaseClient.removeChannel(_fluxPinnedChannel);}catch(e){}
+    try{supabaseClient.removeChannel(_fluxPinnedChannel);}catch(e){console.error('[FLUX][pinned] removeChannel threw',e);}
     _fluxPinnedChannel=null;
   }
   if(!convId) return;
-  const channel=supabaseClient.channel(`flux-pinned:${convId}:${Math.random().toString(36).slice(2)}`)
-    .on('postgres_changes',{event:'*',schema:'public',table:'pinned_messages'},()=>{
-      if(activeFluxId!==convId) return;
+  const channelName=`flux-pinned:${convId}:${Math.random().toString(36).slice(2)}`;
+  const channel=supabaseClient.channel(channelName)
+    .on('postgres_changes',{event:'*',schema:'public',table:'pinned_messages'},(payload)=>{
+      console.log('[FLUX][pinned] postgres_changes event received',{convId,activeFluxId,eventType:payload?.eventType,payload});
+      if(activeFluxId!==convId){
+        console.warn('[FLUX][pinned] ignoring event — conversation no longer active',{convId,activeFluxId});
+        return;
+      }
       _fluxPinnedIndex=0;
       loadFluxPinnedMessages(convId,'fluxRelayMessages');
       loadFluxPinnedMessages(convId,'fluxFsMessages');
-    }).subscribe();
+    })
+    .subscribe((status,err)=>{
+      // This status callback is the key diagnostic: if you never see
+      // 'SUBSCRIBED' in the console, no postgres_changes event will ever
+      // reach this client, no matter what the pinning user does. That
+      // almost always means either (a) the `pinned_messages` table hasn't
+      // been added to the `supabase_realtime` publication in Supabase, or
+      // (b) an RLS SELECT policy on the table is blocking this user from
+      // being authorized for the realtime feed.
+      if(status==='SUBSCRIBED'){
+        console.log('[FLUX][pinned] realtime channel subscribed',{convId,channelName});
+      }else if(status==='CHANNEL_ERROR' || status==='TIMED_OUT' || status==='CLOSED'){
+        console.error('[FLUX][pinned] realtime channel failed',{convId,channelName,status,err});
+      }else{
+        console.log('[FLUX][pinned] realtime channel status',{convId,channelName,status});
+      }
+    });
   _fluxPinnedChannel=channel;
 }
 
