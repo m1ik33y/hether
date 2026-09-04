@@ -578,6 +578,7 @@ function _fluxRemoveGroupLocally(groupId) {
       showFluxEmptyState();
     }
     activeFluxId = null;
+    _fluxActiveConvBgUnread = false;
     document.querySelectorAll('#fluxConvList .flux-conv-item, #fluxFsConvList .flux-conv-item')
       .forEach(el => el.classList.remove('active'));
     _updateGroupMenuBtnVisibility(null);
