@@ -3,19 +3,36 @@ const FLUX_PIN_ICON =
   '<path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 1-2-2H8a2 2 0 0 1 0 4 1 1 0 0 1 1 1v3.76z"/>';
 
 let _fluxPinnedChannel = null;
-let _fluxPinnedLoadToken = 0;
+// Separate token per view — a load for 'fluxFsMessages' must never be able
+// to invalidate an in-flight load for 'fluxRelayMessages' or vice versa.
+// A single shared counter here was the actual bug: the direct call from
+// toggleFluxMessagePin() and the echoed realtime event for the same
+// pin/unpin action race each other, and with one shared token a load for
+// one view could bump the counter and silently abort the other view's
+// in-flight, already-fetched render.
+const _fluxPinnedLoadTokens = { fluxRelayMessages: 0, fluxFsMessages: 0 };
 let _fluxPinnedIndex = 0;
 let _fluxPinnedItems = [];
 
 function _fluxEnsurePinnedBar(messagesId) {
   const msgsEl = document.getElementById(messagesId);
-  if (!msgsEl || !msgsEl.parentElement) return null;
+  if (!msgsEl) {
+    console.error('[FLUX][pinned] _fluxEnsurePinnedBar: no element with id', messagesId, '— render aborted, this is why nothing shows up');
+    return null;
+  }
+  if (!msgsEl.parentElement) {
+    console.error('[FLUX][pinned] _fluxEnsurePinnedBar:', messagesId, 'has no parentElement (detached from DOM?) — render aborted');
+    return null;
+  }
   let bar = msgsEl.parentElement.querySelector('.flux-pinned-messages-bar');
   if (!bar) {
     bar = document.createElement('div');
     bar.className = 'flux-pinned-messages-bar';
     bar.innerHTML = '<div class="flux-pinned-messages-inner"></div>';
     msgsEl.parentElement.insertBefore(bar, msgsEl);
+    console.log('[FLUX][pinned] created new bar for', messagesId);
+  } else {
+    console.log('[FLUX][pinned] reused existing bar for', messagesId);
   }
   return bar;
 }
@@ -27,7 +44,8 @@ function _fluxHidePinnedBar(messagesId) {
 }
 
 function _fluxClearPinnedFrontend() {
-  _fluxPinnedLoadToken++;
+  _fluxPinnedLoadTokens.fluxRelayMessages++;
+  _fluxPinnedLoadTokens.fluxFsMessages++;
   _fluxPinnedIndex = 0;
   _fluxPinnedItems = [];
   _fluxPinnedMessageIds.clear();
@@ -147,7 +165,10 @@ function _fluxRenderPinnedMessages(convId, pins, messagesId) {
   const bar = _fluxEnsurePinnedBar(messagesId);
   if (!bar) return;
   const inner = bar.querySelector('.flux-pinned-messages-inner');
-  if (!inner) return;
+  if (!inner) {
+    console.error('[FLUX][pinned] bar exists but is missing .flux-pinned-messages-inner — markup got corrupted somewhere, render aborted');
+    return;
+  }
 
   _fluxPinnedItems = Array.isArray(pins) ? pins : [];
   _fluxPinnedIndex = Math.max(0, Math.min(_fluxPinnedIndex, _fluxPinnedItems.length - 1));
@@ -161,6 +182,7 @@ function _fluxRenderPinnedMessages(convId, pins, messagesId) {
 
   if (!_fluxPinnedItems.length) {
     bar.style.display = 'none';
+    console.log('[FLUX][pinned] no pinned items — bar hidden', {convId, messagesId});
     return;
   }
 
@@ -211,14 +233,33 @@ function _fluxRenderPinnedMessages(convId, pins, messagesId) {
     };
     bar.appendChild(next);
   }
+
+  // Post-mutation sanity check: confirms whether the bar is actually part
+  // of the visible document at this point, and what CSS is doing to it.
+  // If isConnected is true but display/visibility say hidden or the rect
+  // is 0x0, this is a CSS/layout issue, not a JS/data issue — the fetch
+  // and render both worked, something is just visually suppressing it.
+  requestAnimationFrame(() => {
+    const cs = getComputedStyle(bar);
+    const rect = bar.getBoundingClientRect();
+    console.log('[FLUX][pinned] post-render bar state', {
+      convId, messagesId,
+      isConnected: bar.isConnected,
+      inlineDisplay: bar.style.display,
+      computedDisplay: cs.display,
+      computedVisibility: cs.visibility,
+      rect: { width: rect.width, height: rect.height, top: rect.top, left: rect.left },
+      offsetParentIsNull: bar.offsetParent === null,
+    });
+  });
 }
 
 async function loadFluxPinnedMessages(convId,messagesId){
-  const token=++_fluxPinnedLoadToken;
+  const token=++_fluxPinnedLoadTokens[messagesId];
   console.log('[FLUX][pinned] loadFluxPinnedMessages start',{convId,messagesId,token});
   const pins=await _fluxGetPinnedMessages(convId);
-  if(token!==_fluxPinnedLoadToken){
-    console.warn('[FLUX][pinned] load aborted — a newer load was started before this one finished',{convId,messagesId,token,currentToken:_fluxPinnedLoadToken});
+  if(token!==_fluxPinnedLoadTokens[messagesId]){
+    console.warn('[FLUX][pinned] load aborted — a newer load for this same view was started before this one finished',{convId,messagesId,token,currentToken:_fluxPinnedLoadTokens[messagesId]});
     return;
   }
   if(activeFluxId!==convId){
@@ -275,6 +316,7 @@ function _fluxSubscribePinnedMessages(convId){
     _fluxPinnedChannel=null;
   }
   if(!convId) return;
+  let debounceTimer=null;
   const channelName=`flux-pinned:${convId}:${Math.random().toString(36).slice(2)}`;
   const channel=supabaseClient.channel(channelName)
     .on('postgres_changes',{event:'*',schema:'public',table:'pinned_messages'},(payload)=>{
@@ -283,9 +325,18 @@ function _fluxSubscribePinnedMessages(convId){
         console.warn('[FLUX][pinned] ignoring event — conversation no longer active',{convId,activeFluxId});
         return;
       }
-      _fluxPinnedIndex=0;
-      loadFluxPinnedMessages(convId,'fluxRelayMessages');
-      loadFluxPinnedMessages(convId,'fluxFsMessages');
+      // Debounce: the client that performed the pin/unpin gets this event
+      // echoed back to it at roughly the same time its own direct
+      // loadFluxPinnedMessages() calls are already in flight, and a burst
+      // of rapid pin/unpin clicks can fire several events in quick
+      // succession. Coalescing them into one fetch after a short quiet
+      // period avoids multiple overlapping loads stepping on each other.
+      clearTimeout(debounceTimer);
+      debounceTimer=setTimeout(()=>{
+        _fluxPinnedIndex=0;
+        loadFluxPinnedMessages(convId,'fluxRelayMessages');
+        loadFluxPinnedMessages(convId,'fluxFsMessages');
+      },150);
     })
     .subscribe((status,err)=>{
       // This status callback is the key diagnostic: if you never see
