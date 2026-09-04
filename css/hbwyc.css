@@ -975,6 +975,244 @@ body {
   font-size: 11.5px;
 }
 
+/* ── FLUX PINNED MESSAGE HEADER ── */
+.flux-pinned-messages-bar {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  flex: 0 0 44px !important;
+  flex: 0 0 68px;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  background: #1D1F1F;
+  border-bottom: 1px solid var(--border);
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.flux-pinned-messages-inner {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+
+.flux-pinned-card {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height:100%;
+  box-sizing: border-box;
+  flex: none;
+  gap: 9px;
+  padding: 8px 82px 8px 14px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.flux-pinned-card:hover {
+  background: rgba(255,255,255,.045);
+}
+
+.flux-pinned-card-icon {
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+  color: var(--text3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flux-pinned-card-icon svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+  flex-shrink: 0;
+}
+
+.flux-pinned-card-copy {
+  min-width: 0;
+  overflow: hidden;
+  display: block;
+}
+
+.flux-pinned-card-label {
+  display: block;
+  font-size: 10px;
+  color: var(--text3);
+  line-height: 1.2;
+  margin-bottom: 2px;
+}
+
+.flux-pinned-card-text {
+  display: block;
+  font-size: 14px;
+  color: var(--text2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.flux-pinned-card-count {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: right .18s ease;
+  z-index: 3;
+  padding: 0;
+  color: var(--text3);
+  font-size: 10.5px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.flux-pinned-unpin,
+.flux-pinned-next {
+  position: absolute;
+  top: 0;
+  width: 44px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  border-left: 1px solid transparent;
+  background: transparent;
+  color: var(--text2);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(100%);
+  transition: transform .18s ease, opacity .15s ease, background .15s ease;
+  cursor: pointer;
+  clip-path: circle(16px at 50% 50%);
+  z-index: 5;
+}
+
+.flux-pinned-unpin {
+  right: 44px;
+}
+
+.flux-pinned-next {
+  right: 0;
+}
+
+.flux-pinned-unpin::before,
+.flux-pinned-next::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: transparent;
+  transform: translate(-50%, -50%);
+  transition: background .15s ease;
+}
+
+.flux-pinned-unpin:hover::before,
+.flux-pinned-next:hover::before {
+  background: rgba(255,255,255,0.08);
+}
+
+.flux-pinned-unpin svg {
+  width: 16px;
+  height: 16px;
+}
+
+.flux-pinned-next svg {
+  width: 18px;
+  height: 18px;
+}
+
+.flux-pinned-messages-bar:hover .flux-pinned-unpin {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(0);
+}
+
+.flux-pinned-messages-bar:hover .flux-pinned-next:not(:disabled) {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(0);
+}
+
+.flux-pinned-messages-bar:hover .flux-pinned-card-count {
+  right: 100px;
+}
+
+/* Single pinned message — no .flux-pinned-next in the DOM at all (see
+   zqorv.js), so without this the unpin button stayed parked at its usual
+   right:44px, leaving a 44px empty gap where next would've been instead of
+   unpin sliding flush into the corner. */
+.flux-pinned-messages-bar:not(:has(.flux-pinned-next)) .flux-pinned-unpin {
+  right: 0;
+}
+
+.flux-pinned-messages-bar:hover:not(:has(.flux-pinned-next)) .flux-pinned-card-count {
+  right: 56px;
+}
+
+.flux-pinned-unpin:hover,
+.flux-pinned-next:hover {
+  color: var(--text);
+}
+
+.flux-pinned-next:disabled {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .flux-pinned-card {
+    padding-left: 10px;
+    padding-right: 70px;
+  }
+
+  .flux-pinned-card-icon {
+    flex-basis: 22px;
+    width: 22px;
+    height: 22px;
+  }
+
+  .flux-pinned-card-icon svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .flux-pinned-card-count {
+    right: 12px;
+  }
+
+  .flux-pinned-unpin {
+    right: 44px;
+  }
+
+  .flux-pinned-messages-bar:not(:has(.flux-pinned-next)) .flux-pinned-unpin {
+    right: 0;
+  }
+
+  .flux-pinned-messages-bar:hover .flux-pinned-card-count {
+    right: 100px;
+  }
+
+  .flux-pinned-messages-bar:hover:not(:has(.flux-pinned-next)) .flux-pinned-card-count {
+    right: 56px;
+  }
+}
+
 .flux-new-msgs-pill {
   position: absolute;
   bottom: 68px;
@@ -3197,6 +3435,7 @@ kbd {
   display: flex;
   align-items: center;
   gap: 2px;
+  width: 100%;
   max-width: 100%;
 }
 
@@ -3317,6 +3556,79 @@ kbd {
 .flux-bubble.flux-bubble-media-only.bubble-middle,
 .flux-bubble.flux-bubble-media-only.bubble-last {
   border-radius: 18px !important;
+}
+
+/* ── MEDIA + CAPTION BUBBLE (tagged text sent with media) ── */
+/* Media sits inside the normal text bubble with a 4px gap all round (the
+   bubble's own background shows through as a 4px "outline"), caption text
+   below with its own padding. Applies identically whether the message is
+   sent or received — same markup, same rules. */
+.flux-bubble.flux-bubble-media-caption {
+  padding: 4px !important;
+  display: block;
+}
+.flux-bubble-caption-media {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 220px;
+  min-width: 160px;
+  min-height: 120px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+img.flux-bubble-caption-media {
+  cursor: pointer;
+}
+.flux-bubble-caption-text {
+  padding: 6px 8px 2px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* ── JUMP-TO-MESSAGE HIGHLIGHT (pinned / search / reply scroll targets) ── */
+/* `.flux-search-jump-highlight` (or `.flux-reply-jump-highlight`, alias for
+   the reply-click-to-original jump) is toggled on the `.flux-bubble-wrap`
+   (or `.flux-system-msg`) that was just scrolled to. It self-clears visually
+   because the animation runs once and ends fully transparent, so it's safe
+   whether or not the calling code ever removes the class again. The flash
+   itself only ever paints on the bubble/media element — never the wrap. */
+:is(.flux-search-jump-highlight, .flux-reply-jump-highlight) .flux-bubble::after,
+:is(.flux-search-jump-highlight, .flux-reply-jump-highlight) .flux-bubble-media-only::after,
+:is(.flux-search-jump-highlight, .flux-reply-jump-highlight) .flux-media-collage::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0.35);
+  pointer-events: none;
+  animation: fluxJumpFlash 1.4s ease-out forwards;
+}
+.flux-bubble-media-only,
+.flux-media-collage {
+  position: relative;
+}
+/* Guard: never let the highlight paint on the wrap itself, only its bubble/media child. */
+.flux-bubble-wrap.flux-search-jump-highlight,
+.flux-bubble-wrap.flux-reply-jump-highlight {
+  background: none !important;
+  box-shadow: none !important;
+}
+.flux-system-msg.flux-search-jump-highlight .flux-system-msg-text,
+.flux-system-msg.flux-reply-jump-highlight .flux-system-msg-text {
+  position: relative;
+  border-radius: 8px;
+  animation: fluxJumpFlashBg 1.4s ease-out forwards;
+}
+@keyframes fluxJumpFlash {
+  0%   { opacity: 0; }
+  12%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes fluxJumpFlashBg {
+  0%   { background-color: rgba(255, 255, 255, 0); box-shadow: 0 0 0 0 rgba(255,255,255,0); }
+  12%  { background-color: rgba(255, 255, 255, 0.16); box-shadow: 0 0 0 6px rgba(255,255,255,0.16); }
+  100% { background-color: rgba(255, 255, 255, 0); box-shadow: 0 0 0 0 rgba(255,255,255,0); }
 }
 
 /* ── SQUARED LAYOUT (WhatsApp-style bubbles, profiles.squared_bubble) ── */
