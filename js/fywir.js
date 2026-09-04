@@ -113,6 +113,12 @@ async function loadMessages(userId, loadToken) {
           // resetting it (since seen-marking was skipped), so the count
           // drifted upward across multiple tab-away sessions instead of
           // reflecting the single latest message.
+          if (!_isRelayVisibleFor(userId)) {
+            // Tab/window isn't actually visible & focused right now, so the
+            // sound alone won't be seen — flag this conversation so the
+            // title badge picks it up too, without ever touching the dot.
+            _markActiveConvBgUnread(userId);
+          }
           // Build the sidebar AFTER the unread state above is set, not
           // before. Building it first (the old order) rendered the sidebar
           // using last message's unread/count values, so the dot/bold and
@@ -419,6 +425,11 @@ async function loadFsMessages(userId) {
           // no "else mark unread" branch. This is the currently-open
           // conversation; a backgrounded tab should only trigger the sound
           // above, never a dot/count bump.
+          if (!_isRelayVisibleFor(userId)) {
+            // Tab/window isn't actually visible & focused — flag it for the
+            // title badge too, same as the desktop channel above.
+            _markActiveConvBgUnread(userId);
+          }
           // Build the sidebar AFTER the unread state above is set — see
           // matching comment in loadMessages() for why the old order (build
           // first, then set unread state) made the dot/bold and "N new
@@ -730,6 +741,7 @@ async function openFsRelay(id) {
   if (!contact) return;
   contact.unread = false;
   contact.unreadCount = 0;
+  _fluxActiveConvBgUnread = false;
   hideRemoteTyping();
   activeFluxId = id;
   _fluxClearPinnedFrontend?.();
@@ -780,7 +792,7 @@ function fluxFsBack() {
   document.getElementById('fluxFsRelayView').style.display = 'none';
   document.getElementById('fluxFsListView').style.display = 'flex';
   stopTypingBroadcast();
-  activeFluxId = null; hideRemoteTyping(); resetPresenceDots(); buildFLUXConvList();
+  activeFluxId = null; _fluxActiveConvBgUnread = false; hideRemoteTyping(); resetPresenceDots(); buildFLUXConvList();
   if (_fluxPinnedChannel) { try { supabaseClient.removeChannel(_fluxPinnedChannel); } catch (e) {} _fluxPinnedChannel = null; }
 }
 
