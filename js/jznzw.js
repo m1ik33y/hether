@@ -271,9 +271,20 @@ async function preloadAllRelays() {
 
   fluxContacts.forEach(c => {
     if (sentByMeSet.has(c.id)) c.sentByMe = true;
-    const count = unseenCountMap.get(c.id) || 0;
-    if (count > 0) {
-      c.unread = true;
+    // Groups have no per-member read state in the DB (unseenCountMap is only
+    // ever populated for DMs), so leave their unread flag exactly as-is —
+    // it's tracked locally for the current realtime session instead. Only
+    // resync DMs against the DB-derived count.
+    if (!c.isGroup) {
+      const count = unseenCountMap.get(c.id) || 0;
+      // Always sync to the real DB-derived count, in both directions. This
+      // used to only ever set unread=true and never reset it back to false
+      // when the recomputed count came back 0, so any conversation that got
+      // flagged unread (even transiently, e.g. by the seen-write race fixed
+      // in openDesktopRelay/openFsRelay) would stay stuck showing "new
+      // message(s)" forever after, instead of self-correcting on the next
+      // reload.
+      c.unread = count > 0;
       c.unreadCount = count;
     }
     const msgs = last15Map.get(c.id);
