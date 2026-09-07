@@ -786,7 +786,12 @@ async function openFsRelay(id) {
   cancelReply('mobile'); clearFluxFsStaging();
   if (currentEditState) { currentEditState = null; document.getElementById('fluxEditBar')?.classList.remove('show'); document.getElementById('fluxFsEditBar')?.classList.remove('show'); }
   document.getElementById('fluxFsInput').focus();
-  markConversationSeen(id);
+  // See matching comment in openDesktopRelay() (zqorv.js) — this must be
+  // awaited so the "seen" write actually commits before the user can close
+  // and reopen the panel, which otherwise re-derives unread state from the
+  // DB and can catch this update mid-flight, showing a stale "new message"
+  // for a conversation the user already read and replied to.
+  await markConversationSeen(id);
 }
 
 function fluxFsBack() {
