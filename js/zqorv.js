@@ -1077,7 +1077,15 @@ async function openDesktopRelay(id) {
   if (currentEditState) { currentEditState = null; document.getElementById('fluxEditBar')?.classList.remove('show'); document.getElementById('fluxFsEditBar')?.classList.remove('show'); }
   clearFluxStaging();
   document.getElementById('fluxInput').focus();
-  markConversationSeen(id);
+  // Must be awaited: this write marks the contact's messages as seen in the
+  // DB. It used to fire-and-forget, which meant a fast open -> reply ->
+  // close -> reopen could beat this UPDATE to the database. Since closeFLUX()
+  // wipes all in-memory contact state, the next loadContacts()/
+  // preloadAllRelays() would re-derive "unread" straight from the DB, find
+  // the not-yet-committed unseen row(s), and re-flag the conversation as
+  // having "new messages" even though the user already viewed (and replied
+  // to) them.
+  await markConversationSeen(id);
 }
 
 async function openNicknamePanel() {
