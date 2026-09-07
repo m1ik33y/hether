@@ -3864,9 +3864,29 @@ img.flux-bubble-caption-media {
 .flux-reply-cancel:hover { color: var(--text); }
 
 .flux-relay-input-area {
-  padding: 10px 14px 10px;
-  background: transparent;
+  padding: 10px 1px 10px;
   flex-shrink: 0;
+}
+
+/* Narrow layout (small screen, or chat tab squeezed by the sidebar):
+   the media button's left: -10px pull-out (see .flux-input-composer >
+   .flux-media-btn further down) has almost no room inside this 1px of
+   padding, so it slides out past the panel edge and behind the sidebar.
+   Reserve that 10px on the left here instead of moving the button —
+   the textbar (grid column: minmax(0,1fr)) simply shrinks from its
+   right end to absorb the difference, same as it already does. */
+@media (max-width: 768px) {
+  .flux-relay-input-area {
+    padding-left: 11px;
+  }
+}
+
+.flux-input-composer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin: 0;
 }
 
 .flux-media-staging-wrap {
@@ -3897,9 +3917,14 @@ img.flux-bubble-caption-media {
 .flux-media-staging-remove:hover { background: #ef4444; }
 
 .flux-input-row {
-  display: flex; gap: 6px; align-items: center;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex: 1 1 auto;
+  margin-left: 4px;
   background: #242626 !important;
-  border-radius: 28px; padding: 8px 8px 8px 10px;
+  border-radius: 28px;
+  padding: 5px 5px 5px 10px;
   transition: border-color var(--t);
 }
 [data-theme="dark"] .flux-input-row { border-color: var(--border); }
@@ -3917,24 +3942,83 @@ img.flux-bubble-caption-media {
 #fluxInput::placeholder { color: var(--text3); }
 
 .flux-media-btn {
-  background: transparent; border: none; cursor: pointer;
-  color: #9a9a9a; width: 28px; height: 28px;
-  display: flex; align-items: center; justify-content: center;
-  border-radius: 50%; transition: color var(--t), background var(--t);
-  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  border: none;
+  border-radius: 50%;
+  background: #242626;
+  color: #b7b7b7;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  position: relative;
+  transition: background var(--t), color var(--t), transform var(--t);
 }
-.flux-media-btn:hover { color: #c2c2c2; background: none; }
-.flux-media-btn svg { width: 16px; height: 16px; }
+.flux-media-btn::after {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0.1;
+  transition: opacity var(--t);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='47' fill='none' stroke='white' stroke-width='3' stroke-dasharray='6 6'/%3E%3C/svg%3E");
+  background-size: 100% 100%;
+}
+.flux-media-btn:hover::after {
+  opacity: 0.16;
+  transition: ease 0.25s;
+}
+.flux-media-btn:hover {
+  cursor: pointer;
+}
+.flux-media-btn svg {
+  width: 21px;
+  height: 21px;
+  display: block;
+  color: #fff;
+  transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.flux-media-btn:hover svg {
+  transform: scale(1.28);
+}
+.flux-media-btn.hidden { display: flex; }
 
 .flux-send-btn {
-  width: 38px; height: 32px; border-radius: 80px; border: none;
-  background: var(--accent); color: #fff; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: background var(--t), transform var(--t), opacity var(--t); flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  border-radius: 50%;
+  border: none;
+  background: var(--accent);
+  color: #fff !important;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background var(--t), opacity var(--t), transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.flux-send-btn:hover { background: var(--accent-hover); transform: scale(1.05); }
+.flux-send-btn:hover { background: var(--accent-hover); transform: scale(1.08); }
 .flux-send-btn.hidden { display: none; }
-.flux-send-btn svg { width: 12px; height: 12px; }
+.flux-send-btn:not(.hidden) { animation: fluxSendPop 0.22s cubic-bezier(0.34, 1.56, 0.64, 1); }
+@keyframes fluxSendPop {
+  0% { transform: scale(0); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.flux-send-btn svg { width: 18px; height: 18px; display: block; color: #fff !important; }
+.flux-send-btn svg path { fill: currentColor; }
+
+/* Custom flux send icon (send.svg) - style this instead of the generic rules above */
+.flux-send-btn svg.flux-send-icon {
+  width: 24px !important;
+  height: 24px !important;
+  display: block;
+}
+.flux-send-btn svg.flux-send-icon path { fill: currentColor; }
 
 [data-relay-theme="default"] .flux-send-btn    { background: #495cea !important; }
 [data-relay-theme="lovecore"] .flux-send-btn   { background: #e8265a !important; }
@@ -3964,6 +4048,13 @@ img.flux-bubble-caption-media {
 .emoji-btn:hover { color: #c2c2c2; background: none; }
 .emoji-btn.hidden { display: none; }
 label.emoji-btn { margin-right: 4px; }
+
+#fluxEmojiBtn, #fluxFsEmojiBtn {
+  color: #fff !important; opacity: 1 !important;
+  transition: color var(--t), background var(--t), transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+#fluxEmojiBtn:hover, #fluxFsEmojiBtn:hover { color: #fff !important; transform: scale(1.1); }
+#fluxEmojiBtn svg, #fluxFsEmojiBtn svg { color: #fff !important; opacity: 1 !important; stroke: #fff !important; }
 
 .emoji-picker-overlay { display: none; position: fixed; inset: 0; z-index: 9999; }
 .emoji-picker-overlay.show { display: block; }
@@ -6388,7 +6479,7 @@ html, body { background: #060000 !important; }
 .flux-ai-messages {
   background: transparent !important;
 }
-.flux-relay-input-area, .flux-fs-input-area {
+.flux-fs-input-area {
   background: transparent !important;
 }
 /* Front-page typography/input theme — terminal is outside #mainApp and keeps its own colors. */
@@ -6779,4 +6870,77 @@ html, body { background: #060000 !important; }
   #fluxThemePicker.flux-theme-picker.open {
     max-height: none;
   }
+}
+/* ── Flux popup composer: media button sits outside the textbox ── */
+.flux-fs-composer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+.flux-fs-composer .flux-fs-input-row {
+  flex: 1;
+  min-width: 0;
+}
+.flux-fs-composer > .flux-media-btn {
+  margin-right: 0;
+}
+
+/* Flux popup send button: no background */
+.flux-send-btn,
+.flux-send-btn:hover,
+[data-relay-theme] .flux-send-btn,
+[data-relay-theme] .flux-send-btn:hover {
+  background: transparent !important;
+}
+
+/* Flux composer: media button and text row are separate sibling divs.
+   .flux-media-wrap is fixed-size and never shrinks; .flux-input-row
+   flexes to fill whatever space is left, and shrinks as the panel narrows. */
+.flux-input-composer {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  width: 100% !important;
+  margin: 0 !important;
+}
+.flux-input-composer > .flux-media-wrap {
+  flex: 0 0 auto !important;
+  display: flex !important;
+  align-items: center !important;
+  margin-left: 12px !important;
+}
+.flux-input-composer > .flux-media-wrap > .flux-media-btn {
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  border-radius: 50% !important;
+}
+.flux-input-composer > .flux-input-row {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  width: auto !important;
+  margin-right: 12px !important;
+}
+.flux-fs-composer {
+  display: grid !important;
+  grid-template-columns: 38px minmax(0, 1fr) !important;
+  align-items: center !important;
+  column-gap: 8px !important;
+  width: 100% !important;
+}
+.flux-fs-composer > .flux-media-btn {
+  grid-column: 1 !important;
+  grid-row: 1 !important;
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px !important;
+  max-width: 38px !important;
+  border-radius: 50% !important;
+}
+.flux-fs-composer > .flux-fs-input-row {
+  grid-column: 2 !important;
+  grid-row: 1 !important;
+  width: 100% !important;
+  min-width: 0 !important;
 }
