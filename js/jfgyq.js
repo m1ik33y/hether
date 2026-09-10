@@ -199,6 +199,30 @@ function _fluxDisappearingOf(convId) {
   return !!_fluxDisappearingMessages.get(convId);
 }
 
+// Shared menu-item markup for "Disappearing message" so the chat-header
+// three-dot dropdown and the sidebar chevron conversation dropdown render
+// and behave identically: icon, label, and On/Off state all sit on one row,
+// left-aligned and vertically centered together (state text simply follows
+// the label instead of wrapping to its own indented line below it).
+function _fluxBuildDisappearingMenuItem(convId, closeMenuFn) {
+  const disappearingOn = _fluxDisappearingOf(convId);
+  const item = document.createElement('button');
+  item.className = 'flux-conv-menu-item flux-disappearing-item';
+  item.innerHTML = `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${FLUX_DISAPPEARING_ICON}</svg>
+    <span style="display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:0;">
+      <span>Disappearing message</span>
+      <span style="font-size:0.85em;opacity:0.7;">${disappearingOn ? 'On' : 'Off'}</span>
+    </span>
+  `;
+  item.onclick = (ev) => {
+    ev.stopPropagation();
+    closeMenuFn();
+    toggleFluxDisappearingMessages(convId);
+  };
+  return item;
+}
+
 function _updateFluxDisappearingProfileButton(convId) {
   const btn = document.getElementById('fluxDisappearingToggleBtn');
   const state = document.getElementById('fluxDisappearingState');
@@ -386,7 +410,7 @@ async function unsendMessage(msgId) {
 let _convMenuOpen = false;
 let _convMenuActiveItem = null;
 
-async function openFluxConvMenu(e, contactId) {
+function openFluxConvMenu(e, contactId) {
   e.stopPropagation();
   closeAllFluxDropdowns(closeFluxConvMenu);
   const menu = document.getElementById('fluxConvMenu');
@@ -395,7 +419,6 @@ async function openFluxConvMenu(e, contactId) {
   const isPinned = _fluxPinnedOf(contactId);
   const isArchived = _fluxArchivedOf(contactId);
   const isGroupConv = _fluxConvIsGroup(contactId);
-  if (!isGroupConv) await loadFluxDisappearingState(contactId);
   menu.innerHTML = '';
 
   const makeItem = (label, iconPath, onClick, opts) => {
@@ -445,14 +468,6 @@ async function openFluxConvMenu(e, contactId) {
         ? '<path d="M12 17v5"/><path d="M15 9.34V6a1 1 0 0 1 1-1 2 2 0 0 0 0-4H9.31"/><path d="M16.13 16.13A2 2 0 0 1 15 17H5a1 1 0 0 1-.71-1.71l.87-.87A2 2 0 0 0 6 13.03V10a1 1 0 0 1 .61-.92"/><line x1="2" x2="22" y1="2" y2="22"/>'
         : '<path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/>',
       () => toggleFluxPin(contactId)));
-  }
-
-  if (!isGroupConv) {
-    menu.appendChild(makeItem(
-      _fluxDisappearingOf(contactId) ? 'Disappearing messages: On' : 'Disappearing messages: Off',
-      FLUX_DISAPPEARING_ICON,
-      () => toggleFluxDisappearingMessages(contactId)
-    ));
   }
 
   menu.appendChild(makeItem(isArchived ? 'Unarchive' : 'Archive',
@@ -511,7 +526,7 @@ document.addEventListener('click', (e) => {
 // ── CHAT HEADER MORE MENU (groups + DMs) ──
 let _headerMoreMenuOpen = false;
 
-async function openFluxHeaderMoreMenu(e) {
+function openFluxHeaderMoreMenu(e) {
   e.stopPropagation();
   const id = activeFluxId;
   if (!id) return;
@@ -523,7 +538,6 @@ async function openFluxHeaderMoreMenu(e) {
   const isGroup = _fluxConvIsGroup(id);
   const isMuted = _fluxMutedOf(id);
   const isArchived = _fluxArchivedOf(id);
-  if (!isGroup) await loadFluxDisappearingState(id);
 
   menu.innerHTML = '';
 
@@ -591,11 +605,6 @@ async function openFluxHeaderMoreMenu(e) {
     menu.appendChild(makeItem('Profile info', infoIcon, () => openNicknamePanel()));
     menu.appendChild(makeItem('Search', searchIcon, () => openFluxChatSearch(id)));
     menu.appendChild(makeItem(
-      _fluxDisappearingOf(id) ? 'Disappearing messages: On' : 'Disappearing messages: Off',
-      FLUX_DISAPPEARING_ICON,
-      () => toggleFluxDisappearingMessages(id)
-    ));
-    menu.appendChild(makeItem(
       isArchived ? 'Unarchive' : 'Archive',
       archiveIcon,
       () => toggleFluxArchive(id)
@@ -652,8 +661,14 @@ async function openFluxHeaderMoreMenu(e) {
 
   // closeFluxHeaderMoreMenu() hides the menu with an inline display:none.
   // Clear that inline value before measuring/showing it so the button can be
-  // opened repeatedly without requiring a page reload.
+  // opened repeatedly without requiring a page reload. The 'show' class must
+  // be added *before* we measure offsetWidth/offsetHeight below: on the very
+  // first open the menu has never had 'show' applied, so without this the
+  // menu would still be hidden by CSS when measured, offsetWidth/offsetHeight
+  // would read as 0, and the left-side math would collapse to rect.right
+  // (i.e. it would open on the right of the button instead of the left).
   menu.style.display = '';
+  menu.classList.add('show');
   menu.style.position = 'fixed';
   menu.style.left = Math.max(8, Math.min(
     window.innerWidth - menu.offsetWidth - 8,
@@ -663,7 +678,6 @@ async function openFluxHeaderMoreMenu(e) {
     window.innerHeight - menu.offsetHeight - 8,
     rect.bottom + 6
   ) + 'px';
-  menu.classList.add('show');
   menu.style.display = '';
   _headerMoreMenuOpen = true;
 }
