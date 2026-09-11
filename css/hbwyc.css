@@ -4268,7 +4268,7 @@ label.emoji-btn { margin-right: 4px; }
   overscroll-behavior: none;
   touch-action: manipulation;
 }
-.flux-fs-input-row { display: flex; gap: 6px; align-items: center; background: var(--input-bg); border: 1px solid var(--border); border-radius: 22px; padding: 6px 11px 6px 9px; }
+.flux-fs-input-row { display: flex; gap: 6px; align-items: center; background: #242626 !important; border: 1px solid var(--border); border-radius: 22px; padding: 6px 11px 6px 9px; }
 #fluxFsInput {
   flex: 1; background: transparent; border: none; outline: none;
   color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13.5px;
