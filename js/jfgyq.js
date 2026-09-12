@@ -2302,7 +2302,7 @@ function sendStagedMedia() {
         }
         #fluxFullscreen .flux-fs-input-row,
         #fluxFullscreen .flux-input-row {
-          background: var(--surface) !important;
+          background: #242626 !important;
         }
       }
     `;
