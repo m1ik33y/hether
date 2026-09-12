@@ -3283,7 +3283,7 @@ kbd {
 .flux-delete-relay-btn {
   background: transparent; border: none; cursor: pointer;
   color: var(--text3); width: 32px; height: 32px; border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
+  display: none !important; align-items: center; justify-content: center;
   transition: color var(--t), background var(--t);
   flex-shrink: 0;
 }
@@ -4072,10 +4072,10 @@ label.emoji-btn { margin-right: 4px; }
   gap: 0;
   max-width: calc(100vw - 24px); width: 480px;
   overflow: hidden;
-  animation: slideUp 0.2s ease;
+  animation: slideUp 0.08s ease-out;
 }
 .emoji-picker.show { display: flex; }
-@keyframes slideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideUp { from { opacity: 0.4; transform: translateY(2px); } to { opacity: 1; transform: translateY(0); } }
 
 /* ── CATEGORY TAB BAR ── */
 .emoji-picker-tabs {
