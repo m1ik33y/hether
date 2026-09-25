@@ -516,7 +516,7 @@ body{
   content:'';
   position:absolute;
   inset:0;
-  background-image:url('../../../../../../8UDR1x1WTLDCdZ4s/Vyq0qA94lG5VrPYW/JMwRRGC0OvI9aGUD/ddlQF6FW4hy0cAsw/JelMnuRpy0qdx2km/KpsgLg99aN3ybegg/chat_bg_pc.svg');
+  background-image:url('/8UDR1x1WTLDCdZ4s/Vyq0qA94lG5VrPYW/JMwRRGC0OvI9aGUD/ddlQF6FW4hy0cAsw/JelMnuRpy0qdx2km/KpsgLg99aN3ybegg/chat_bg_pc.svg');
   background-repeat:repeat;
   background-size:600px auto;
   pointer-events:none;
@@ -1827,7 +1827,7 @@ kbd{
   content:'';
   position:absolute;
   inset:0;
-  background-image:url('../../../../../../8UDR1x1WTLDCdZ4s/Vyq0qA94lG5VrPYW/JMwRRGC0OvI9aGUD/ddlQF6FW4hy0cAsw/JelMnuRpy0qdx2km/KpsgLg99aN3ybegg/chat_bg_pc.svg');
+  background-image:url('/8UDR1x1WTLDCdZ4s/Vyq0qA94lG5VrPYW/JMwRRGC0OvI9aGUD/ddlQF6FW4hy0cAsw/JelMnuRpy0qdx2km/KpsgLg99aN3ybegg/chat_bg_pc.svg');
   background-repeat:repeat;
   background-size:600px auto;
   pointer-events:none;
@@ -1841,7 +1841,7 @@ kbd{
 }
 @media (max-width: 768px){
   .flux-ai-panel::before{
-    background-image:url('../../../../../../ho0VOjcBZZXCQn4R/LCBYmGM7iKkpAbkn/mQPoFSXgpwNREEyV/sjbtBOg64o81ej51/y9AYrYBNM3GxboC1/43aUMWGWRzPVRzGR/chat_bg.svg');
+    background-image:url('/ho0VOjcBZZXCQn4R/LCBYmGM7iKkpAbkn/mQPoFSXgpwNREEyV/sjbtBOg64o81ej51/y9AYrYBNM3GxboC1/43aUMWGWRzPVRzGR/chat_bg.svg');
     background-size:400px auto;
   }
 }
@@ -2524,7 +2524,7 @@ kbd{
 
 .flux-theme-preview{
   background-color:var(--theme-recv, var(--surface2));
-  background-image:url('../../../../../../ho0VOjcBZZXCQn4R/LCBYmGM7iKkpAbkn/mQPoFSXgpwNREEyV/sjbtBOg64o81ej51/y9AYrYBNM3GxboC1/43aUMWGWRzPVRzGR/chat_bg.svg');
+  background-image:url('/ho0VOjcBZZXCQn4R/LCBYmGM7iKkpAbkn/mQPoFSXgpwNREEyV/sjbtBOg64o81ej51/y9AYrYBNM3GxboC1/43aUMWGWRzPVRzGR/chat_bg.svg');
   background-repeat:repeat;
   background-size:400px auto;
   opacity:1;
@@ -3968,7 +3968,7 @@ label.emoji-btn{ margin-right:4px; }
   content:'';
   position:absolute;
   inset:0;
-  background-image:url('../../../../../../ho0VOjcBZZXCQn4R/LCBYmGM7iKkpAbkn/mQPoFSXgpwNREEyV/sjbtBOg64o81ej51/y9AYrYBNM3GxboC1/43aUMWGWRzPVRzGR/chat_bg.svg');
+  background-image:url('/ho0VOjcBZZXCQn4R/LCBYmGM7iKkpAbkn/mQPoFSXgpwNREEyV/sjbtBOg64o81ej51/y9AYrYBNM3GxboC1/43aUMWGWRzPVRzGR/chat_bg.svg');
   background-repeat:repeat;
   background-size:400px auto;
   pointer-events:none;
@@ -4696,7 +4696,7 @@ label.emoji-btn{ margin-right:4px; }
   width:70%;
   height:100%;
   flex:0 0 70%;
-  background:url('entry_bg.png') center center / cover no-repeat;
+  background:url('/HegDdTv0jqLjdsoj/gb7FBYXbBbwBff8d/OgcJjnha8kW5pieI/uEhnj4CZzWVKs4is/0sq4w4PYmNVdMJgR/blw2YprwmdUoSpK4/entry_bg.png') center center / cover no-repeat;
 }
 .auth-card{
   position:relative;
@@ -4898,7 +4898,7 @@ label.emoji-btn{ margin-right:4px; }
   content:'';
   position:absolute;
   inset:0;
-  background-image:url('../../../../../../8UDR1x1WTLDCdZ4s/Vyq0qA94lG5VrPYW/JMwRRGC0OvI9aGUD/ddlQF6FW4hy0cAsw/JelMnuRpy0qdx2km/KpsgLg99aN3ybegg/chat_bg_pc.svg');
+  background-image:url('/8UDR1x1WTLDCdZ4s/Vyq0qA94lG5VrPYW/JMwRRGC0OvI9aGUD/ddlQF6FW4hy0cAsw/JelMnuRpy0qdx2km/KpsgLg99aN3ybegg/chat_bg_pc.svg');
   background-repeat:repeat;
   background-size:600px auto;
   pointer-events:none;
@@ -4912,7 +4912,7 @@ label.emoji-btn{ margin-right:4px; }
 }
 @media (max-width: 768px){
   #fluxActiveRelayWrap::before{
-    background-image:url('../../../../../../ho0VOjcBZZXCQn4R/LCBYmGM7iKkpAbkn/mQPoFSXgpwNREEyV/sjbtBOg64o81ej51/y9AYrYBNM3GxboC1/43aUMWGWRzPVRzGR/chat_bg.svg');
+    background-image:url('/ho0VOjcBZZXCQn4R/LCBYmGM7iKkpAbkn/mQPoFSXgpwNREEyV/sjbtBOg64o81ej51/y9AYrYBNM3GxboC1/43aUMWGWRzPVRzGR/chat_bg.svg');
     background-size:400px auto;
   }
 }
@@ -5214,7 +5214,7 @@ label.emoji-btn{ margin-right:4px; }
   flex-shrink:0;
   isolation:isolate;
   box-shadow:0 8px 28px rgba(255, 90, 30, 0.18);
-  background-image:url('lib_banner.jpg');
+  background-image:url('/q43kgbJOewtzFcMe/jUBashLH04z2UMkD/AveNxYvXDtPvqgAd/5zy0zMY5610Gzi5S/Cua0rdXXMuVbwXHE/yMQfdnsWfPLnx4ZM/lib_banner.jpg');
   background-size:cover, cover;
   background-position:center, center;
   background-repeat:no-repeat, no-repeat;
@@ -5233,7 +5233,7 @@ label.emoji-btn{ margin-right:4px; }
   position:absolute;
   inset:0;
   z-index:-1;
-  background:url('lib_banner.jpg');
+  background:url('/q43kgbJOewtzFcMe/jUBashLH04z2UMkD/AveNxYvXDtPvqgAd/5zy0zMY5610Gzi5S/Cua0rdXXMuVbwXHE/yMQfdnsWfPLnx4ZM/lib_banner.jpg');
   background-size:cover;
   background-repeat:no-repeat;
 }
@@ -5982,7 +5982,7 @@ body.has-player-bar .main{ padding-bottom:84px; }
   content:'';
   position:absolute;
   inset:0;
-  background-image:url('../../../../../../8UDR1x1WTLDCdZ4s/Vyq0qA94lG5VrPYW/JMwRRGC0OvI9aGUD/ddlQF6FW4hy0cAsw/JelMnuRpy0qdx2km/KpsgLg99aN3ybegg/chat_bg_pc.svg');
+  background-image:url('/8UDR1x1WTLDCdZ4s/Vyq0qA94lG5VrPYW/JMwRRGC0OvI9aGUD/ddlQF6FW4hy0cAsw/JelMnuRpy0qdx2km/KpsgLg99aN3ybegg/chat_bg_pc.svg');
   background-repeat:repeat;
   background-size:520px auto;
   pointer-events:none;
@@ -6233,7 +6233,7 @@ html, body{ background:#060000 !important; }
 .flux-theme-card,
 .flux-theme-item .flux-theme-card{
   background-color:var(--surface) !important;
-  background-image:url('../../../../../../ho0VOjcBZZXCQn4R/LCBYmGM7iKkpAbkn/mQPoFSXgpwNREEyV/sjbtBOg64o81ej51/y9AYrYBNM3GxboC1/43aUMWGWRzPVRzGR/chat_bg.svg') !important;
+  background-image:url('/ho0VOjcBZZXCQn4R/LCBYmGM7iKkpAbkn/mQPoFSXgpwNREEyV/sjbtBOg64o81ej51/y9AYrYBNM3GxboC1/43aUMWGWRzPVRzGR/chat_bg.svg') !important;
   background-repeat:repeat !important;
   background-size:400px auto !important;
   background-position:center !important;
@@ -6261,7 +6261,7 @@ html, body{ background:#060000 !important; }
 }
 #fluxThemeModalOverlay .flux-theme-card-bg{
   background-color:var(--theme-recv, var(--surface2));
-  background-image:url('../../../../../../ho0VOjcBZZXCQn4R/LCBYmGM7iKkpAbkn/mQPoFSXgpwNREEyV/sjbtBOg64o81ej51/y9AYrYBNM3GxboC1/43aUMWGWRzPVRzGR/chat_bg.svg');
+  background-image:url('/ho0VOjcBZZXCQn4R/LCBYmGM7iKkpAbkn/mQPoFSXgpwNREEyV/sjbtBOg64o81ej51/y9AYrYBNM3GxboC1/43aUMWGWRzPVRzGR/chat_bg.svg');
   background-repeat:repeat;
   background-size:400px auto;
   filter:invert(1);
