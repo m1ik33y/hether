@@ -4696,7 +4696,7 @@ label.emoji-btn{ margin-right:4px; }
   width:70%;
   height:100%;
   flex:0 0 70%;
-  background:url('/HegDdTv0jqLjdsoj/gb7FBYXbBbwBff8d/OgcJjnha8kW5pieI/uEhnj4CZzWVKs4is/0sq4w4PYmNVdMJgR/blw2YprwmdUoSpK4/entry_bg.png') center center / cover no-repeat;
+  background:url('entry_bg.png') center center / cover no-repeat;
 }
 .auth-card{
   position:relative;
