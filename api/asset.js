@@ -8,7 +8,7 @@ const ASSET_TYPES = {
   ".js":    { contentType: "application/javascript; charset=utf-8", text: true },
   ".css":   { contentType: "text/css; charset=utf-8",                text: true },
   ".svg":   { contentType: "image/svg+xml",                          text: true },
-  ".png":   { contentType: "image/png",                              text: false },
+  ".png":   { contentType: "image/png",                              text: true },
   ".jpg":   { contentType: "image/jpeg",                             text: false },
   ".jpeg":  { contentType: "image/jpeg",                             text: false },
   ".gif":   { contentType: "image/gif",                              text: false },
