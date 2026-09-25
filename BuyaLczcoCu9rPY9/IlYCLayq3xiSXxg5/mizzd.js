@@ -1,0 +1,1 @@
+var ekotul = 926;

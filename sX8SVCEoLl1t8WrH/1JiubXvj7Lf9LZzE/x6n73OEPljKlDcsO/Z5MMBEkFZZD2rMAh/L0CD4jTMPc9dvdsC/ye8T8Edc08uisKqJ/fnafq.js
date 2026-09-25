@@ -1,0 +1,1 @@
+document.write("\r\n\r\n\x3c!-- NOTES --\x3e\r\n");

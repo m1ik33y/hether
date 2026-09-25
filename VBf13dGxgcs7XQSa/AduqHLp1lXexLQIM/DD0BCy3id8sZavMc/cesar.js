@@ -1,0 +1,1 @@
+var perpow = 120;

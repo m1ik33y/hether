@@ -1,0 +1,1 @@
+var gvtwsz = 722;

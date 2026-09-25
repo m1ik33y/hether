@@ -1,0 +1,1 @@
+var alldxz = 670;

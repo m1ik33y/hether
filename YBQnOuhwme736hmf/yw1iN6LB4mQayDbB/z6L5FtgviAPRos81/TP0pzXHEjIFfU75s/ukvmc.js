@@ -1,0 +1,1 @@
+var pjovga = 500;
