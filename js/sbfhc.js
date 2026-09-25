@@ -53,8 +53,8 @@ async function initUser() {
 }
 
 const supabaseClient = window.supabase.createClient(
-  "https://zdxevrzwndranrcerrhs.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpkeGV2cnp3bmRyYW5yY2VycmhzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NzA1NjYsImV4cCI6MjA5MzA0NjU2Nn0.F6HWXevFCBF1KTd7IahlqbfHhm3koC0pqmRFK4TPPfM"
+  "https://gwsjqnmeqifilnirowma.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3c2pxbm1lcWlmaWxuaXJvd21hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAzNDU0MDMsImV4cCI6MjEwNTkyMTQwM30.vCcFMH6DzYJ1_sWsFRkbR0OvrJnGRcnIxQMfXRciUmw"
 );
 
 // ── LIBRARY (separate Supabase project) ──
