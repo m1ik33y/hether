@@ -516,7 +516,7 @@ body{
   content:'';
   position:absolute;
   inset:0;
-  background-image:url('/8UDR1x1WTLDCdZ4s/Vyq0qA94lG5VrPYW/JMwRRGC0OvI9aGUD/ddlQF6FW4hy0cAsw/JelMnuRpy0qdx2km/KpsgLg99aN3ybegg/chat_bg_pc.svg');
+  background-image:url('chat_bg_pc.svg');
   background-repeat:repeat;
   background-size:600px auto;
   pointer-events:none;
@@ -1827,7 +1827,7 @@ kbd{
   content:'';
   position:absolute;
   inset:0;
-  background-image:url('/8UDR1x1WTLDCdZ4s/Vyq0qA94lG5VrPYW/JMwRRGC0OvI9aGUD/ddlQF6FW4hy0cAsw/JelMnuRpy0qdx2km/KpsgLg99aN3ybegg/chat_bg_pc.svg');
+  background-image:url('chat_bg_pc.svg');
   background-repeat:repeat;
   background-size:600px auto;
   pointer-events:none;
@@ -1841,7 +1841,7 @@ kbd{
 }
 @media (max-width: 768px){
   .flux-ai-panel::before{
-    background-image:url('/ho0VOjcBZZXCQn4R/LCBYmGM7iKkpAbkn/mQPoFSXgpwNREEyV/sjbtBOg64o81ej51/y9AYrYBNM3GxboC1/43aUMWGWRzPVRzGR/chat_bg.svg');
+    background-image:url('chat_bg.svg');
     background-size:400px auto;
   }
 }
@@ -4898,7 +4898,7 @@ label.emoji-btn{ margin-right:4px; }
   content:'';
   position:absolute;
   inset:0;
-  background-image:url('/8UDR1x1WTLDCdZ4s/Vyq0qA94lG5VrPYW/JMwRRGC0OvI9aGUD/ddlQF6FW4hy0cAsw/JelMnuRpy0qdx2km/KpsgLg99aN3ybegg/chat_bg_pc.svg');
+  background-image:url('chat_bg_pc.svg');
   background-repeat:repeat;
   background-size:600px auto;
   pointer-events:none;
@@ -5982,7 +5982,7 @@ body.has-player-bar .main{ padding-bottom:84px; }
   content:'';
   position:absolute;
   inset:0;
-  background-image:url('/8UDR1x1WTLDCdZ4s/Vyq0qA94lG5VrPYW/JMwRRGC0OvI9aGUD/ddlQF6FW4hy0cAsw/JelMnuRpy0qdx2km/KpsgLg99aN3ybegg/chat_bg_pc.svg');
+  background-image:url('chat_bg_pc.svg');
   background-repeat:repeat;
   background-size:520px auto;
   pointer-events:none;
