@@ -1,0 +1,14 @@
+
+#fluxDeleteRelayBtn,
+#fluxFsDeleteRelayBtn {
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  min-height: 36px !important;
+  padding: 0 !important;
+}
+#fluxDeleteRelayBtn svg,
+#fluxFsDeleteRelayBtn svg {
+  width: 20px !important;
+  height: 20px !important;
+}

@@ -1,0 +1,55 @@
+
+/* FRONT PAGES: fixed black-red background + light text. Terminal/admin styling is intentionally untouched. */
+.main {
+  --bg: #060000;
+  --surface: #060000;
+  --input-bg: #060000;
+  --text: #f5f5f5;
+  --text2: #e8e8e8;
+  --text3: #bdbdbd;
+  background: #060000 !important;
+  color: #f5f5f5;
+}
+.main .relay-view,
+.main .notes-view,
+.main .calc-view,
+.main .settings-view,
+.main .settings-content,
+.main .messages,
+.main .input-area {
+  background-color: #060000;
+  color: #f5f5f5;
+}
+.main .welcome-hello { color: #ffffff !important; }
+.main .welcome-greeting { color: #f0f0f0 !important; }
+.main input,
+.main textarea,
+.main select {
+  color: #f5f5f5;
+}
+.main input::placeholder,
+.main textarea::placeholder { color: #bdbdbd; }
+
+/* AI panel: keep the intro/header and input bar dark, with white text. */
+.flux-ai-panel {
+  --bg: #101013;
+  --surface: #18181b;
+  --surface2: #120C0C;
+  --input-bg: #060000;
+  --text: #f5f5f5;
+  --text2: #e8e8e8;
+  --text3: #bdbdbd;
+  background: #101013 !important;
+  color: #f5f5f5;
+}
+.flux-ai-panel #fluxAiInput { color: #ffffff !important; background: transparent !important; }
+.flux-ai-panel #fluxAiInput::placeholder { color: #bdbdbd !important; }
+.flux-ai-panel .flux-ai-messages { background: transparent; color: #f5f5f5; }
+.flux-ai-panel [style*="color:var(--text)"] { color: #ffffff !important; }
+.flux-ai-panel [style*="color:var(--text3)"] { color: #e0e0e0 !important; }
+.flux-ai-panel [style*="color:var(--text2)"] { color: #e8e8e8 !important; }
+
+/* AI companion input */
+.companion-input-row { background: #060000 !important; }
+#companionInput { color: #ffffff !important; }
+#companionInput::placeholder { color: #bdbdbd !important; }
