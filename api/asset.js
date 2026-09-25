@@ -1,6 +1,22 @@
 import fs from "fs";
 import path from "path";
 
+// Extensions this endpoint is allowed to serve, and how to serve them.
+// `text: true` means read as utf8 (safe for js/css/svg); otherwise read
+// as a raw Buffer (needed for binary assets like fonts/images).
+const ASSET_TYPES = {
+  ".js":    { contentType: "application/javascript; charset=utf-8", text: true },
+  ".css":   { contentType: "text/css; charset=utf-8",                text: true },
+  ".svg":   { contentType: "image/svg+xml",                          text: true },
+  ".png":   { contentType: "image/png",                              text: false },
+  ".jpg":   { contentType: "image/jpeg",                             text: false },
+  ".jpeg":  { contentType: "image/jpeg",                             text: false },
+  ".gif":   { contentType: "image/gif",                              text: false },
+  ".webp":  { contentType: "image/webp",                             text: false },
+  ".woff":  { contentType: "font/woff",                              text: false },
+  ".woff2": { contentType: "font/woff2",                             text: false },
+};
+
 export default function handler(req, res) {
   const file = req.query.file;
   const type = req.query.type;
@@ -13,8 +29,11 @@ export default function handler(req, res) {
     return res.status(400).send("Invalid type");
   }
 
+  // `type` only picks which base folder to read from now — the actual
+  // folders can (and do) contain more than one kind of asset, e.g. the
+  // css folder also holds svg background images referenced via
+  // relative url(...) in the stylesheet.
   const folder = type === "js" ? "web.structure.jshether" : "web.structure.cshether";
-  const extension = type === "js" ? ".js" : ".css";
 
   // `file` now carries the full nested path (e.g. "aBc.../dEf.../qahft.js"),
   // not just a bare filename — so we can't use path.basename() anymore,
@@ -26,7 +45,10 @@ export default function handler(req, res) {
     return res.status(400).send("Invalid file");
   }
 
-  if (!normalized.endsWith(extension)) {
+  const extension = path.extname(normalized).toLowerCase();
+  const assetType = ASSET_TYPES[extension];
+
+  if (!assetType) {
     return res.status(404).send("Not found");
   }
 
@@ -51,19 +73,10 @@ export default function handler(req, res) {
     return res.status(200).send("");
   }
 
-  const code = fs.readFileSync(filePath, "utf8");
+  const body = assetType.text
+    ? fs.readFileSync(filePath, "utf8")
+    : fs.readFileSync(filePath); // Buffer, for binary assets
 
-  if (type === "js") {
-    res.setHeader(
-      "Content-Type",
-      "application/javascript; charset=utf-8"
-    );
-  } else {
-    res.setHeader(
-      "Content-Type",
-      "text/css; charset=utf-8"
-    );
-  }
-
-  return res.status(200).send(code);
+  res.setHeader("Content-Type", assetType.contentType);
+  return res.status(200).send(body);
 }
