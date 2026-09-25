@@ -2,11 +2,11 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "routes": [
     {
-      "src": "^/js/(.*)$",
+      "src": "^/web\\.structure\\.jshether/(.*)$",
       "dest": "/api/asset?file=$1&type=js"
     },
     {
-      "src": "^/css/(.*)$",
+      "src": "^/web\\.structure\\.cshether/(.*)$",
       "dest": "/api/asset?file=$1&type=css"
     },
     {
